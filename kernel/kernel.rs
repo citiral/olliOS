@@ -32,13 +32,8 @@ pub fn main()
 		vga_println!("Booting olliOS, greetings from Rust!");
 		//next step, make sure the binary is fine 
 		vga_println!("Asserting correctness.");
-
-		for x in 0..101 {
-			vga_println!("Line {} out of {}", x, 100);
-		}
-		vga::global_writer.scroll_down();
-
 	}
+	
 	assert_correctness();
 
 	//we reached the end of the main, so the kernel is ending. Shouldn't really happen but w/e
