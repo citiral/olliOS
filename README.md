@@ -5,6 +5,13 @@ Custom operating system written in Rust as a learning project for both rust &amp
 
 It shows some text, the screen can scroll and it can _successfully_ crash.
 
+## TODO
+
+* loading a GDT and LDT
+* loading an IDT for interrupts (depends on GDT and LDT)
+* write io.rs for port io
+* Simple keyboard input (depends on IDT and port IO)
+
 ## Compiling
 
 Currently some small shell scripts are in place to compile. It will eventually be possible to select the arch you want to use, but for now, just run `build.sh` and it should compile the OS for i386/i686
