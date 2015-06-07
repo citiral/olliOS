@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["VgaTextWriter","A writer that is capable of writing to the VGA text buffer located at TEXT_POINTER Beware that this writer is not safe since multiple writers might be interacting with vga simultaniously"]],"enum":[["Color","Enum wrapping all possible text mode vga colors"]]});

@@ -1,8 +1,11 @@
 # Compiled files
 *.o
+*.a
 *.so
-*.rlib
 *.dll
+*.bin
+
+/doc
 
 # Executables
 *.exe

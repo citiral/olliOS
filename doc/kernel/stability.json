@@ -1,1 +1,0 @@
-{"name":"kernel","counts":{"deprecated":0,"unstable":0,"stable":2,"unmarked":26},"submodules":[{"name":"arch","counts":{"deprecated":0,"unstable":0,"stable":2,"unmarked":23},"submodules":[{"name":"vga","counts":{"deprecated":0,"unstable":0,"stable":2,"unmarked":22},"submodules":[]}]}]}
