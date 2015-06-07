@@ -3,7 +3,7 @@ Custom operating system written in Rust as a learning project for both rust &amp
 
 ## Features
 
-It shows some text, the screen can scroll and it can _sucessfully_ crash.
+It shows some text, the screen can scroll and it can _successfully_ crash.
 
 ## Compiling
 
