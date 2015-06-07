@@ -8,6 +8,7 @@ It shows some text, the screen can scroll and it can _sucessfully_ crash.
 ## Compiling
 
 Currently some small shell scripts are in place to compile. It will eventually be possible to select the arch you want to use, but for now, just run `build.sh` and it should compile the OS for i386/i686
+To compile the rust kernel, libcore first needs to be compiled using the target.json provided in the arch you want and the library should be placed in the lib folder of said arch. To make the process easier, a precompiled binary is already present in the repository.
 
 ## Running
 
