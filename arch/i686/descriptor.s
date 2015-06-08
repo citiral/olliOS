@@ -2,20 +2,32 @@
 .set base, 0
 
 
-#the gdtr
+#the IDT pointer
+IDTPtr:
+	.word IDT - IDTEnd - 1
+	.long IDT
+
+#the GDT pointer
 GDTPtr:
 	.word GDT - GDTEnd
 	.long GDT
+
+#the IDT itself
+IDT:
+.fill 256 , 8, 0
+IDTEnd:
+
+#the GDT itself
 GDT:
 	.long 0x00000000, 0x00000000	# 00 NULL Entry
 	.long 0x0000FFFF, 0x00CF9A00	# 08 PL0 Code
 	.long 0x0000FFFF, 0x00CF9200	# 10 PL0 Data
 	.long 0x0000FFFF, 0x00CFFA00	# 18 PL3 Code
 	.long 0x0000FFFF, 0x00CFF200	# 20 PL3 Data
-	.long 0x00000068, 0x00408900 	# 28 TSS
+	.long 0x00000068, 0x00408900 	# 28 TSS entry
 GDTEnd:
 
-
+#the TSS itself
 TSS:
 	.long 0x00000000	#0x00	reserved	LINK
 TSS_ESP0:
@@ -47,6 +59,38 @@ TSS_SS0:
 TSS_IOPB:
 	.long 0x00000000	#0x64	IOPB offset	.long
 TSSEnd:
+
+#loads the iDT
+.global reload_idt
+reload_idt:
+	enter $0, $0
+	
+#	call int_unused
+
+#	leave
+#	ret
+	
+	movl $int_unused, %eax
+	movl $int_unused, %ebx
+	shr $16, %ebx
+	movl $256, %ecx
+
+.start_fill_loop:
+	movl $IDT,	%edx
+	lea (%edx,%ecx,8), %edx
+
+	movw %ax, (%edx)
+	movw $0x08, 2(%edx)
+	movw $0x8E00, 4(%edx)
+	movw %bx, 6(%edx)
+	
+	loop .start_fill_loop
+
+	lidt IDTPtr
+
+	leave
+	ret
+
 
 #loads the TSS
 .global reload_tss

@@ -131,6 +131,8 @@ fn flush_gdt(length: usize)
 
 		reload_segments();
 		reload_tss();
+		reload_idt();
+
 /*
 		let raw : u64 = pointer.limit as u64 + ((pointer.base as u32 as u64) << 16);
 
@@ -148,6 +150,7 @@ fn flush_gdt(length: usize)
 extern "C" {
 	pub fn reload_segments();
 	pub fn reload_tss();
+	pub fn reload_idt();
 }
 
 ///sets up a flat GDT. Everything is mapped from 0 to 0xFFFFFFFF
