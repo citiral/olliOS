@@ -138,11 +138,15 @@ impl VgaTextWriter {
 					self.scroll_up();
 					self.row -= 1;
 				}
+				let (c, r) = (self.column, self.row);
+				self.set_cursor(c as u8, r as u8);
 			}
 			_ => {
 				self.put_char(value, self.column, self.row);
 				self.column += 1;
-			}
+				let (c, r) = (self.column, self.row);
+				self.set_cursor(c as u8, r as u8);
+			}		
 		}
 		//wrap if we are now at the end of the line
 		if self.column == WIDTH {

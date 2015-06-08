@@ -2,6 +2,7 @@
 use prelude::*;
 use descriptor;
 use core::fmt::Write;
+use pic;
 
 const IDT_ENTRIES: usize = 255;
 static IDT: [IdtDescriptor;IDT_ENTRIES] = [IdtDescriptor {offset_low: 0, selector: 0, zero: 0, type_attr: 0, offset_hi: 0};IDT_ENTRIES];
@@ -87,6 +88,9 @@ pub fn rust_int_unused()
 {
 	unsafe {
 		vga_println!("I got an unknown interrupt");
+		for x in 0..17 {
+			pic::end_interrupt(x as u8);
+		}
 	}
 }
 

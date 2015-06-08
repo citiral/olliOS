@@ -66,22 +66,6 @@ _start:
 	# our stack (as it grows downwards).
 	movl $stack_top, %esp
 
-	mov $0x0F, %ax
-	mov $0x3D4, %dx
-	out %al, %dx
-
-	mov $0, %ax
-	mov $0x3D5, %dx
-	out %al, %dx
-
-	mov $0x3D4, %dx
-	mov $0x0E, %ax
-	out %al, %dx
-	
-	mov $0, %ax
-	mov $0x3D5, %dx
-	out %al, %dx
-
 	# We are now ready to actually execute C code. We cannot embed that in an
 	# assembly file, so we'll create a kernel.c file in a moment. In that file,
 	# we'll create a C entry point called kernel_main and call it here.

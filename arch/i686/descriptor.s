@@ -27,6 +27,8 @@ GDT:
 	.long 0x00000068, 0x00408900 	# 28 TSS entry
 GDTEnd:
 
+
+
 #the TSS itself
 TSS:
 	.long 0x00000000	#0x00	reserved	LINK
@@ -63,6 +65,7 @@ TSSEnd:
 #loads the iDT
 .global reload_idt
 reload_idt:
+	pushal
 	enter $0, $0
 	
 	#load the address of the interrupt callback
@@ -92,6 +95,7 @@ reload_idt:
 
 	#and return
 	leave
+	popal
 	ret
 
 

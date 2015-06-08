@@ -127,12 +127,13 @@ fn flush_gdt(length: usize)
 		};
 		
 		//asm!("lgdt %eax"::"{eax}"(pointer));
-		vga_println!("beep");
 
 		reload_segments();
 		reload_tss();
 		reload_idt();
 
+
+		//vga_println!("beep");
 /*
 		let raw : u64 = pointer.limit as u64 + ((pointer.base as u32 as u64) << 16);
 
