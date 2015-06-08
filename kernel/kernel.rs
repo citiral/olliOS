@@ -1,4 +1,4 @@
-#![feature(no_std, core, lang_items)]
+#![feature(no_std, core, lang_items, asm)]
 #![no_std]
 
 ///we use the core crate instead of the std one
@@ -20,6 +20,7 @@ pub mod libc;
 fn assert_correctness()
 {
 	arch::vga::assert_correctness();
+	arch::descriptor::assert_correctness();
 	arch::interrupt::assert_correctness();
 }
 
@@ -35,6 +36,12 @@ pub fn main()
 	}
 	
 	assert_correctness();
+
+	unsafe {
+		vga_println!("Loading flat descriptor table.");
+	}
+
+	descriptor::init_flat_gdt();
 
 	//we reached the end of the main, so the kernel is ending. Shouldn't really happen but w/e
 	unsafe {
