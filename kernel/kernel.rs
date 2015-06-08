@@ -24,11 +24,6 @@ fn assert_correctness()
 	arch::interrupt::assert_correctness();
 }
 
-fn test()
-{
-
-}
-
 #[no_mangle]
 pub fn main()
 {

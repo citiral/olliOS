@@ -32,6 +32,7 @@ SECTIONS
 		*(COMMON)
 		*(.bss)
 		*(.bootstrap_stack)
+		*(.esp0_stack)
 	}
 
 	/* The compiler may produce other sections, by default it will put them in

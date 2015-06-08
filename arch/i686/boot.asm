@@ -5,6 +5,9 @@ FLAGS		equ 	MBALIGN | MEMINFO 	;we generaet the actual flags
 MAGIC		equ 	0x1BADB002			;magic number so the bootloader can find the header
 CHECKSUM	equ 	-(MAGIC + FLAGS)	;checksum for the above flag, so we can really prove we are multiboot
 
+
+
+
 ;we put the multiboot data in a seperate section so the linker can put this on the top
 ;of the file, so the bootloader can find this section
 section .multiboot
@@ -47,3 +50,9 @@ _start:
 	jmp .hang
 
 .end:
+
+
+section .data
+db 0 
+section .bss
+db 0

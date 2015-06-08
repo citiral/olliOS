@@ -25,6 +25,15 @@ stack_bottom:
 .skip 16384 # 16 KiB
 stack_top:
 
+
+#a stack that can be used as the ESP0 stack when interrupted
+.section .esp0_stack, "aw", @nobits
+.global esp0_top
+esp0_bottom:
+.skip 16384 # 16 KiB
+esp0_top:
+
+
 # The linker script specifies _start as the entry point to the kernel and the
 # bootloader will jump to this position once the kernel has been loaded. It
 # doesn't make sense to return from this function as the bootloader is gone.

@@ -129,7 +129,8 @@ fn flush_gdt(length: usize)
 		//asm!("lgdt %eax"::"{eax}"(pointer));
 		vga_println!("beep");
 
-		reload_segments(pointer.limit, pointer.base);
+		reload_segments();
+		reload_tss();
 /*
 		let raw : u64 = pointer.limit as u64 + ((pointer.base as u32 as u64) << 16);
 
@@ -143,9 +144,10 @@ fn flush_gdt(length: usize)
 	}
 }
 
+///the used asm functions for the descriptors
 extern "C" {
-	pub fn reload_segments(limit: u16, base: u32);
-	static gdt_pointer: u64;
+	pub fn reload_segments();
+	pub fn reload_tss();
 }
 
 ///sets up a flat GDT. Everything is mapped from 0 to 0xFFFFFFFF
