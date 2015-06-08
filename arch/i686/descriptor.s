@@ -65,29 +65,32 @@ TSSEnd:
 reload_idt:
 	enter $0, $0
 	
-#	call int_unused
-
-#	leave
-#	ret
-	
+	#load the address of the interrupt callback
 	movl $int_unused, %eax
 	movl $int_unused, %ebx
+	#also ge the top most 16 bits
 	shr $16, %ebx
+	#do it for all entries
 	movl $256, %ecx
 
 .start_fill_loop:
+	#get the offset
 	movl $IDT,	%edx
 	lea (%edx,%ecx,8), %edx
 
+	#fil in the data
 	movw %ax, (%edx)
 	movw $0x08, 2(%edx)
 	movw $0x8E00, 4(%edx)
 	movw %bx, 6(%edx)
 	
+	#keep looping
 	loop .start_fill_loop
 
+	#finally, load the table
 	lidt IDTPtr
 
+	#and return
 	leave
 	ret
 

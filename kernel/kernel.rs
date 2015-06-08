@@ -32,6 +32,7 @@ pub fn main()
 		vga::global_writer.clear();
 		vga_println!("Booting olliOS, greetings from Rust!");
 		vga_println!("Asserting correctness.");
+	//	vga::global_writer.set_cursor(2, 2);
 	}
 
 	assert_correctness();

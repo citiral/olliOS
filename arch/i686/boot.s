@@ -21,6 +21,7 @@
 # room for a small temporary stack by creating a symbol at the bottom of it,
 # then allocating 16384 bytes for it, and finally creating a symbol at the top.
 .section .bootstrap_stack, "aw", @nobits
+.global stack_top
 stack_bottom:
 .skip 16384 # 16 KiB
 stack_top:
@@ -64,6 +65,22 @@ _start:
 	# To set up a stack, we simply set the esp register to point to the top of
 	# our stack (as it grows downwards).
 	movl $stack_top, %esp
+
+	mov $0x0F, %ax
+	mov $0x3D4, %dx
+	out %al, %dx
+
+	mov $0, %ax
+	mov $0x3D5, %dx
+	out %al, %dx
+
+	mov $0x3D4, %dx
+	mov $0x0E, %ax
+	out %al, %dx
+	
+	mov $0, %ax
+	mov $0x3D5, %dx
+	out %al, %dx
 
 	# We are now ready to actually execute C code. We cannot embed that in an
 	# assembly file, so we'll create a kernel.c file in a moment. In that file,

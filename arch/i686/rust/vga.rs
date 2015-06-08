@@ -1,5 +1,6 @@
 use prelude::*;
 use core::{self, fmt};
+use io::*;
 
 ///The pointer to the vga buffer
 const TEXT_POINTER: *mut u16 = 0xB8000 as *mut u16;
@@ -167,6 +168,20 @@ impl VgaTextWriter {
 			for y in 0..HEIGHT {
 				self.put_char(' ', x, y);
 			}
+		}
+	}
+
+	pub fn set_cursor(&mut self, x: u8, y: u8)
+	{
+		let position = (x as u16) + (y as u16) * 80;
+		unsafe {
+			//set position low byte
+			outb(0x3D4, 0x0F);
+			outb(0x3D5, position as u8);
+
+			//and position high byte
+			outb(0x3D4, 0x0E);
+			outb(0x3D5, (position >> 8) as u8);
 		}
 	}
 }
