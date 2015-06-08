@@ -24,6 +24,11 @@ fn assert_correctness()
 	arch::interrupt::assert_correctness();
 }
 
+fn test()
+{
+
+}
+
 #[no_mangle]
 pub fn main()
 {
@@ -31,10 +36,9 @@ pub fn main()
 	unsafe {
 		vga::global_writer.clear();
 		vga_println!("Booting olliOS, greetings from Rust!");
-		//next step, make sure the binary is fine 
 		vga_println!("Asserting correctness.");
 	}
-	
+
 	assert_correctness();
 
 	unsafe {
@@ -47,4 +51,6 @@ pub fn main()
 	unsafe {
 		vga_println!("End of kernel reached.");
 	}
+
+	loop {}
 }

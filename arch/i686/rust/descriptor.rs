@@ -1,6 +1,6 @@
 use prelude::*;
 use core::fmt::Write;
-
+use core::mem::size_of;
 const GDT_ENTRIES: usize = 255;
 static mut GDT: [GdtDescriptor;GDT_ENTRIES] = [GdtDescriptor {
 	limit: 0,
@@ -13,6 +13,7 @@ static mut GDT: [GdtDescriptor;GDT_ENTRIES] = [GdtDescriptor {
 
 
 #[repr(C, packed)]
+#[derive(Debug, Copy, Clone)]
 ///Represents an IDT pointer that can be stord in the IDTR register
 pub struct DescriptorTablePointer {
 	///the length of the IDT in bytes - 1; Ie: 0x1000 means 0x200 interrupts
@@ -119,7 +120,32 @@ impl GdtDescriptor {
 ///reloads the gdt register with the given gdt length
 fn flush_gdt(length: usize)
 {
+	unsafe {
+		let pointer = DescriptorTablePointer {
+			limit: (length * size_of::<DescriptorTablePointer>()) as u16,
+			base: (&GDT).as_ptr() as u32,
+		};
+		
+		//asm!("lgdt %eax"::"{eax}"(pointer));
+		vga_println!("beep");
 
+		reload_segments(pointer.limit, pointer.base);
+/*
+		let raw : u64 = pointer.limit as u64 + ((pointer.base as u32 as u64) << 16);
+
+		let newpointer = DescriptorTablePointer {
+			limit: (raw) as u16,
+			base:  ((gdt_pointer >> 16) as u32),
+		};
+
+		vga_println!("old pointer is {:?} new pointer is {:?} ", raw as u32, gdt_pointer as u32);
+*/
+	}
+}
+
+extern "C" {
+	pub fn reload_segments(limit: u16, base: u32);
+	static gdt_pointer: u64;
 }
 
 ///sets up a flat GDT. Everything is mapped from 0 to 0xFFFFFFFF
@@ -143,9 +169,23 @@ pub fn init_flat_gdt()
 		GDT[1].set_granularity(true);
 		GDT[1].set_size(true);
 
+		//set the code GDT
+		GDT[2].set_base(0);
+		GDT[2].set_limit(0xFFFFFFFF);
+		GDT[2].set_present(true);
+		GDT[2].set_dpl(Dpl::Ring0);
+		GDT[2].set_executable(false);
+		GDT[2].set_direction(false);
+		GDT[2].set_rw(true);
+		GDT[2].set_granularity(true);
+		GDT[2].set_size(true);
+
 		assert!(GDT[1].limit == 0xFFFF, "limit wrong size");
 		assert!(GDT[1].access == 0x9A, "Access flags are wrong: should be {:b} but are {:b}.", 0x9A, GDT[1].access);
+		assert!(GDT[2].access == 0x92, "Access flags are wrong: should be {:b} but are {:b}.", 0x92, GDT[2].access);
 		assert!((GDT[1].limit_flags) == 0b11001111, "limit flags are wrong: should be {:b} but are {:b}.", 0b11001111, GDT[1].limit_flags);
+
+		flush_gdt(3);
 	}
 }
 
