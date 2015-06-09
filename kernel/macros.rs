@@ -29,3 +29,17 @@ macro_rules! assert_size {
         assert!(::core::mem::size_of::<$t>() == $size, concat!(stringify!($t), " is {} bytes instead of {}"), ::core::mem::size_of::<$t>(), $size);
     }
 }
+
+#[macro_export]
+macro_rules! label_addr {
+    ($texp:ident) => {
+        &mut $texp as *mut ::types::Label
+    }
+}
+
+#[macro_export]
+macro_rules! label_val {
+    ($texp:ident) => {
+        $texp
+    }
+}

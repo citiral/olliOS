@@ -16,6 +16,8 @@ use core::fmt::Write;
 pub mod prelude;
 pub mod error;
 pub mod libc;
+pub mod types;
+
 
 fn assert_correctness()
 {
@@ -35,6 +37,11 @@ pub fn main()
 	}
 	
 	assert_correctness();
+
+	unsafe {
+		vga_println!("Registering interrupts.");
+		interrupt::register_interrupts();
+	}
 	
 	unsafe {
 		vga_println!("Initialising GDT, TSS and IDT");
@@ -44,7 +51,12 @@ pub fn main()
 
 	unsafe {
 		vga_println!("Initialising the PIC");
-		pic::init_pic();	
+		pic::init_pic();
+
+		//TODO move this to a keyboard class (this disables translation)
+		io::outb(0x64, 0x60);
+		io::outb(0x60, 0b00000001);
+		io::inb(0x60);
 	}
 
 	//we reached the end of the main, so the kernel is ending. Shouldn't really happen but w/e
@@ -52,5 +64,9 @@ pub fn main()
 		vga_println!("End of kernel reached.");
 	}
 
-	loop {}
+	loop {
+		unsafe {
+			asm!("hlt");
+		}
+	}
 }

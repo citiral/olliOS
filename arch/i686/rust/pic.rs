@@ -11,13 +11,13 @@ const INIT: u8 = 0x11;
 const ICW4_8086: u8 = 0x01;
 ///ends an interrupt comming from the PIC
 pub unsafe fn end_interrupt(irq: u8)
-{
-	io::inb(SLAVE_COMMAND);
-	io::inb(MASTER_COMMAND);
+{//
+	//io::inb(SLAVE_COMMAND);
+	//io::inb(MASTER_COMMAND);
 	//if the irq is coming from the slave, send the command to him
-	//if (irq >= 8) {
+	if (irq >= 8) {
 		io::outb(SLAVE_COMMAND, EOI);
-	//}
+	}
 	//and send the command to the master
 	io::outb(MASTER_COMMAND, EOI);	
 }
@@ -99,11 +99,11 @@ pub unsafe fn init_pic()
 {
 	map_pics(0x20, 0x28);
 	clear_all_masks();
-	disable_irq(0);
+	//disable_irq(0);
 
 		for x in 0..16 {
 			//end_interrupt(x as u8);
 		}
 
-	asm!("sti");
+	asm!("sti"::::"volatile");
 }

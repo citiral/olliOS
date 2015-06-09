@@ -3,6 +3,11 @@ use prelude::*;
 use descriptor;
 use core::fmt::Write;
 use pic;
+use types::Label;
+use io;
+
+const PS2_INOUT: u16 = 0x60;
+const PS2_RW: u16 = 0x64;
 
 const IDT_ENTRIES: usize = 255;
 static IDT: [IdtDescriptor;IDT_ENTRIES] = [IdtDescriptor {offset_low: 0, selector: 0, zero: 0, type_attr: 0, offset_hi: 0};IDT_ENTRIES];
@@ -83,20 +88,214 @@ impl IdtDescriptor {
 	}
 }
 
+///registers all interrupts to the IDT
+pub unsafe fn register_interrupts()
+{
+	//first, set all addresses to unused
+	for x in 0..256 {
+		set_interrupt_address(x, label_addr!(int_unused));
+	}
+	set_interrupt_address(0x21, label_addr!(int_keyboard));
+}
+
 #[no_mangle]
-pub fn rust_int_unused()
+pub extern "C" fn rust_int_unused()
 {
 	unsafe {
-		vga_println!("I got an unknown interrupt");
-		for x in 0..17 {
-			pic::end_interrupt(x as u8);
-		}
+		//vga_println!("I got an unknown interrupt");
+		//for x in 0..32 {
+		pic::end_interrupt(0);
+		//}
 	}
+}
+
+
+#[inline(never)]
+#[no_mangle]
+pub extern "C" fn rust_int_keyboard()
+{
+	unsafe {
+		let scan = io::inb(PS2_INOUT);
+
+//		io::outb(PS2_INOUT, 0xF4);
+//		let response = io::inb(PS2_INOUT);
+
+//		vga_println!("response is {:x}", response);
+		//vga_println!("got key {} ", scan);
+
+		//io::outb(0x61, key | 0x80);
+		//io::outb(0x61, key);
+
+		let key = match scan {
+			0x1C => 'A',
+			0x32 => 'B',
+			0x21 => 'C',
+			0x23 => 'D',
+			0x24 => 'E',
+			0x2B => 'F',
+			0x34 => 'G',
+			0x33 => 'H',
+			0x43 => 'I',
+			0x3B => 'J',
+			0x42 => 'K',
+			0x4B => 'L',
+			0x3A => 'M',
+			0x31 => 'N',
+			0x44 => 'O',
+			0x4D => 'P',
+			0x15 => 'Q',
+			0x2D => 'R',
+			0x1B => 'S',
+			0x2C => 'T',
+			0x3C => 'U',
+			0x2A => 'V',
+			0x1D => 'W',
+			0x22 => 'X',
+			0x35 => 'Y',
+			0x1A => 'Z',
+			_ => '\0'
+		};
+
+		if key != '\0' {
+			::vga::global_writer.write_char(key);
+		}
+
+		//vga_println!("Keyboard interrupt scan {:x}", scan);
+		//io::outb(0x20, 0x20);
+		pic::end_interrupt(1)
+	}
+}
+
+///the used asm functions
+extern "C" {
+	pub fn set_interrupt_address(index: u32, address: *mut Label);
+	static mut int_unused: Label;
+	static mut int_keyboard: Label;
 }
 
 ///Calling this will check if all parts of this module are working correctly (proper sizes, ...)
 ///If this function fails it probably means the kernel has been improperly compiled and ignored some attributes, liked packed
 pub fn assert_correctness()
 {
+	assert_size!(Label, 4);
+	assert_size!(*mut Label, 4);
+	assert_size!(*mut u32, 4);
+	assert_size!(u32, 4);
 	assert_size!(IdtDescriptor, 8);
 }
+
+
+
+
+
+
+
+
+
+
+
+/*A
+1C
+F0,1C
+ 
+B
+32
+F0,32
+ 
+C
+21
+F0,21
+ 
+D
+23
+F0,23
+
+E
+24
+F0,24
+ 
+F
+2B
+F0,2B
+ 
+G
+34
+F0,34
+ 
+H
+33
+F0,33
+
+I
+43
+F0,43
+
+J
+3B
+F0,3B
+
+K
+42
+F0,42
+ 
+
+L
+4B
+F0,4B
+
+M
+3A
+F0,3A
+ 
+
+N
+31
+F0,31
+ 
+O
+44
+F0,44
+ 
+P
+4D
+F0,4D
+ 
+Q
+15
+F0,15
+
+R
+2D
+F0,2D
+
+S
+1B
+F0,1B
+
+T
+2C
+F0,2C
+
+U
+3C
+F0,3C
+
+V
+2A
+F0,2A
+ 
+W
+1D
+F0,1D
+
+X
+22
+F0,22
+ 
+Y
+35
+F0,35
+
+Z
+1A
+F0,1A*/

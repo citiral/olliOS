@@ -6,30 +6,30 @@
 
 pub unsafe fn outb(port: u16, value: u8)
 {
-	asm!("outb %al, %dx"::"{ax}" (value), "{dx}" (port) );
+	asm!("outb %al, %dx"::"{ax}" (value), "{dx}" (port)::"volatile" );
 }
 
 pub unsafe fn outw(port: u16, value: u16)
 {
-	asm!("outw %ax, %dx"::"{ax}" (value), "{dx}" (port) );
+	asm!("outw %ax, %dx"::"{ax}" (value), "{dx}" (port)::"volatile" );
 }
 
 pub unsafe fn outl(port: u16, value: u32)
 {
-	asm!("outl %eax, %dx"::"{eax}" (value), "{dx}" (port) );
+	asm!("outl %eax, %dx"::"{eax}" (value), "{dx}" (port)::"volatile" );
 }
 
 pub unsafe fn inb(port: u16) -> u8
 {
 	let mut value: u8;
-	asm!("inb %dx, %al":"={ax}" (value):"{dx}" (port));
+	asm!("inb %dx, %al":"={ax}" (value):"{dx}" (port)::"volatile");
 	value
 }
 
 pub unsafe fn inw(port: u16) -> u16
 {
 	let mut value: u16;
-	asm!("inw %dx, %ax":"={ax}" (value):"{dx}" (port));
+	asm!("inw %dx, %ax":"={ax}" (value):"{dx}" (port)::"volatile");
 	value
 }
 
@@ -37,6 +37,6 @@ pub unsafe fn inw(port: u16) -> u16
 pub unsafe fn inl(port: u16) -> u16
 {
 	let mut value: u16;
-	asm!("inl %dx, %eax":"={eax}" (value):"{dx}" (port));
+	asm!("inl %dx, %eax":"={eax}" (value):"{dx}" (port)::"volatile");
 	value
 }
