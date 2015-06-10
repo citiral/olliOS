@@ -7,9 +7,9 @@ use core::mem::size_of;
 ///Represents an IDT pointer that can be stord in the IDTR register
 pub struct DescriptorTablePointer {
 	///the length of the IDT in bytes - 1; Ie: 0x1000 means 0x200 interrupts
-	limit: u16,
+	pub limit: u16,
 	///address of where the IDT is stored
-	base: u32,
+	pub base: u32,
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -33,7 +33,6 @@ fn flush_gdt(length: usize)
 		
 		//asm!("lgdt %eax"::"{eax}"(pointer));
 
-		reload_segments();
 		reload_tss();
 		reload_idt();
 		
@@ -53,7 +52,6 @@ fn flush_gdt(length: usize)
 
 ///the used asm functions for the descriptors
 extern "C" {
-	pub fn reload_segments();
 	pub fn reload_tss();
 	pub fn reload_idt();
 }

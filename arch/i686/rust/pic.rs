@@ -15,7 +15,7 @@ pub unsafe fn end_interrupt(irq: u8)
 	//io::inb(SLAVE_COMMAND);
 	//io::inb(MASTER_COMMAND);
 	//if the irq is coming from the slave, send the command to him
-	if (irq >= 8) {
+	if irq >= 8 {
 		io::outb(SLAVE_COMMAND, EOI);
 	}
 	//and send the command to the master
@@ -31,7 +31,7 @@ pub unsafe fn clear_all_masks()
 
 pub unsafe fn enable_irq(irq: u8)
 {
-	let mut mask = if (irq >= 8) {
+	let mut mask = if irq >= 8 {
 		io::inb(SLAVE_DATA)
 	} else {
 		io::inb(MASTER_DATA)
@@ -49,7 +49,7 @@ pub unsafe fn enable_irq(irq: u8)
 
 pub unsafe fn disable_irq(irq: u8)
 {
-	let mut mask = if (irq >= 8) {
+	let mut mask = if irq >= 8 {
 		io::inb(SLAVE_DATA)
 	} else {
 		io::inb(MASTER_DATA)
@@ -102,7 +102,7 @@ pub unsafe fn init_pic()
 	//disable_irq(0);
 
 		for x in 0..16 {
-			//end_interrupt(x as u8);
+			end_interrupt(x as u8);
 		}
 
 	asm!("sti"::::"volatile");

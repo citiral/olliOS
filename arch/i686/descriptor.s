@@ -4,12 +4,12 @@
 
 #the IDT pointer
 IDTPtr:
-	.word IDT - IDTEnd - 1
+	.word IDTEnd - IDT - 1
 	.long IDT
 
 #the GDT pointer
 GDTPtr:
-	.word GDT - GDTEnd
+	.word GDTEnd - GDT
 	.long GDT
 
 #the IDT itself
@@ -128,7 +128,7 @@ set_interrupt_address:
 #loads the TSS
 .global reload_tss
 reload_tss:
-	movw	$0x10,	TSS_SS0			#first set the SS0 to the gdt datasegment (0x10, probably)
+	movw	$0x10, TSS_SS0			#first set the SS0 to the gdt datasegment (0x10, probably)
 	movl	$esp0_top, TSS_ESP0		#then set the stack to our special tss_esp0 stack
 	movw	$104,	TSS_IOPB+2
 	movw 	$0x28, 	%ax				#set the index of the TSS in the GDT
@@ -136,25 +136,41 @@ reload_tss:
 
 	ret
 
+#reloads the gdt
+#(limit:u16, base:u32)
+.global reload_gdt
+reload_gdt:
+	#move the arguments to the gdt ptr
+	movl 4(%esp), %ax
+	movw %ax, GDTPtr
+	movl 8(%esp), %eax
+	movl %eax, GDTPtr+2
+
+	#and load the gdt
+	lgdt GDTPtr
+
+	#then we reload the segments
+	call reload_segments
+	ret
+
 #this routine reloads the segment
 .global reload_segments
 reload_segments:
+	#movl	$TSS,	%eax			#set up the TSS base
+	#movw	%ax,	GDT+0x28+2
+	#shr		$16,	%eax
+	#movb	%al,	GDT+0x28+4
+	#movb	%ah,	GDT+0x28+7
 
-	movl	$TSS,	%eax			#set up the TSS base
-	movw	%ax,	GDT+0x28+2
-	shr		$16,	%eax
-	movb	%al,	GDT+0x28+4
-	movb	%ah,	GDT+0x28+7
-
-	lgdt GDTPtr					#load the gdt_pointer in the gdt register
+	#lgdt GDTPtr					#load the gdt_pointer in the gdt register
    	lcall $0x08,$.reload_CS		##0x08 points at the new code selector
 .reload_CS:
-	movw   $0x10, %ax			#0x10 points at the new data selector
-	movw   %ax, %DS
-	movw   %ax, %ES
-	movw   %ax, %FS
-	movw   %ax, %GS
-	movw   %ax, %SS
+	movw	$0x10,	%ax			#0x10 points at the new data selector
+	movw	%ax,	%DS
+	movw	%ax,	%ES
+	movw	%ax, 	%FS
+	movw	%ax, 	%GS
+	movw	%ax, 	%SS
 .end:
 	ret
 

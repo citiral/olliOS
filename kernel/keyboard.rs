@@ -82,6 +82,13 @@ pub struct Keyboard {
 
 impl Keyboard {
 
+	pub fn new() -> Keyboard
+	{
+		Keyboard {
+			keystates: [0;KEYS],
+		}
+	}
+
 	pub fn register_callback(&self)
 	{
 

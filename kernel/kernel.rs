@@ -1,5 +1,10 @@
-#![feature(no_std, core, lang_items, asm)]
+#![feature(no_std)]
 #![no_std]
+#![crate_type="staticlib"]
+#![feature(core)]
+#![feature(asm)]
+#![feature(lang_items)]
+
 
 ///we use the core crate instead of the std one
 #[macro_use]
@@ -19,9 +24,24 @@ pub mod libc;
 pub mod types;
 pub mod keyboard;
 
+
 ///The base kernel struct containing everything
 struct Kernel {
+	gdt: gdt::Gdt,
 	keyboard: keyboard::Keyboard,
+}
+
+impl Kernel {
+	pub fn initialize(&mut self)
+	{
+		unsafe {
+			vga_println!("Setting up flat GDT.");
+		}
+		self.gdt = gdt::create_flat_gdt();
+		unsafe {
+			self.gdt.flush();
+		}
+	}
 }
 
 fn assert_correctness()
@@ -38,11 +58,19 @@ pub fn main()
 	//when booting, clear the screen and show the splash
 	unsafe {
 		vga::global_writer.clear();
-		vga_println!("Booting olliOS, greetings from Rust!");
 		vga_println!("Asserting correctness.");
 	}
-	
 	assert_correctness();
+
+	unsafe {
+		vga_println!("Booting olliOS, greetings from Rust!");
+	}
+
+	let mut kernel = Kernel {
+		gdt: gdt::Gdt::new(),
+		keyboard: keyboard::Keyboard::new(),
+	};
+	kernel.initialize();
 
 	unsafe {
 		vga_println!("Registering interrupts.");
