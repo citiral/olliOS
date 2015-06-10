@@ -125,39 +125,45 @@ pub extern "C" fn rust_int_keyboard()
 
 		//io::outb(0x61, key | 0x80);
 		//io::outb(0x61, key);
+		//vga_println!("got key interrupt {:x}", scan);
 
-		let key = match scan {
-			0x1C => 'A',
-			0x32 => 'B',
-			0x21 => 'C',
-			0x23 => 'D',
-			0x24 => 'E',
-			0x2B => 'F',
-			0x34 => 'G',
-			0x33 => 'H',
-			0x43 => 'I',
-			0x3B => 'J',
-			0x42 => 'K',
-			0x4B => 'L',
-			0x3A => 'M',
-			0x31 => 'N',
-			0x44 => 'O',
-			0x4D => 'P',
-			0x15 => 'Q',
-			0x2D => 'R',
-			0x1B => 'S',
-			0x2C => 'T',
-			0x3C => 'U',
-			0x2A => 'V',
-			0x1D => 'W',
-			0x22 => 'X',
-			0x35 => 'Y',
-			0x1A => 'Z',
-			_ => '\0'
-		};
+		if (scan == 0xF0) {
+			let key = io::inb(PS2_INOUT);
+			vga_println!("released {:x}", key);
+		} else {
 
-		if key != '\0' {
-			::vga::global_writer.write_char(key);
+			let key = match scan {
+				0x1C => 'A',
+				0x32 => 'B',
+				0x21 => 'C',
+				0x23 => 'D',
+				0x24 => 'E',
+				0x2B => 'F',
+				0x34 => 'G',
+				0x33 => 'H',
+				0x43 => 'I',
+				0x3B => 'J',
+				0x42 => 'K',
+				0x4B => 'L',
+				0x3A => 'M',
+				0x31 => 'N',
+				0x44 => 'O',
+				0x4D => 'P',
+				0x15 => 'Q',
+				0x2D => 'R',
+				0x1B => 'S',
+				0x2C => 'T',
+				0x3C => 'U',
+				0x2A => 'V',
+				0x1D => 'W',
+				0x22 => 'X',
+				0x35 => 'Y',
+				0x1A => 'Z',
+				_ => '\0'
+			};
+			if key != '\0' {
+				::vga::global_writer.write_char(key);
+			}
 		}
 
 		//vga_println!("Keyboard interrupt scan {:x}", scan);

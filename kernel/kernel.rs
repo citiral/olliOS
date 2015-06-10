@@ -17,13 +17,19 @@ pub mod prelude;
 pub mod error;
 pub mod libc;
 pub mod types;
+pub mod keyboard;
 
+///The base kernel struct containing everything
+struct Kernel {
+	keyboard: keyboard::Keyboard,
+}
 
 fn assert_correctness()
 {
-	arch::vga::assert_correctness();
-	arch::descriptor::assert_correctness();
-	arch::interrupt::assert_correctness();
+	vga::assert_correctness();
+	descriptor::assert_correctness();
+	interrupt::assert_correctness();
+	gdt::assert_correctness();
 }
 
 #[no_mangle]
@@ -56,7 +62,7 @@ pub fn main()
 		//TODO move this to a keyboard class (this disables translation)
 		io::outb(0x64, 0x60);
 		io::outb(0x60, 0b00000001);
-		io::inb(0x60);
+		//io::inb(0x60);
 	}
 
 	//we reached the end of the main, so the kernel is ending. Shouldn't really happen but w/e
