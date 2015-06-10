@@ -11,9 +11,67 @@ static mut GDT: [GdtDescriptor;MAX_GDT_ENTRIES] = [GdtDescriptor {
 	base_hi: 0,
 };MAX_GDT_ENTRIES];
 
+pub struct Gdt {
+	///The table containing the gdt descriptors
+	table: [GdtDescriptor;MAX_GDT_ENTRIES],
+	///amount of used descriptors in the table
+	length: usize,
+}
+
+impl Gdt {
+	///generates a new gdt filled with empty entries
+	fn new() -> Gdt {
+		Gdt {
+			table: [GdtDescriptor {
+				limit: 0,
+				base_low: 0,
+				base_mid: 0,
+				access: 16,
+				limit_flags: 0,
+				base_hi: 0,
+			};MAX_GDT_ENTRIES],
+			length: 0
+		}
+	}
+
+	pub fn get_entry(&mut self, index: usize) -> &mut GdtDescriptor
+	{
+		&mut self.table[index]
+	}
+
+	pub fn set_entry(&mut self, index: usize, entry: GdtDescriptor)
+	{
+		self.table[index] = entry;
+	}
+
+	pub fn add_entry(&mut self, entry: GdtDescriptor)
+	{
+		self.table[self.length] = entry;
+		self.length += 1;
+	}
+
+	pub fn set_length(&mut self, length: usize)
+	{
+		self.length = length
+	}
+
+	pub fn get_length(&mut self) -> usize
+	{
+		self.length
+	}
+
+	///Flushes the GDT. Any change made to used GDT entries will be reflected as soon
+	///as the segment registers are reloaded, but if the GDT is resized flush needs to be called.
+	///Flushing the gdt also makes sure the segment registers are reloaded.
+	pub fn flush()
+	{
+
+	}
+}
+
 #[repr(C, packed)]
 #[derive(Copy, Clone, Debug)]
-struct GdtDescriptor {
+pub struct GdtDescriptor {
 	limit: u16,
 	base_low: u16,
 	base_mid: u8,
