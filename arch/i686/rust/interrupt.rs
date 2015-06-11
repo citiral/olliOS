@@ -5,12 +5,90 @@ use core::fmt::Write;
 use pic;
 use types::Label;
 use io;
+use core::raw::{self, Repr};
 
 const PS2_INOUT: u16 = 0x60;
 const PS2_RW: u16 = 0x64;
 
-const IDT_ENTRIES: usize = 255;
-static IDT: [IdtDescriptor;IDT_ENTRIES] = [IdtDescriptor {offset_low: 0, selector: 0, zero: 0, type_attr: 0, offset_hi: 0};IDT_ENTRIES];
+const MAX_IDT_ENTRIES: usize = 255;
+static IDT: Idt = Idt {
+	table: [IdtDescriptor {
+		offset_low: 0,
+		selector: 0,
+		zero: 0,
+		type_attr: 0,
+		offset_hi: 0,
+	};MAX_IDT_ENTRIES],
+	length: 0
+};
+
+struct Idt {
+	///The table containing the gdt descriptors
+	table: [IdtDescriptor;MAX_IDT_ENTRIES],
+	///amount of used descriptors in the table
+	length: usize,
+}
+
+impl Idt {
+		///generates a new gdt filled with empty entries
+	pub fn new() -> Idt {
+		Idt {
+			table: [IdtDescriptor {
+				offset_low: 0,
+				selector: 0,
+				zero: 0,
+				type_attr: 0,
+				offset_hi: 0,
+			};MAX_IDT_ENTRIES],
+			length: 0
+		}
+	}
+
+	pub fn get_entry(&mut self, index: usize) -> &mut IdtDescriptor
+	{
+		&mut self.table[index]
+	}
+
+	pub fn set_entry(&mut self, index: usize, entry: IdtDescriptor)
+	{
+		self.table[index] = entry;
+	}
+
+	pub fn add_entry(&mut self, entry: IdtDescriptor)
+	{
+		self.table[self.length] = entry;
+		self.length += 1;
+	}
+
+	pub fn set_length(&mut self, length: usize)
+	{
+		self.length = length
+	}
+
+	pub fn get_length(&mut self) -> usize
+	{
+		self.length
+	}
+
+	///Flushes the GDT. Any change made to used GDT entries will be reflected as soon
+	///as the segment registers are reloaded, but if the GDT is resized flush needs to be called.
+	///Flushing the gdt also makes sure the segment registers are reloaded.
+	pub unsafe fn flush(&self)
+	{
+		let pointer = self.generate_table_pointer();
+		//reload_gdt(pointer.limit, pointer.base);
+	}
+
+	///generates a table descriptor pointer for this gdt
+	fn generate_table_pointer(&self) -> descriptor::DescriptorTablePointer
+	{
+		let tableptr: raw::Slice<IdtDescriptor> = self.table.repr();
+		descriptor::DescriptorTablePointer {
+			base: tableptr.data as u32,
+			limit: (self.length*8) as u16,
+		}
+	}
+}
 
 #[derive(Copy, Clone, Debug)]
 #[repr(C, packed)]
@@ -43,6 +121,14 @@ impl IdtDescriptor {
 			zero: 0,
 			type_attr: 0,
 			offset_hi: 0,
+		}
+	}
+
+	fn from_value(lower: u32, higher: u32) -> IdtDescriptor
+	{
+		IdtDescriptor {
+			offset_low: lower as u16,
+			selector: (lower >> 16) as u16,
 		}
 	}
 

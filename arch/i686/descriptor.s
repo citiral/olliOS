@@ -141,7 +141,7 @@ reload_tss:
 .global reload_gdt
 reload_gdt:
 	#move the arguments to the gdt ptr
-	movl 4(%esp), %ax
+	movw 4(%esp), %ax
 	movw %ax, GDTPtr
 	movl 8(%esp), %eax
 	movl %eax, GDTPtr+2

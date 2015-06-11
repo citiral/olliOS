@@ -3,6 +3,17 @@ use core::raw::{self, Repr};
 use core::fmt::Write;
 
 const MAX_GDT_ENTRIES: usize = 255;
+pub static mut gdt: Gdt = Gdt {
+	table: [GdtDescriptor {
+		limit: 0,
+		base_low: 0,
+		base_mid: 0,
+		access: 16,
+		limit_flags: 0,
+		base_hi: 0,
+	};MAX_GDT_ENTRIES],
+	length: 0
+};
 
 pub struct Gdt {
 	///The table containing the gdt descriptors
@@ -172,14 +183,14 @@ impl GdtDescriptor {
 
 pub fn create_flat_gdt() -> Gdt
 {
-	let mut gdt = Gdt::new();
-	gdt.add_entry(GdtDescriptor::from_value(0x00000000, 0x00000000));//NULL entry
-	gdt.add_entry(GdtDescriptor::from_value(0x0000FFFF, 0x00CF9A00));//PL0 Code
-	gdt.add_entry(GdtDescriptor::from_value(0x0000FFFF, 0x00CF9200));//PL0 Data
-	gdt.add_entry(GdtDescriptor::from_value(0x0000FFFF, 0x00CFFA00));//PL3 Code
-	gdt.add_entry(GdtDescriptor::from_value(0x0000FFFF, 0x00CFF200));//PL3 Data
-	gdt.add_entry(GdtDescriptor::from_value(0x00000068, 0x00408900));//TSS entry
-	gdt
+	let mut newgdt = Gdt::new();
+	newgdt.add_entry(GdtDescriptor::from_value(0x00000000, 0x00000000));//NULL entry
+	newgdt.add_entry(GdtDescriptor::from_value(0x0000FFFF, 0x00CF9A00));//PL0 Code
+	newgdt.add_entry(GdtDescriptor::from_value(0x0000FFFF, 0x00CF9200));//PL0 Data
+	newgdt.add_entry(GdtDescriptor::from_value(0x0000FFFF, 0x00CFFA00));//PL3 Code
+	newgdt.add_entry(GdtDescriptor::from_value(0x0000FFFF, 0x00CFF200));//PL3 Data
+	newgdt.add_entry(GdtDescriptor::from_value(0x00000068, 0x00408900));//TSS entry
+	newgdt
 }
 
 extern "C" {

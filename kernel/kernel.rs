@@ -27,7 +27,6 @@ pub mod keyboard;
 
 ///The base kernel struct containing everything
 struct Kernel {
-	gdt: gdt::Gdt,
 	keyboard: keyboard::Keyboard,
 }
 
@@ -37,11 +36,23 @@ impl Kernel {
 		unsafe {
 			vga_println!("Setting up flat GDT.");
 		}
-		self.gdt = gdt::create_flat_gdt();
-		unsafe {
-			self.gdt.flush();
-		}
 	}
+}
+
+///initializes the low level cpu shizzle, like the gdt, the tss and the pic
+fn initialize_lowlevel_cpu()
+{
+	unsafe {
+		vga_println!("Initializin GDT.");
+		gdt::gdt = gdt::create_flat_gdt();
+		gdt::gdt.flush();
+	}
+	unsafe {
+		vga_println!("Initializin TSS.");
+		gdt::gdt = gdt::create_flat_gdt();
+		gdt::gdt.flush();
+	}
+
 }
 
 fn assert_correctness()
@@ -58,19 +69,20 @@ pub fn main()
 	//when booting, clear the screen and show the splash
 	unsafe {
 		vga::global_writer.clear();
+		vga_println!("starting initialization process:");
 		vga_println!("Asserting correctness.");
 	}
+
 	assert_correctness();
 
-	unsafe {
-		vga_println!("Booting olliOS, greetings from Rust!");
-	}
+	initialize_lowlevel_cpu();
 
-	let mut kernel = Kernel {
+/*	let mut kernel = Kernel {
 		gdt: gdt::Gdt::new(),
 		keyboard: keyboard::Keyboard::new(),
 	};
-	kernel.initialize();
+
+	kernel.initialize();*/
 
 	unsafe {
 		vga_println!("Registering interrupts.");

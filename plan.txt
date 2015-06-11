@@ -1,0 +1,12 @@
+hardware abstractions:
+	static, unsafe
+	examples:
+		gdt, isr
+
+low level abstractions:
+	part of kernel struct
+	examples:
+		keyboard/ps2 devices
+
+highest abstraction:
+	shell, talking to static kernel subsystems
