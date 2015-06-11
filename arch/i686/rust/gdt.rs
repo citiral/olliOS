@@ -3,7 +3,7 @@ use core::raw::{self, Repr};
 use core::fmt::Write;
 
 const MAX_GDT_ENTRIES: usize = 255;
-pub static mut gdt: Gdt = Gdt {
+pub static mut GDT: Gdt = Gdt {
 	table: [GdtDescriptor {
 		limit: 0,
 		base_low: 0,

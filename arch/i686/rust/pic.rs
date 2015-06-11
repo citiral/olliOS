@@ -40,7 +40,7 @@ pub unsafe fn enable_irq(irq: u8)
 	mask = mask & (0xFFFF ^ (0x0001 << irq));
 	vga_println!("new mask is {}", mask);
 	
-	if (irq >= 8) {
+	if irq >= 8 {
 		io::outb(SLAVE_DATA, mask)
 	} else {
 		io::outb(MASTER_DATA, mask)
@@ -58,7 +58,7 @@ pub unsafe fn disable_irq(irq: u8)
 	mask = mask | (0x0001 << irq);
 	vga_println!("new mask is {}", mask);
 	
-	if (irq >= 8) {
+	if irq >= 8 {
 		io::outb(SLAVE_DATA, mask)
 	} else {
 		io::outb(MASTER_DATA, mask)

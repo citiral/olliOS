@@ -10,8 +10,8 @@ use core::raw::{self, Repr};
 const PS2_INOUT: u16 = 0x60;
 const PS2_RW: u16 = 0x64;
 
-const MAX_IDT_ENTRIES: usize = 255;
-static IDT: Idt = Idt {
+const MAX_IDT_ENTRIES: usize = 256;
+pub static mut IDT: Idt = Idt {
 	table: [IdtDescriptor {
 		offset_low: 0,
 		selector: 0,
@@ -22,7 +22,7 @@ static IDT: Idt = Idt {
 	length: 0
 };
 
-struct Idt {
+pub struct Idt {
 	///The table containing the gdt descriptors
 	table: [IdtDescriptor;MAX_IDT_ENTRIES],
 	///amount of used descriptors in the table
@@ -70,13 +70,11 @@ impl Idt {
 		self.length
 	}
 
-	///Flushes the GDT. Any change made to used GDT entries will be reflected as soon
-	///as the segment registers are reloaded, but if the GDT is resized flush needs to be called.
-	///Flushing the gdt also makes sure the segment registers are reloaded.
+	///flushes this IDT. It loads the idt pointer on the cpu
 	pub unsafe fn flush(&self)
 	{
 		let pointer = self.generate_table_pointer();
-		//reload_gdt(pointer.limit, pointer.base);
+		reload_idt(pointer.limit, pointer.base);
 	}
 
 	///generates a table descriptor pointer for this gdt
@@ -85,7 +83,7 @@ impl Idt {
 		let tableptr: raw::Slice<IdtDescriptor> = self.table.repr();
 		descriptor::DescriptorTablePointer {
 			base: tableptr.data as u32,
-			limit: (self.length*8) as u16,
+			limit: (self.length*8 - 1) as u16,
 		}
 	}
 }
@@ -93,7 +91,7 @@ impl Idt {
 #[derive(Copy, Clone, Debug)]
 #[repr(C, packed)]
 ///A single entry in the Idt table
-struct IdtDescriptor {
+pub struct IdtDescriptor {
 	offset_low: u16,
 	selector: u16,
 	zero: u8,
@@ -129,6 +127,9 @@ impl IdtDescriptor {
 		IdtDescriptor {
 			offset_low: lower as u16,
 			selector: (lower >> 16) as u16,
+			zero: higher as u8,
+			type_attr: (higher >> 8) as u8,
+			offset_hi: (higher >> 16) as u16,
 		}
 	}
 
@@ -174,6 +175,20 @@ impl IdtDescriptor {
 	}
 }
 
+extern "C" {
+	fn reload_idt(limit: u16, base: u32);
+}
+
+pub fn create_empty_idt() -> Idt
+{
+	let mut newidt = Idt::new();
+	for _ in 0..256 {
+		let newint = IdtDescriptor::from_value(0x00080000, 0x00008E00);
+		newidt.add_entry(newint);
+	};
+	newidt
+}
+
 ///registers all interrupts to the IDT
 pub unsafe fn register_interrupts()
 {
@@ -181,7 +196,7 @@ pub unsafe fn register_interrupts()
 	for x in 0..256 {
 		set_interrupt_address(x, label_addr!(int_unused));
 	}
-	set_interrupt_address(0x21, label_addr!(int_keyboard));
+	//set_interrupt_address(0x21, label_addr!(int_keyboard));
 }
 
 #[no_mangle]

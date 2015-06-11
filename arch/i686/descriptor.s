@@ -9,25 +9,13 @@ IDTPtr:
 
 #the GDT pointer
 GDTPtr:
-	.word GDTEnd - GDT
-	.long GDT
+	.word 0
+	.long 0
 
 #the IDT itself
 IDT:
 .fill 256 , 8, 0
 IDTEnd:
-
-#the GDT itself
-GDT:
-	.long 0x00000000, 0x00000000	# 00 NULL Entry
-	.long 0x0000FFFF, 0x00CF9A00	# 08 PL0 Code
-	.long 0x0000FFFF, 0x00CF9200	# 10 PL0 Data
-	.long 0x0000FFFF, 0x00CFFA00	# 18 PL3 Code
-	.long 0x0000FFFF, 0x00CFF200	# 20 PL3 Data
-	.long 0x00000068, 0x00408900 	# 28 TSS entry
-GDTEnd:
-
-
 
 #the TSS itself
 TSS:
@@ -63,7 +51,7 @@ TSS_IOPB:
 TSSEnd:
 
 #loads the iDT
-.global reload_idt
+/*.global reload_idt
 reload_idt:
 	push %ebx
 	
@@ -94,7 +82,7 @@ reload_idt:
 
 	#and return
 	pop %ebx
-	ret
+	ret*/
 
 #registers an interrupt in the table
 #two arguments, esp+8 = index, esp+12 = interrupt_address
@@ -109,7 +97,7 @@ set_interrupt_address:
 	movl 12(%esp), %ebx #address
 	
 	#set ecx to the address of the entry we want to change
-	movl $IDT, %ecx
+	movl (IDTPtr+2), %ecx
 	lea (%ecx, %eax, 8), %ecx
 
 	#now we get the middle and lower 16 bits of the address
@@ -151,6 +139,21 @@ reload_gdt:
 
 	#then we reload the segments
 	call reload_segments
+	ret
+
+#reloads the idt
+#(limit:u16, base:u32)
+.global reload_idt
+reload_idt:
+	#move the arguments to the gdt ptr
+	movw 4(%esp), %ax
+	movw %ax, IDTPtr
+	movl 8(%esp), %eax
+	movl %eax, IDTPtr+2
+
+	#and load the gdt
+	lidt IDTPtr
+
 	ret
 
 #this routine reloads the segment

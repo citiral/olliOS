@@ -4,6 +4,7 @@
 #![feature(core)]
 #![feature(asm)]
 #![feature(lang_items)]
+#![allow(dead_code)]
 
 
 ///we use the core crate instead of the std one
@@ -43,16 +44,21 @@ impl Kernel {
 fn initialize_lowlevel_cpu()
 {
 	unsafe {
-		vga_println!("Initializin GDT.");
+		vga_println!("Initializing GDT.");
+		gdt::GDT = gdt::create_flat_gdt();
+		gdt::GDT.flush();
+	}
+	/*unsafe {
+		vga_println!("Initializing TSS.");
 		gdt::gdt = gdt::create_flat_gdt();
 		gdt::gdt.flush();
-	}
+	}*/
 	unsafe {
-		vga_println!("Initializin TSS.");
-		gdt::gdt = gdt::create_flat_gdt();
-		gdt::gdt.flush();
+		vga_println!("Initializing IDT.");
+		interrupt::IDT = interrupt::create_empty_idt();
+		interrupt::IDT.flush();
+		//interrupt::register_interrupts();
 	}
-
 }
 
 fn assert_correctness()
@@ -74,20 +80,7 @@ pub fn main()
 	}
 
 	assert_correctness();
-
 	initialize_lowlevel_cpu();
-
-/*	let mut kernel = Kernel {
-		gdt: gdt::Gdt::new(),
-		keyboard: keyboard::Keyboard::new(),
-	};
-
-	kernel.initialize();*/
-
-	unsafe {
-		vga_println!("Registering interrupts.");
-		interrupt::register_interrupts();
-	}
 	
 	unsafe {
 		vga_println!("Initialising GDT, TSS and IDT");

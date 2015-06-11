@@ -34,7 +34,7 @@ fn flush_gdt(length: usize)
 		//asm!("lgdt %eax"::"{eax}"(pointer));
 
 		reload_tss();
-		reload_idt();
+		//reload_idt();
 		
 		//vga_println!("beep");
 /*
@@ -53,7 +53,6 @@ fn flush_gdt(length: usize)
 ///the used asm functions for the descriptors
 extern "C" {
 	pub fn reload_tss();
-	pub fn reload_idt();
 }
 
 ///sets up a flat GDT. Everything is mapped from 0 to 0xFFFFFFFF
