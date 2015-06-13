@@ -74,7 +74,9 @@ impl Idt {
 	pub unsafe fn flush(&self)
 	{
 		let pointer = self.generate_table_pointer();
-		reload_idt(pointer.limit, pointer.base);
+		let answer = reload_idt(pointer.limit, pointer.base);
+		vga_println!("answer: {} base: {}", answer, pointer.base);
+		//assert!(answer == pointer.base, "base wrong value");
 	}
 
 	///generates a table descriptor pointer for this gdt
@@ -176,14 +178,14 @@ impl IdtDescriptor {
 }
 
 extern "C" {
-	fn reload_idt(limit: u16, base: u32);
+	fn reload_idt(limit: u16, base: u32) -> u32;
 }
 
 pub fn create_empty_idt() -> Idt
 {
 	let mut newidt = Idt::new();
 	for _ in 0..256 {
-		let newint = IdtDescriptor::from_value(0x00080000, 0x00008E00);
+		let newint = IdtDescriptor::from_value(0x00008E00, 0x00080000);
 		newidt.add_entry(newint);
 	};
 	newidt
@@ -203,7 +205,7 @@ pub unsafe fn register_interrupts()
 pub extern "C" fn rust_int_unused()
 {
 	unsafe {
-		//vga_println!("I got an unknown interrupt");
+		vga_println!("I got an unknown interrupt");
 		//for x in 0..32 {
 		pic::end_interrupt(0);
 		//}
