@@ -49,9 +49,8 @@ fn initialize_hal()
 		interrupt::IDT.flush();
 		interrupt::register_interrupts();
 
-		//vga_println!("Initializing TSS.");
-		//gdt::gdt = gdt::create_flat_gdt();
-		//gdt::gdt.flush();
+		vga_println!("Initializing TSS.");
+		descriptor::initialize_tss(0x10, 0x28);
 		
 		
 		vga_println!("... HAL initialized.");

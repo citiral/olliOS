@@ -16,3 +16,27 @@ low level abstractions:
 
 highest abstraction:
 	shell, talking to static kernel subsystems
+
+
+
+multiple layers;
+
+layer one, is the HAL (hardware abstraction layer):
+	it is a wrapping layer on top of the generic hardware, such as the CPU (for managing the GDT, interrupts), PIC, interrupts, keyboard controller,..
+	All HAL code is static and thus unsafe. usage of this layer in multithreaded environments require locking, but this is not done for you!
+	These also cannot use any kernel features, so that means no memory allocation, no threads, no nothing.
+
+layer two, standalone services:
+	This layer contains the standalone services the kernel provides. The memory allocator(s) are examples. They can utilize parts of the HAL, but obviously
+	not each other. Most of the standalone services will be not much more than utilities.
+
+layer three, higher services:
+	A higher service is a service that is allowed to make use of standalone services. Something like the scheduler is a higher service.
+
+layer four, interface:
+	The interface is the layer containing the code that will handle the syscalls and other ways of the userspace programs to interract with the kernel.
+
+seperate:
+	runtime: custom rust runtime so the std can be used from userspace programs
+	api: custom api so userspace programs can run kernel specific code
+	ext: custom standard library intended as an extension on libcore for internal use in the kernel

@@ -184,12 +184,12 @@ impl GdtDescriptor {
 pub fn create_flat_gdt() -> Gdt
 {
 	let mut newgdt = Gdt::new();
-	newgdt.add_entry(GdtDescriptor::from_value(0x00000000, 0x00000000));//NULL entry
-	newgdt.add_entry(GdtDescriptor::from_value(0x0000FFFF, 0x00CF9A00));//PL0 Code
-	newgdt.add_entry(GdtDescriptor::from_value(0x0000FFFF, 0x00CF9200));//PL0 Data
-	newgdt.add_entry(GdtDescriptor::from_value(0x0000FFFF, 0x00CFFA00));//PL3 Code
-	newgdt.add_entry(GdtDescriptor::from_value(0x0000FFFF, 0x00CFF200));//PL3 Data
-	newgdt.add_entry(GdtDescriptor::from_value(0x00000068, 0x00408900));//TSS entry
+	newgdt.add_entry(GdtDescriptor::from_value(0x00000000, 0x00000000));//NULL entry: 0x00
+	newgdt.add_entry(GdtDescriptor::from_value(0x0000FFFF, 0x00CF9A00));//PL0 Code    0x8
+	newgdt.add_entry(GdtDescriptor::from_value(0x0000FFFF, 0x00CF9200));//PL0 Data    0x10
+	newgdt.add_entry(GdtDescriptor::from_value(0x0000FFFF, 0x00CFFA00));//PL3 Code    0x18
+	newgdt.add_entry(GdtDescriptor::from_value(0x0000FFFF, 0x00CFF200));//PL3 Data    0x20
+	newgdt.add_entry(GdtDescriptor::from_value(0x00000068, 0x00408900));//TSS entry   0x28
 	newgdt
 }
 
