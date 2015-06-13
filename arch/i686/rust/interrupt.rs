@@ -75,7 +75,7 @@ impl Idt {
 	{
 		let pointer = self.generate_table_pointer();
 		let answer = reload_idt(pointer.limit, pointer.base);
-		vga_println!("answer: {} base: {}", answer, pointer.base);
+		vga_println!("answer: {:x} base: {:x}", answer, pointer.base);
 		//assert!(answer == pointer.base, "base wrong value");
 	}
 
@@ -185,7 +185,7 @@ pub fn create_empty_idt() -> Idt
 {
 	let mut newidt = Idt::new();
 	for _ in 0..256 {
-		let newint = IdtDescriptor::from_value(0x00008E00, 0x00080000);
+		let newint = IdtDescriptor::from_value(0x00080000, 0x00008E00);
 		newidt.add_entry(newint);
 	};
 	newidt
@@ -194,11 +194,14 @@ pub fn create_empty_idt() -> Idt
 ///registers all interrupts to the IDT
 pub unsafe fn register_interrupts()
 {
-	//first, set all addresses to unused
-	for x in 0..256 {
-		set_interrupt_address(x, label_addr!(int_unused));
-	}
-	//set_interrupt_address(0x21, label_addr!(int_keyboard));
+	unsafe {
+		
+		//first, set all addresses to unused
+		for x in 0..256 {
+			set_interrupt_address(x, label_addr!(int_unused));
+		}
+		set_interrupt_address(0x21, label_addr!(int_keyboard));
+}	
 }
 
 #[no_mangle]

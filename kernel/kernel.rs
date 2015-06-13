@@ -56,8 +56,8 @@ fn initialize_lowlevel_cpu()
 	unsafe {
 		vga_println!("Initializing IDT.");
 		interrupt::IDT = interrupt::create_empty_idt();
-		interrupt::register_interrupts();
 		interrupt::IDT.flush();
+		interrupt::register_interrupts();
 	}
 }
 
