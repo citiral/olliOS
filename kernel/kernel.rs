@@ -38,7 +38,7 @@ impl Kernel {
 fn initialize_hal()
 {
 	unsafe {
-		vga_println!("beginning initializing HAL...");
+		vga_println!("beginning initializing HAL.");
 		vga_println!("Initializing GDT.");
 
 		gdt::GDT = gdt::create_flat_gdt();
@@ -51,14 +51,14 @@ fn initialize_hal()
 
 		vga_println!("Initializing TSS.");
 		descriptor::initialize_tss(0x10, 0x28);
-		
-		
-		vga_println!("... HAL initialized.");
 	}
 }
 
 fn assert_correctness()
 {
+	unsafe {
+		vga_println!("Asserting correctness.");
+	}
 	vga::assert_correctness();
 	descriptor::assert_correctness();
 	interrupt::assert_correctness();
@@ -71,8 +71,6 @@ pub fn main()
 	//when booting, clear the screen and show the splash
 	unsafe {
 		vga::global_writer.clear();
-		vga_println!("starting initialization process:");
-		vga_println!("Asserting correctness.");
 	}
 
 	assert_correctness();
