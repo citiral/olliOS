@@ -34,22 +34,27 @@ struct Kernel {
 impl Kernel {
 }
 
-///initializes the low level cpu shizzle, like the gdt, the tss and the pic
-fn initialize_lowlevel_cpu()
+///initializes the hardware abstraction layer
+fn initialize_hal()
 {
 	unsafe {
+		vga_println!("beginning initializing HAL...");
 		vga_println!("Initializing GDT.");
+
 		gdt::GDT = gdt::create_flat_gdt();
 		gdt::GDT.flush();
-		
-		//vga_println!("Initializing TSS.");
-		//gdt::gdt = gdt::create_flat_gdt();
-		//gdt::gdt.flush();
 		
 		vga_println!("Initializing IDT.");
 		interrupt::IDT = interrupt::create_empty_idt();
 		interrupt::IDT.flush();
 		interrupt::register_interrupts();
+
+		//vga_println!("Initializing TSS.");
+		//gdt::gdt = gdt::create_flat_gdt();
+		//gdt::gdt.flush();
+		
+		
+		vga_println!("... HAL initialized.");
 	}
 }
 
@@ -72,31 +77,21 @@ pub fn main()
 	}
 
 	assert_correctness();
-	initialize_lowlevel_cpu();
+	initialize_hal();
 	
-	unsafe {
-		vga_println!("Initialising GDT, TSS and IDT");
-	}
-
-	descriptor::init_flat_gdt();
-
 	unsafe {
 		vga_println!("Initialising the PIC");
 		pic::init_pic();
 
-		//TODO move this to a keyboard class (this disables translation)
+		//TODO move this to a keyboard class (this disables translation from keyset 2 to 1)
 		io::outb(0x64, 0x60);
 		io::outb(0x60, 0b00000001);
 		//io::inb(0x60);
 	}
 
-	//we reached the end of the main, so the kernel is ending. Shouldn't really happen but w/e
-	unsafe {
-		vga_println!("End of kernel reached.");
-	}
-
 	loop {
 		unsafe {
+			vga_println!("We are halting!");
 			asm!("hlt");
 		}
 	}

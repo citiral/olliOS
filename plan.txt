@@ -1,3 +1,9 @@
+single threaded/processor,
+multiprogramming,
+preemptive,
+nonpreemptive kernel,
+
+
 hardware abstractions:
 	static, unsafe
 	examples:

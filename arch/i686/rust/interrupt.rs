@@ -74,9 +74,7 @@ impl Idt {
 	pub unsafe fn flush(&self)
 	{
 		let pointer = self.generate_table_pointer();
-		let answer = reload_idt(pointer.limit, pointer.base);
-		vga_println!("answer: {:x} base: {:x}", answer, pointer.base);
-		//assert!(answer == pointer.base, "base wrong value");
+		reload_idt(pointer.limit, pointer.base);
 	}
 
 	///generates a table descriptor pointer for this gdt
@@ -177,10 +175,6 @@ impl IdtDescriptor {
 	}
 }
 
-extern "C" {
-	fn reload_idt(limit: u16, base: u32) -> u32;
-}
-
 pub fn create_empty_idt() -> Idt
 {
 	let mut newidt = Idt::new();
@@ -198,9 +192,9 @@ pub unsafe fn register_interrupts()
 		
 		//first, set all addresses to unused
 		for x in 0..256 {
-			set_interrupt_address(x, label_addr!(int_unused));
+			IDT.get_entry(x).set_offset(label_addr!(int_unused) as u32);
 		}
-		set_interrupt_address(0x21, label_addr!(int_keyboard));
+			IDT.get_entry(0x21).set_offset(label_addr!(int_keyboard) as u32);
 }	
 }
 
@@ -280,7 +274,7 @@ pub extern "C" fn rust_int_keyboard()
 
 ///the used asm functions
 extern "C" {
-	pub fn set_interrupt_address(index: u32, address: *mut Label);
+	fn reload_idt(limit: u16, base: u32);
 	static mut int_unused: Label;
 	static mut int_keyboard: Label;
 }

@@ -13,7 +13,7 @@ GDTPtr:
 	.long 0
 
 
-#the TSS itself
+#the TSS
 TSS:
 	.long 0x00000000	#0x00	reserved	LINK
 TSS_ESP0:
@@ -48,7 +48,7 @@ TSSEnd:
 
 #registers an interrupt in the table
 #two arguments, esp+8 = index, esp+12 = interrupt_address
-.global set_interrupt_address
+/*.global set_interrupt_address
 .type set_interrupt_address, @function
 set_interrupt_address:
 	#we need to conserve ebx
@@ -74,7 +74,7 @@ set_interrupt_address:
 	#movl $int_unused, %eax
 	#load the old ebx
 	pop %ebx
-	ret
+	ret*/
 
 
 #loads the TSS
@@ -85,19 +85,18 @@ reload_tss:
 	movw	$104,	TSS_IOPB+2
 	movw 	$0x28, 	%ax				#set the index of the TSS in the GDT
 	ltr %ax	
-
 	ret
 
+#loads the idt
+#(limit: u16, base: u32)
 .global reload_idt
 reload_idt:
-
 	movw 4(%esp), %ax
 	movw %ax, IDTPtr
 	movl 8(%esp), %eax
 	movl %eax, IDTPtr+2
 	#finally, load the table
 	lidt IDTPtr
-
 	ret
 
 #reloads the gdt
@@ -109,24 +108,16 @@ reload_gdt:
 	movw %ax, GDTPtr
 	movl 8(%esp), %eax
 	movl %eax, GDTPtr+2
-
 	#and load the gdt
 	lgdt GDTPtr
-
 	#then we reload the segments
 	call reload_segments
 	ret
 
-#this routine reloads the segment
+
+#this routine reloads the segment registers
 .global reload_segments
 reload_segments:
-	#movl	$TSS,	%eax			#set up the TSS base
-	#movw	%ax,	GDT+0x28+2
-	#shr		$16,	%eax
-	#movb	%al,	GDT+0x28+4
-	#movb	%ah,	GDT+0x28+7
-
-	#lgdt GDTPtr					#load the gdt_pointer in the gdt register
    	lcall $0x08,$.reload_CS		##0x08 points at the new code selector
 .reload_CS:
 	movw	$0x10,	%ax			#0x10 points at the new data selector
@@ -137,11 +128,3 @@ reload_segments:
 	movw	%ax, 	%SS
 .end:
 	ret
-
-
-	
-#	pushal
-#	push $95
-#	push $30
-#	call callback_test
-#	popal
