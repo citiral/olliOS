@@ -32,12 +32,6 @@ struct Kernel {
 }
 
 impl Kernel {
-	pub fn initialize(&mut self)
-	{
-		unsafe {
-			vga_println!("Setting up flat GDT.");
-		}
-	}
 }
 
 ///initializes the low level cpu shizzle, like the gdt, the tss and the pic
@@ -47,13 +41,11 @@ fn initialize_lowlevel_cpu()
 		vga_println!("Initializing GDT.");
 		gdt::GDT = gdt::create_flat_gdt();
 		gdt::GDT.flush();
-	}
-	/*unsafe {
-		vga_println!("Initializing TSS.");
-		gdt::gdt = gdt::create_flat_gdt();
-		gdt::gdt.flush();
-	}*/
-	unsafe {
+		
+		//vga_println!("Initializing TSS.");
+		//gdt::gdt = gdt::create_flat_gdt();
+		//gdt::gdt.flush();
+		
 		vga_println!("Initializing IDT.");
 		interrupt::IDT = interrupt::create_empty_idt();
 		interrupt::IDT.flush();
