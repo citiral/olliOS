@@ -1,5 +1,6 @@
 use core::fmt::{Write, Arguments};
-
+use core::raw::{self, Repr};
+use alloc::{self, Allocator};
 
 #[lang="stack_exhausted"]
 extern fn stack_exhausted() {
@@ -36,4 +37,21 @@ fn panic_impl(fmt: Arguments, file: &'static str, line: u32) -> !
 	}
 
 	loop {}
+}
+
+#[lang = "owned_box"]
+pub struct Box<T>(*mut T);
+
+static mut ALLOC: alloc::WaterMarkAllocator = alloc::WaterMarkAllocator {
+	heap: [0; alloc::REC_HEAP_SIZE],
+	counter: 0,
+};
+
+#[lang = "exchange_malloc"]
+unsafe fn allocate(size: usize, _align: usize) -> *mut u8 {
+	ALLOC.allocate(size, _align)
+}
+#[lang = "exchange_free"]
+unsafe fn deallocate(ptr: *mut u8, _size: usize, _align: usize) {
+    ALLOC.deallocate(ptr, _size, _align)
 }

@@ -1,9 +1,6 @@
-#![feature(no_std)]
+#![feature(no_std, core, box_syntax, asm, lang_items)]
 #![no_std]
 #![crate_type="staticlib"]
-#![feature(core)]
-#![feature(asm)]
-#![feature(lang_items)]
 #![allow(dead_code)]
 
 
@@ -20,10 +17,11 @@ use core::fmt::Write;
 #[macro_use] pub mod macros;
 #[path="../arch/i686/rust/lib.rs"] pub mod arch;
 pub mod prelude;
-pub mod error;
+pub mod langitems;
 pub mod libc;
 pub mod types;
 pub mod keyboard;
+pub mod alloc;
 
 
 ///The base kernel struct containing everything
