@@ -1,0 +1,572 @@
+
+bin/ollios.bin:     file format elf32-i386
+bin/ollios.bin
+architecture: i386, flags 0x00000112:
+EXEC_P, HAS_SYMS, D_PAGED
+start address 0x0010000c
+
+Program Header:
+    LOAD off    0x00001000 vaddr 0x00100000 paddr 0x00100000 align 2**12
+         filesz 0x000038dc memsz 0x0000d004 flags rwx
+   STACK off    0x00000000 vaddr 0x00000000 paddr 0x00000000 align 2**4
+         filesz 0x00000000 memsz 0x00000000 flags rwx
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         00000107  00100000  00100000  00001000  2**12
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .text._ZN2i89drop.241617h916293dfd311269bE 00000005  00100110  00100110  00001110  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  2 .text._ZN4arch3vga13VgaTextWriter10write_char20h8b31089050235e30RuaE 0000013e  00100120  00100120  00001120  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  3 .text._ZN4arch3vga13VgaTextWriter12write_string20h9605a3dc6f1f80deEwaE 0000010f  00100260  00100260  00001260  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  4 .text._ZN4arch3vga13VgaTextWriter5clear20h8d06db369991da85hxaE 0000010d  00100370  00100370  00001370  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  5 .text.rust_int_test 000000c9  00100480  00100480  00001480  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  6 .text._ZN3fmt5Write9write_fmt36Adapter$LT$$u27$a$C$$u20$T$GT$.Write9write_str19h718319774261844007E 0000003d  00100550  00100550  00001550  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  7 .text._ZN3fmt5Write10write_char21h15209242701599995979E 000000e8  00100590  00100590  00001590  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  8 .text._ZN3fmt5Write9write_fmt36Adapter$LT$$u27$a$C$$u20$T$GT$.Write9write_fmt20h9216982986009222662E 0000008c  00100680  00100680  00001680  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  9 .text._ZN4arch3pic11disable_irq20h4aea3021ed94487fR3aE 000001ca  00100710  00100710  00001710  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+ 10 .text._ZN4arch3pic8init_pic20h4fbac5dfb4582db6R6aE 000000b8  001008e0  001008e0  000018e0  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+ 11 .text.rust_begin_unwind 0000012c  001009a0  001009a0  000019a0  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+ 12 .text._ZN3fmt25_$RF$$u27$a$u20$T.Display3fmt20h7603731838392268012E 00000039  00100ad0  00100ad0  00001ad0  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+ 13 .text.memcpy  0000002d  00100b10  00100b10  00001b10  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+ 14 .text.memset  00000029  00100b40  00100b40  00001b40  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+ 15 .text.main    0000071d  00100b70  00100b70  00001b70  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+ 16 .text._ZN9panicking5panic20h4339036ec09534ffP3BE 00000072  00101290  00101290  00002290  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+ 17 .text._ZN9panicking18panic_bounds_check20h7a4ed14d5dbbcf40o4BE 00000078  00101310  00101310  00002310  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+ 18 .text._ZN9panicking9panic_fmt20h2099ce2a5132e427i5BE 000000b0  00101390  00101390  00002390  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+ 19 .text._ZN3fmt3num16u32.fmt..Display3fmt20hb9dfb8db900b87c2H9LE 000001ac  00101440  00101440  00002440  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+ 20 .text._ZN3fmt11str.Display3fmt20hbcfaae67ad570dd0cCNE 00000039  001015f0  001015f0  000025f0  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+ 21 .text._ZN3fmt23Formatter$LT$$u27$a$GT$3pad20h497469faa14543c2EcNE 0000039a  00101630  00101630  00002630  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+ 22 .text._ZN4char15encode_utf8_raw20hf6494545cb1641b3SSBE 0000018d  001019d0  001019d0  000029d0  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+ 23 .text._ZN3str10str.StrExt11slice_chars20h5383ecd80c01cafbA2JE 000001cb  00101b60  00101b60  00002b60  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+ 24 .text._ZN3fmt3num15u8.fmt..Display3fmt20h85a2fb46ea8c159c5XLE 0000012a  00101d30  00101d30  00002d30  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+ 25 .text._ZN3fmt23Formatter$LT$$u27$a$GT$12pad_integral20h298fa6c9a4576d6ce7ME 00000745  00101e60  00101e60  00002e60  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+ 26 .text._ZN3fmt5write20h571471b90f74812cw1ME 000003fd  001025b0  001025b0  000035b0  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+ 27 .text._ZN3fmt24Error...core..fmt..Debug3fmt20h93ae86d71c1238e3TQME 00000045  001029b0  001029b0  000039b0  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+ 28 .text._ZN3fmt24ArgumentV1$LT$$u27$a$GT$10show_usize20h26c934bb602d5d6aHUME 00000018  00102a00  00102a00  00003a00  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+ 29 .text._ZN3fmt31Arguments$LT$$u27$a$GT$.Display3fmt20hf6cb0ffa42802120qZME 00000060  00102a20  00102a20  00003a20  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+ 30 .text._ZN3fmt3num18usize.fmt..Display3fmt20h5a72116d6e1d41fahSLE 00000018  00102a80  00102a80  00003a80  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+ 31 .rodata.str2660 00000027  00102aa0  00102aa0  00003aa0  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 32 .rodata.str2804 00000012  00102ad0  00102ad0  00003ad0  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 33 .rodata.str2811 00000001  00102ae2  00102ae2  00003ae2  2**0
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 34 .rodata.str2874 0000000c  00102ae3  00102ae3  00003ae3  2**0
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 35 .rodata.str2879 0000000c  00102aef  00102aef  00003aef  2**0
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 36 .rodata.str2883 00000008  00102afb  00102afb  00003afb  2**0
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 37 .rodata.str2884 00000009  00102b03  00102b03  00003b03  2**0
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 38 .rodata.str2885 00000002  00102b0c  00102b0c  00003b0c  2**0
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 39 .rodata.str2901 0000001c  00102b10  00102b10  00003b10  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 40 .rodata.str2903 00000012  00102b30  00102b30  00003b30  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 41 .rodata.str2905 00000012  00102b50  00102b50  00003b50  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 42 .rodata.str2907 00000012  00102b70  00102b70  00003b70  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 43 .rodata.str2911 00000017  00102b90  00102b90  00003b90  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 44 .rodata.str2913 00000015  00102bb0  00102bb0  00003bb0  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 45 .rodata.str2917 00000010  00102bc5  00102bc5  00003bc5  2**0
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 46 .rodata.str43545 0000002a  00102be0  00102be0  00003be0  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 47 .rodata.str43546 00000010  00102c0a  00102c0a  00003c0a  2**0
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 48 .rodata.str43547 00000029  00102c20  00102c20  00003c20  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 49 .rodata.str43741 0000002b  00102c50  00102c50  00003c50  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 50 .rodata.str43742 00000011  00102c80  00102c80  00003c80  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 51 .rodata.str43948 0000000f  00102c91  00102c91  00003c91  2**0
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 52 .rodata.str43997 00000020  00102ca0  00102ca0  00003ca0  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 53 .rodata.str43998 00000012  00102cc0  00102cc0  00003cc0  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 54 .rodata.str44009 00000011  00102ce0  00102ce0  00003ce0  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 55 .rodata.str44010 0000002d  00102d00  00102d00  00003d00  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 56 .rodata.str44150 00000012  00102d30  00102d30  00003d30  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 57 .rodata.str44168 0000001e  00102d50  00102d50  00003d50  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 58 .rodata.str44196 0000002c  00102d70  00102d70  00003d70  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 59 .rodata.str44197 0000002a  00102da0  00102da0  00003da0  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 60 .rodata.str44224 0000001b  00102dd0  00102dd0  00003dd0  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 61 .rodata.str44225 00000002  00102deb  00102deb  00003deb  2**0
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 62 .rodata.str44228 00000012  00102df0  00102df0  00003df0  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 63 .rodata.str44331 00000005  00102e02  00102e02  00003e02  2**0
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 64 .rodata.str44362 00000012  00102e10  00102e10  00003e10  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 65 .got.plt      0000000c  00102e24  00102e24  00003e24  2**2
+                  CONTENTS, ALLOC, LOAD, DATA
+ 66 .data._ZN4arch3gdt3GDT20hf92372d50b1d2d24uaaE 000007fc  00102e30  00102e30  00003e30  2**4
+                  CONTENTS, ALLOC, LOAD, DATA
+ 67 .data._ZN4arch3vga13global_writer20h7320555348a656958maE 0000000c  00103630  00103630  00004630  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+ 68 .data.rel.ro.local.panic_bounds_check_loc2663 0000000c  00103640  00103640  00004640  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+ 69 .data.rel.ro.local.vtable2803 00000018  00103650  00103650  00004650  2**4
+                  CONTENTS, ALLOC, LOAD, DATA
+ 70 .data.rel.ro.local.ref2805 00000008  00103668  00103668  00004668  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+ 71 .data.rel.ro.local._ZN4arch9interrupt13rust_int_test15__STATIC_FMTSTR20hc279742f896c17bfHMaE 00000008  00103670  00103670  00004670  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+ 72 .data.rel.ro.local.ref2875 00000010  00103678  00103678  00004678  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+ 73 .data.rel.ro.local.ref2880 00000010  00103688  00103688  00004688  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+ 74 .data.rel.ro.local._ZN4arch3pic11disable_irq15__STATIC_FMTSTR20hc279742f896c17bfn4aE 00000008  00103698  00103698  00004698  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+ 75 .data.rel.ro.local._ZN4arch3pic11disable_irq15__STATIC_FMTSTR20hc279742f896c17bf44aE 00000008  001036a0  001036a0  000046a0  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+ 76 .data.rel.ro.local.ref2886 00000020  001036b0  001036b0  000046b0  2**4
+                  CONTENTS, ALLOC, LOAD, DATA
+ 77 .data.rel.ro.local._ZN9langitems10panic_impl15__STATIC_FMTSTR20hc279742f896c17bf98aE 00000008  001036d0  001036d0  000046d0  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+ 78 .data.rel.ro.local.ref2902 00000008  001036d8  001036d8  000046d8  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+ 79 .data.rel.ro.local._ZN14initialize_hal15__STATIC_FMTSTR20hc279742f896c17bfAibE 00000008  001036e0  001036e0  000046e0  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+ 80 .data.rel.ro.local.ref2904 00000008  001036e8  001036e8  000046e8  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+ 81 .data.rel.ro.local._ZN14initialize_hal15__STATIC_FMTSTR20hc279742f896c17bf0ibE 00000008  001036f0  001036f0  000046f0  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+ 82 .data.rel.ro.local.ref2906 00000008  001036f8  001036f8  000046f8  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+ 83 .data.rel.ro.local._ZN14initialize_hal15__STATIC_FMTSTR20hc279742f896c17bfyjbE 00000008  00103700  00103700  00004700  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+ 84 .data.rel.ro.local.ref2908 00000008  00103708  00103708  00004708  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+ 85 .data.rel.ro.local._ZN14initialize_hal15__STATIC_FMTSTR20hc279742f896c17bf9jbE 00000008  00103710  00103710  00004710  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+ 86 .data.rel.ro.local.ref2912 00000008  00103718  00103718  00004718  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+ 87 .data.rel.ro.local._ZN18assert_correctness15__STATIC_FMTSTR20hc279742f896c17bfKkbE 00000008  00103720  00103720  00004720  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+ 88 .data.rel.ro.local.ref2914 00000008  00103728  00103728  00004728  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+ 89 .data.rel.ro.local._ZN4main15__STATIC_FMTSTR20hc279742f896c17bfElbE 00000008  00103730  00103730  00004730  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+ 90 .data.rel.ro.local.ref2918 00000008  00103738  00103738  00004738  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+ 91 .data.rel.ro.local._ZN4main15__STATIC_FMTSTR20hc279742f896c17bflmbE 00000008  00103740  00103740  00004740  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+ 92 .data.rel.ro.local._ZN5slice54_$u5b$T$u5d$.ops..Index$LT$ops..Range$LT$usize$GT$$GT$5index14_MSG_FILE_LINE20h290413c064f2f02dPEGE 00000014  00103750  00103750  00004750  2**4
+                  CONTENTS, ALLOC, LOAD, DATA
+ 93 .data.rel.ro.local._ZN5slice54_$u5b$T$u5d$.ops..Index$LT$ops..Range$LT$usize$GT$$GT$5index14_MSG_FILE_LINE20h290413c064f2f02diFGE 00000014  00103770  00103770  00004770  2**4
+                  CONTENTS, ALLOC, LOAD, DATA
+ 94 .data.rel.ro.local._ZN6option15Option$LT$T$GT$6unwrap14_MSG_FILE_LINE20h290413c064f2f02dDSEE 00000014  00103790  00103790  00004790  2**4
+                  CONTENTS, ALLOC, LOAD, DATA
+ 95 .data.rel.ro.local.panic_bounds_check_loc43961 0000000c  001037a8  001037a8  000047a8  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+ 96 .data.rel.ro.local.panic_bounds_check_loc43969 0000000c  001037b8  001037b8  000047b8  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+ 97 .data.rel.ro.local.panic_bounds_check_loc43970 0000000c  001037c8  001037c8  000047c8  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+ 98 .data.rel.ro.local.panic_bounds_check_loc43971 0000000c  001037d8  001037d8  000047d8  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+ 99 .data.rel.ro.local.const43996 00000008  001037e8  001037e8  000047e8  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+100 .data.rel.ro.local.ref43999 00000010  001037f0  001037f0  000047f0  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+101 .data.rel.ro.local._ZN9panicking18panic_bounds_check15__STATIC_FMTSTR20h62a823dca495254cM4BE 00000008  00103800  00103800  00004800  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+102 .data.rel.ro.local._ZN6result24Result$LT$T$C$$u20$E$GT$6unwrap10_FILE_LINE20h76be75baa2d18581yxFE 0000000c  00103808  00103808  00004808  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+103 .data.rel.ro.local.ref44011 00000008  00103818  00103818  00004818  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+104 .data.rel.ro.local._ZN6result24Result$LT$T$C$$u20$E$GT$6unwrap15__STATIC_FMTSTR20h62a823dca495254cOxFE 00000008  00103820  00103820  00004820  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+105 .data.rel.ro.local._ZN3str10str.StrExt11slice_chars14_MSG_FILE_LINE20h290413c064f2f02dY2JE 00000014  00103830  00103830  00004830  2**4
+                  CONTENTS, ALLOC, LOAD, DATA
+106 .data.rel.ro.local._ZN3str10str.StrExt11slice_chars14_MSG_FILE_LINE20h290413c064f2f02d14JE 00000014  00103850  00103850  00004850  2**4
+                  CONTENTS, ALLOC, LOAD, DATA
+107 .data.rel.ro.local._ZN3str10str.StrExt11slice_chars14_MSG_FILE_LINE20h290413c064f2f02do5JE 00000014  00103870  00103870  00004870  2**4
+                  CONTENTS, ALLOC, LOAD, DATA
+108 .data.rel.ro.local.const44212 00000008  00103888  00103888  00004888  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+109 .data.rel.ro.local.ref44226 00000010  00103890  00103890  00004890  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+110 .data.rel.ro.local._ZN3fmt3num20Decimal.GenericRadix5digit10_FILE_LINE20h76be75baa2d18581rFLE 0000000c  001038a0  001038a0  000048a0  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+111 .data.rel.ro.local._ZN3fmt3num18Radix.GenericRadix5digit15__STATIC_FMTSTR20h62a823dca495254cmNLE 00000008  001038b0  001038b0  000048b0  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+112 .data.rel.ro.local.const44332 00000008  001038b8  001038b8  000048b8  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+113 .data.rel.ro.local.panic_bounds_check_loc44363 0000000c  001038c0  001038c0  000048c0  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+114 .data.rel.ro.local.panic_bounds_check_loc44364 0000000c  001038d0  001038d0  000048d0  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+115 .bss          00008000  00104000  00104000  000048dc  2**12
+                  ALLOC
+116 .bss._ZN4arch9interrupt3IDT20h983545c37c2081b32AaE 00001004  0010c000  0010c000  000048dc  2**4
+                  ALLOC
+117 .debug_info   00057569  00000000  00000000  000048dc  2**0
+                  CONTENTS, READONLY, DEBUGGING
+118 .debug_abbrev 000008b1  00000000  00000000  0005be45  2**0
+                  CONTENTS, READONLY, DEBUGGING
+119 .debug_line   000132cc  00000000  00000000  0005c6f6  2**0
+                  CONTENTS, READONLY, DEBUGGING
+120 .debug_pubnames 0000f2dc  00000000  00000000  0006f9c2  2**0
+                  CONTENTS, READONLY, DEBUGGING
+121 .debug_pubtypes 000049b5  00000000  00000000  0007ec9e  2**0
+                  CONTENTS, READONLY, DEBUGGING
+122 .debug_str    0002fe9e  00000000  00000000  00083653  2**0
+                  CONTENTS, READONLY, DEBUGGING
+123 .debug_loc    00015160  00000000  00000000  000b34f1  2**0
+                  CONTENTS, READONLY, DEBUGGING
+124 .debug_ranges 00014040  00000000  00000000  000c8651  2**0
+                  CONTENTS, READONLY, DEBUGGING
+SYMBOL TABLE:
+00100000 l    d  .text	00000000 .text
+00100110 l    d  .text._ZN2i89drop.241617h916293dfd311269bE	00000000 .text._ZN2i89drop.241617h916293dfd311269bE
+00100120 l    d  .text._ZN4arch3vga13VgaTextWriter10write_char20h8b31089050235e30RuaE	00000000 .text._ZN4arch3vga13VgaTextWriter10write_char20h8b31089050235e30RuaE
+00100260 l    d  .text._ZN4arch3vga13VgaTextWriter12write_string20h9605a3dc6f1f80deEwaE	00000000 .text._ZN4arch3vga13VgaTextWriter12write_string20h9605a3dc6f1f80deEwaE
+00100370 l    d  .text._ZN4arch3vga13VgaTextWriter5clear20h8d06db369991da85hxaE	00000000 .text._ZN4arch3vga13VgaTextWriter5clear20h8d06db369991da85hxaE
+00100480 l    d  .text.rust_int_test	00000000 .text.rust_int_test
+00100550 l    d  .text._ZN3fmt5Write9write_fmt36Adapter$LT$$u27$a$C$$u20$T$GT$.Write9write_str19h718319774261844007E	00000000 .text._ZN3fmt5Write9write_fmt36Adapter$LT$$u27$a$C$$u20$T$GT$.Write9write_str19h718319774261844007E
+00100590 l    d  .text._ZN3fmt5Write10write_char21h15209242701599995979E	00000000 .text._ZN3fmt5Write10write_char21h15209242701599995979E
+00100680 l    d  .text._ZN3fmt5Write9write_fmt36Adapter$LT$$u27$a$C$$u20$T$GT$.Write9write_fmt20h9216982986009222662E	00000000 .text._ZN3fmt5Write9write_fmt36Adapter$LT$$u27$a$C$$u20$T$GT$.Write9write_fmt20h9216982986009222662E
+00100710 l    d  .text._ZN4arch3pic11disable_irq20h4aea3021ed94487fR3aE	00000000 .text._ZN4arch3pic11disable_irq20h4aea3021ed94487fR3aE
+001008e0 l    d  .text._ZN4arch3pic8init_pic20h4fbac5dfb4582db6R6aE	00000000 .text._ZN4arch3pic8init_pic20h4fbac5dfb4582db6R6aE
+001009a0 l    d  .text.rust_begin_unwind	00000000 .text.rust_begin_unwind
+00100ad0 l    d  .text._ZN3fmt25_$RF$$u27$a$u20$T.Display3fmt20h7603731838392268012E	00000000 .text._ZN3fmt25_$RF$$u27$a$u20$T.Display3fmt20h7603731838392268012E
+00100b10 l    d  .text.memcpy	00000000 .text.memcpy
+00100b40 l    d  .text.memset	00000000 .text.memset
+00100b70 l    d  .text.main	00000000 .text.main
+00101290 l    d  .text._ZN9panicking5panic20h4339036ec09534ffP3BE	00000000 .text._ZN9panicking5panic20h4339036ec09534ffP3BE
+00101310 l    d  .text._ZN9panicking18panic_bounds_check20h7a4ed14d5dbbcf40o4BE	00000000 .text._ZN9panicking18panic_bounds_check20h7a4ed14d5dbbcf40o4BE
+00101390 l    d  .text._ZN9panicking9panic_fmt20h2099ce2a5132e427i5BE	00000000 .text._ZN9panicking9panic_fmt20h2099ce2a5132e427i5BE
+00101440 l    d  .text._ZN3fmt3num16u32.fmt..Display3fmt20hb9dfb8db900b87c2H9LE	00000000 .text._ZN3fmt3num16u32.fmt..Display3fmt20hb9dfb8db900b87c2H9LE
+001015f0 l    d  .text._ZN3fmt11str.Display3fmt20hbcfaae67ad570dd0cCNE	00000000 .text._ZN3fmt11str.Display3fmt20hbcfaae67ad570dd0cCNE
+00101630 l    d  .text._ZN3fmt23Formatter$LT$$u27$a$GT$3pad20h497469faa14543c2EcNE	00000000 .text._ZN3fmt23Formatter$LT$$u27$a$GT$3pad20h497469faa14543c2EcNE
+001019d0 l    d  .text._ZN4char15encode_utf8_raw20hf6494545cb1641b3SSBE	00000000 .text._ZN4char15encode_utf8_raw20hf6494545cb1641b3SSBE
+00101b60 l    d  .text._ZN3str10str.StrExt11slice_chars20h5383ecd80c01cafbA2JE	00000000 .text._ZN3str10str.StrExt11slice_chars20h5383ecd80c01cafbA2JE
+00101d30 l    d  .text._ZN3fmt3num15u8.fmt..Display3fmt20h85a2fb46ea8c159c5XLE	00000000 .text._ZN3fmt3num15u8.fmt..Display3fmt20h85a2fb46ea8c159c5XLE
+00101e60 l    d  .text._ZN3fmt23Formatter$LT$$u27$a$GT$12pad_integral20h298fa6c9a4576d6ce7ME	00000000 .text._ZN3fmt23Formatter$LT$$u27$a$GT$12pad_integral20h298fa6c9a4576d6ce7ME
+001025b0 l    d  .text._ZN3fmt5write20h571471b90f74812cw1ME	00000000 .text._ZN3fmt5write20h571471b90f74812cw1ME
+001029b0 l    d  .text._ZN3fmt24Error...core..fmt..Debug3fmt20h93ae86d71c1238e3TQME	00000000 .text._ZN3fmt24Error...core..fmt..Debug3fmt20h93ae86d71c1238e3TQME
+00102a00 l    d  .text._ZN3fmt24ArgumentV1$LT$$u27$a$GT$10show_usize20h26c934bb602d5d6aHUME	00000000 .text._ZN3fmt24ArgumentV1$LT$$u27$a$GT$10show_usize20h26c934bb602d5d6aHUME
+00102a20 l    d  .text._ZN3fmt31Arguments$LT$$u27$a$GT$.Display3fmt20hf6cb0ffa42802120qZME	00000000 .text._ZN3fmt31Arguments$LT$$u27$a$GT$.Display3fmt20hf6cb0ffa42802120qZME
+00102a80 l    d  .text._ZN3fmt3num18usize.fmt..Display3fmt20h5a72116d6e1d41fahSLE	00000000 .text._ZN3fmt3num18usize.fmt..Display3fmt20h5a72116d6e1d41fahSLE
+00102aa0 l    d  .rodata.str2660	00000000 .rodata.str2660
+00102ad0 l    d  .rodata.str2804	00000000 .rodata.str2804
+00102ae2 l    d  .rodata.str2811	00000000 .rodata.str2811
+00102ae3 l    d  .rodata.str2874	00000000 .rodata.str2874
+00102aef l    d  .rodata.str2879	00000000 .rodata.str2879
+00102afb l    d  .rodata.str2883	00000000 .rodata.str2883
+00102b03 l    d  .rodata.str2884	00000000 .rodata.str2884
+00102b0c l    d  .rodata.str2885	00000000 .rodata.str2885
+00102b10 l    d  .rodata.str2901	00000000 .rodata.str2901
+00102b30 l    d  .rodata.str2903	00000000 .rodata.str2903
+00102b50 l    d  .rodata.str2905	00000000 .rodata.str2905
+00102b70 l    d  .rodata.str2907	00000000 .rodata.str2907
+00102b90 l    d  .rodata.str2911	00000000 .rodata.str2911
+00102bb0 l    d  .rodata.str2913	00000000 .rodata.str2913
+00102bc5 l    d  .rodata.str2917	00000000 .rodata.str2917
+00102be0 l    d  .rodata.str43545	00000000 .rodata.str43545
+00102c0a l    d  .rodata.str43546	00000000 .rodata.str43546
+00102c20 l    d  .rodata.str43547	00000000 .rodata.str43547
+00102c50 l    d  .rodata.str43741	00000000 .rodata.str43741
+00102c80 l    d  .rodata.str43742	00000000 .rodata.str43742
+00102c91 l    d  .rodata.str43948	00000000 .rodata.str43948
+00102ca0 l    d  .rodata.str43997	00000000 .rodata.str43997
+00102cc0 l    d  .rodata.str43998	00000000 .rodata.str43998
+00102ce0 l    d  .rodata.str44009	00000000 .rodata.str44009
+00102d00 l    d  .rodata.str44010	00000000 .rodata.str44010
+00102d30 l    d  .rodata.str44150	00000000 .rodata.str44150
+00102d50 l    d  .rodata.str44168	00000000 .rodata.str44168
+00102d70 l    d  .rodata.str44196	00000000 .rodata.str44196
+00102da0 l    d  .rodata.str44197	00000000 .rodata.str44197
+00102dd0 l    d  .rodata.str44224	00000000 .rodata.str44224
+00102deb l    d  .rodata.str44225	00000000 .rodata.str44225
+00102df0 l    d  .rodata.str44228	00000000 .rodata.str44228
+00102e02 l    d  .rodata.str44331	00000000 .rodata.str44331
+00102e10 l    d  .rodata.str44362	00000000 .rodata.str44362
+00102e24 l    d  .got.plt	00000000 .got.plt
+00102e30 l    d  .data._ZN4arch3gdt3GDT20hf92372d50b1d2d24uaaE	00000000 .data._ZN4arch3gdt3GDT20hf92372d50b1d2d24uaaE
+00103630 l    d  .data._ZN4arch3vga13global_writer20h7320555348a656958maE	00000000 .data._ZN4arch3vga13global_writer20h7320555348a656958maE
+00103640 l    d  .data.rel.ro.local.panic_bounds_check_loc2663	00000000 .data.rel.ro.local.panic_bounds_check_loc2663
+00103650 l    d  .data.rel.ro.local.vtable2803	00000000 .data.rel.ro.local.vtable2803
+00103668 l    d  .data.rel.ro.local.ref2805	00000000 .data.rel.ro.local.ref2805
+00103670 l    d  .data.rel.ro.local._ZN4arch9interrupt13rust_int_test15__STATIC_FMTSTR20hc279742f896c17bfHMaE	00000000 .data.rel.ro.local._ZN4arch9interrupt13rust_int_test15__STATIC_FMTSTR20hc279742f896c17bfHMaE
+00103678 l    d  .data.rel.ro.local.ref2875	00000000 .data.rel.ro.local.ref2875
+00103688 l    d  .data.rel.ro.local.ref2880	00000000 .data.rel.ro.local.ref2880
+00103698 l    d  .data.rel.ro.local._ZN4arch3pic11disable_irq15__STATIC_FMTSTR20hc279742f896c17bfn4aE	00000000 .data.rel.ro.local._ZN4arch3pic11disable_irq15__STATIC_FMTSTR20hc279742f896c17bfn4aE
+001036a0 l    d  .data.rel.ro.local._ZN4arch3pic11disable_irq15__STATIC_FMTSTR20hc279742f896c17bf44aE	00000000 .data.rel.ro.local._ZN4arch3pic11disable_irq15__STATIC_FMTSTR20hc279742f896c17bf44aE
+001036b0 l    d  .data.rel.ro.local.ref2886	00000000 .data.rel.ro.local.ref2886
+001036d0 l    d  .data.rel.ro.local._ZN9langitems10panic_impl15__STATIC_FMTSTR20hc279742f896c17bf98aE	00000000 .data.rel.ro.local._ZN9langitems10panic_impl15__STATIC_FMTSTR20hc279742f896c17bf98aE
+001036d8 l    d  .data.rel.ro.local.ref2902	00000000 .data.rel.ro.local.ref2902
+001036e0 l    d  .data.rel.ro.local._ZN14initialize_hal15__STATIC_FMTSTR20hc279742f896c17bfAibE	00000000 .data.rel.ro.local._ZN14initialize_hal15__STATIC_FMTSTR20hc279742f896c17bfAibE
+001036e8 l    d  .data.rel.ro.local.ref2904	00000000 .data.rel.ro.local.ref2904
+001036f0 l    d  .data.rel.ro.local._ZN14initialize_hal15__STATIC_FMTSTR20hc279742f896c17bf0ibE	00000000 .data.rel.ro.local._ZN14initialize_hal15__STATIC_FMTSTR20hc279742f896c17bf0ibE
+001036f8 l    d  .data.rel.ro.local.ref2906	00000000 .data.rel.ro.local.ref2906
+00103700 l    d  .data.rel.ro.local._ZN14initialize_hal15__STATIC_FMTSTR20hc279742f896c17bfyjbE	00000000 .data.rel.ro.local._ZN14initialize_hal15__STATIC_FMTSTR20hc279742f896c17bfyjbE
+00103708 l    d  .data.rel.ro.local.ref2908	00000000 .data.rel.ro.local.ref2908
+00103710 l    d  .data.rel.ro.local._ZN14initialize_hal15__STATIC_FMTSTR20hc279742f896c17bf9jbE	00000000 .data.rel.ro.local._ZN14initialize_hal15__STATIC_FMTSTR20hc279742f896c17bf9jbE
+00103718 l    d  .data.rel.ro.local.ref2912	00000000 .data.rel.ro.local.ref2912
+00103720 l    d  .data.rel.ro.local._ZN18assert_correctness15__STATIC_FMTSTR20hc279742f896c17bfKkbE	00000000 .data.rel.ro.local._ZN18assert_correctness15__STATIC_FMTSTR20hc279742f896c17bfKkbE
+00103728 l    d  .data.rel.ro.local.ref2914	00000000 .data.rel.ro.local.ref2914
+00103730 l    d  .data.rel.ro.local._ZN4main15__STATIC_FMTSTR20hc279742f896c17bfElbE	00000000 .data.rel.ro.local._ZN4main15__STATIC_FMTSTR20hc279742f896c17bfElbE
+00103738 l    d  .data.rel.ro.local.ref2918	00000000 .data.rel.ro.local.ref2918
+00103740 l    d  .data.rel.ro.local._ZN4main15__STATIC_FMTSTR20hc279742f896c17bflmbE	00000000 .data.rel.ro.local._ZN4main15__STATIC_FMTSTR20hc279742f896c17bflmbE
+00103750 l    d  .data.rel.ro.local._ZN5slice54_$u5b$T$u5d$.ops..Index$LT$ops..Range$LT$usize$GT$$GT$5index14_MSG_FILE_LINE20h290413c064f2f02dPEGE	00000000 .data.rel.ro.local._ZN5slice54_$u5b$T$u5d$.ops..Index$LT$ops..Range$LT$usize$GT$$GT$5index14_MSG_FILE_LINE20h290413c064f2f02dPEGE
+00103770 l    d  .data.rel.ro.local._ZN5slice54_$u5b$T$u5d$.ops..Index$LT$ops..Range$LT$usize$GT$$GT$5index14_MSG_FILE_LINE20h290413c064f2f02diFGE	00000000 .data.rel.ro.local._ZN5slice54_$u5b$T$u5d$.ops..Index$LT$ops..Range$LT$usize$GT$$GT$5index14_MSG_FILE_LINE20h290413c064f2f02diFGE
+00103790 l    d  .data.rel.ro.local._ZN6option15Option$LT$T$GT$6unwrap14_MSG_FILE_LINE20h290413c064f2f02dDSEE	00000000 .data.rel.ro.local._ZN6option15Option$LT$T$GT$6unwrap14_MSG_FILE_LINE20h290413c064f2f02dDSEE
+001037a8 l    d  .data.rel.ro.local.panic_bounds_check_loc43961	00000000 .data.rel.ro.local.panic_bounds_check_loc43961
+001037b8 l    d  .data.rel.ro.local.panic_bounds_check_loc43969	00000000 .data.rel.ro.local.panic_bounds_check_loc43969
+001037c8 l    d  .data.rel.ro.local.panic_bounds_check_loc43970	00000000 .data.rel.ro.local.panic_bounds_check_loc43970
+001037d8 l    d  .data.rel.ro.local.panic_bounds_check_loc43971	00000000 .data.rel.ro.local.panic_bounds_check_loc43971
+001037e8 l    d  .data.rel.ro.local.const43996	00000000 .data.rel.ro.local.const43996
+001037f0 l    d  .data.rel.ro.local.ref43999	00000000 .data.rel.ro.local.ref43999
+00103800 l    d  .data.rel.ro.local._ZN9panicking18panic_bounds_check15__STATIC_FMTSTR20h62a823dca495254cM4BE	00000000 .data.rel.ro.local._ZN9panicking18panic_bounds_check15__STATIC_FMTSTR20h62a823dca495254cM4BE
+00103808 l    d  .data.rel.ro.local._ZN6result24Result$LT$T$C$$u20$E$GT$6unwrap10_FILE_LINE20h76be75baa2d18581yxFE	00000000 .data.rel.ro.local._ZN6result24Result$LT$T$C$$u20$E$GT$6unwrap10_FILE_LINE20h76be75baa2d18581yxFE
+00103818 l    d  .data.rel.ro.local.ref44011	00000000 .data.rel.ro.local.ref44011
+00103820 l    d  .data.rel.ro.local._ZN6result24Result$LT$T$C$$u20$E$GT$6unwrap15__STATIC_FMTSTR20h62a823dca495254cOxFE	00000000 .data.rel.ro.local._ZN6result24Result$LT$T$C$$u20$E$GT$6unwrap15__STATIC_FMTSTR20h62a823dca495254cOxFE
+00103830 l    d  .data.rel.ro.local._ZN3str10str.StrExt11slice_chars14_MSG_FILE_LINE20h290413c064f2f02dY2JE	00000000 .data.rel.ro.local._ZN3str10str.StrExt11slice_chars14_MSG_FILE_LINE20h290413c064f2f02dY2JE
+00103850 l    d  .data.rel.ro.local._ZN3str10str.StrExt11slice_chars14_MSG_FILE_LINE20h290413c064f2f02d14JE	00000000 .data.rel.ro.local._ZN3str10str.StrExt11slice_chars14_MSG_FILE_LINE20h290413c064f2f02d14JE
+00103870 l    d  .data.rel.ro.local._ZN3str10str.StrExt11slice_chars14_MSG_FILE_LINE20h290413c064f2f02do5JE	00000000 .data.rel.ro.local._ZN3str10str.StrExt11slice_chars14_MSG_FILE_LINE20h290413c064f2f02do5JE
+00103888 l    d  .data.rel.ro.local.const44212	00000000 .data.rel.ro.local.const44212
+00103890 l    d  .data.rel.ro.local.ref44226	00000000 .data.rel.ro.local.ref44226
+001038a0 l    d  .data.rel.ro.local._ZN3fmt3num20Decimal.GenericRadix5digit10_FILE_LINE20h76be75baa2d18581rFLE	00000000 .data.rel.ro.local._ZN3fmt3num20Decimal.GenericRadix5digit10_FILE_LINE20h76be75baa2d18581rFLE
+001038b0 l    d  .data.rel.ro.local._ZN3fmt3num18Radix.GenericRadix5digit15__STATIC_FMTSTR20h62a823dca495254cmNLE	00000000 .data.rel.ro.local._ZN3fmt3num18Radix.GenericRadix5digit15__STATIC_FMTSTR20h62a823dca495254cmNLE
+001038b8 l    d  .data.rel.ro.local.const44332	00000000 .data.rel.ro.local.const44332
+001038c0 l    d  .data.rel.ro.local.panic_bounds_check_loc44363	00000000 .data.rel.ro.local.panic_bounds_check_loc44363
+001038d0 l    d  .data.rel.ro.local.panic_bounds_check_loc44364	00000000 .data.rel.ro.local.panic_bounds_check_loc44364
+00104000 l    d  .bss	00000000 .bss
+0010c000 l    d  .bss._ZN4arch9interrupt3IDT20h983545c37c2081b32AaE	00000000 .bss._ZN4arch9interrupt3IDT20h983545c37c2081b32AaE
+00000000 l    d  .debug_info	00000000 .debug_info
+00000000 l    d  .debug_abbrev	00000000 .debug_abbrev
+00000000 l    d  .debug_line	00000000 .debug_line
+00000000 l    d  .debug_pubnames	00000000 .debug_pubnames
+00000000 l    d  .debug_pubtypes	00000000 .debug_pubtypes
+00000000 l    d  .debug_str	00000000 .debug_str
+00000000 l    d  .debug_loc	00000000 .debug_loc
+00000000 l    d  .debug_ranges	00000000 .debug_ranges
+00000000 l    df *ABS*	00000000 ../../bin/boot.o
+00000001 l       *ABS*	00000000 ALIGN
+00000002 l       *ABS*	00000000 MEMINFO
+00000003 l       *ABS*	00000000 FLAGS
+1badb002 l       *ABS*	00000000 MAGIC
+e4524ffb l       *ABS*	00000000 CHECKSUM
+00104000 l       .bss	00000000 stack_bottom
+00108000 l       .bss	00000000 esp0_bottom
+00000000 l    df *ABS*	00000000 ../../bin/descriptor.o
+00000000 l       *ABS*	00000000 limit
+00000000 l       *ABS*	00000000 base
+0010001a l       .text	00000000 IDTPtr
+00100020 l       .text	00000000 GDTPtr
+00100026 l       .text	00000000 TSS
+0010002a l       .text	00000000 TSS_ESP0
+0010002e l       .text	00000000 TSS_SS0
+0010008a l       .text	00000000 TSS_IOPB
+0010008e l       .text	00000000 TSSEnd
+001000f8 l       .text	00000000 .reload_CS
+00100106 l       .text	00000000 .end
+00000000 l    df *ABS*	00000000 kernel.0.rs
+001036f0 l     O .data.rel.ro.local._ZN14initialize_hal15__STATIC_FMTSTR20hc279742f896c17bf0ibE	00000008 _ZN14initialize_hal15__STATIC_FMTSTR20hc279742f896c17bf0ibE
+00103710 l     O .data.rel.ro.local._ZN14initialize_hal15__STATIC_FMTSTR20hc279742f896c17bf9jbE	00000008 _ZN14initialize_hal15__STATIC_FMTSTR20hc279742f896c17bf9jbE
+001036e0 l     O .data.rel.ro.local._ZN14initialize_hal15__STATIC_FMTSTR20hc279742f896c17bfAibE	00000008 _ZN14initialize_hal15__STATIC_FMTSTR20hc279742f896c17bfAibE
+00103700 l     O .data.rel.ro.local._ZN14initialize_hal15__STATIC_FMTSTR20hc279742f896c17bfyjbE	00000008 _ZN14initialize_hal15__STATIC_FMTSTR20hc279742f896c17bfyjbE
+00103720 l     O .data.rel.ro.local._ZN18assert_correctness15__STATIC_FMTSTR20hc279742f896c17bfKkbE	00000008 _ZN18assert_correctness15__STATIC_FMTSTR20hc279742f896c17bfKkbE
+00100110 l     F .text._ZN2i89drop.241617h916293dfd311269bE	00000005 _ZN2i89drop.241617h916293dfd311269bE
+00100ad0 l     F .text._ZN3fmt25_$RF$$u27$a$u20$T.Display3fmt20h7603731838392268012E	00000039 _ZN3fmt25_$RF$$u27$a$u20$T.Display3fmt20h7603731838392268012E
+00100590 l     F .text._ZN3fmt5Write10write_char21h15209242701599995979E	000000e8 _ZN3fmt5Write10write_char21h15209242701599995979E
+00100680 l     F .text._ZN3fmt5Write9write_fmt36Adapter$LT$$u27$a$C$$u20$T$GT$.Write9write_fmt20h9216982986009222662E	0000008c _ZN3fmt5Write9write_fmt36Adapter$LT$$u27$a$C$$u20$T$GT$.Write9write_fmt20h9216982986009222662E
+00100550 l     F .text._ZN3fmt5Write9write_fmt36Adapter$LT$$u27$a$C$$u20$T$GT$.Write9write_str19h718319774261844007E	0000003d _ZN3fmt5Write9write_fmt36Adapter$LT$$u27$a$C$$u20$T$GT$.Write9write_str19h718319774261844007E
+001036a0 l     O .data.rel.ro.local._ZN4arch3pic11disable_irq15__STATIC_FMTSTR20hc279742f896c17bf44aE	00000008 _ZN4arch3pic11disable_irq15__STATIC_FMTSTR20hc279742f896c17bf44aE
+00103698 l     O .data.rel.ro.local._ZN4arch3pic11disable_irq15__STATIC_FMTSTR20hc279742f896c17bfn4aE	00000008 _ZN4arch3pic11disable_irq15__STATIC_FMTSTR20hc279742f896c17bfn4aE
+00103670 l     O .data.rel.ro.local._ZN4arch9interrupt13rust_int_test15__STATIC_FMTSTR20hc279742f896c17bfHMaE	00000008 _ZN4arch9interrupt13rust_int_test15__STATIC_FMTSTR20hc279742f896c17bfHMaE
+00103730 l     O .data.rel.ro.local._ZN4main15__STATIC_FMTSTR20hc279742f896c17bfElbE	00000008 _ZN4main15__STATIC_FMTSTR20hc279742f896c17bfElbE
+00103740 l     O .data.rel.ro.local._ZN4main15__STATIC_FMTSTR20hc279742f896c17bflmbE	00000008 _ZN4main15__STATIC_FMTSTR20hc279742f896c17bflmbE
+001036d0 l     O .data.rel.ro.local._ZN9langitems10panic_impl15__STATIC_FMTSTR20hc279742f896c17bf98aE	00000008 _ZN9langitems10panic_impl15__STATIC_FMTSTR20hc279742f896c17bf98aE
+00103640 l     O .data.rel.ro.local.panic_bounds_check_loc2663	0000000c panic_bounds_check_loc2663
+00103668 l     O .data.rel.ro.local.ref2805	00000008 ref2805
+00103678 l     O .data.rel.ro.local.ref2875	00000010 ref2875
+00103688 l     O .data.rel.ro.local.ref2880	00000010 ref2880
+001036b0 l     O .data.rel.ro.local.ref2886	00000020 ref2886
+001036d8 l     O .data.rel.ro.local.ref2902	00000008 ref2902
+001036e8 l     O .data.rel.ro.local.ref2904	00000008 ref2904
+001036f8 l     O .data.rel.ro.local.ref2906	00000008 ref2906
+00103708 l     O .data.rel.ro.local.ref2908	00000008 ref2908
+00103718 l     O .data.rel.ro.local.ref2912	00000008 ref2912
+00103728 l     O .data.rel.ro.local.ref2914	00000008 ref2914
+00103738 l     O .data.rel.ro.local.ref2918	00000008 ref2918
+00102aa0 l     O .rodata.str2660	00000027 str2660
+00102ad0 l     O .rodata.str2804	00000012 str2804
+00102ae2 l     O .rodata.str2811	00000001 str2811
+00102ae3 l     O .rodata.str2874	0000000c str2874
+00102aef l     O .rodata.str2879	0000000c str2879
+00102afb l     O .rodata.str2883	00000008 str2883
+00102b03 l     O .rodata.str2884	00000009 str2884
+00102b0c l     O .rodata.str2885	00000002 str2885
+00102b10 l     O .rodata.str2901	0000001c str2901
+00102b30 l     O .rodata.str2903	00000012 str2903
+00102b50 l     O .rodata.str2905	00000012 str2905
+00102b70 l     O .rodata.str2907	00000012 str2907
+00102b90 l     O .rodata.str2911	00000017 str2911
+00102bb0 l     O .rodata.str2913	00000015 str2913
+00102bc5 l     O .rodata.str2917	00000010 str2917
+00103650 l     O .data.rel.ro.local.vtable2803	00000018 vtable2803
+00000000 l    df *ABS*	00000000 core.0.rs
+00102a00 l     F .text._ZN3fmt24ArgumentV1$LT$$u27$a$GT$10show_usize20h26c934bb602d5d6aHUME	00000018 _ZN3fmt24ArgumentV1$LT$$u27$a$GT$10show_usize20h26c934bb602d5d6aHUME
+001038b0 l     O .data.rel.ro.local._ZN3fmt3num18Radix.GenericRadix5digit15__STATIC_FMTSTR20h62a823dca495254cmNLE	00000008 _ZN3fmt3num18Radix.GenericRadix5digit15__STATIC_FMTSTR20h62a823dca495254cmNLE
+001038a0 l     O .data.rel.ro.local._ZN3fmt3num20Decimal.GenericRadix5digit10_FILE_LINE20h76be75baa2d18581rFLE	0000000c _ZN3fmt3num20Decimal.GenericRadix5digit10_FILE_LINE20h76be75baa2d18581rFLE
+00103850 l     O .data.rel.ro.local._ZN3str10str.StrExt11slice_chars14_MSG_FILE_LINE20h290413c064f2f02d14JE	00000014 _ZN3str10str.StrExt11slice_chars14_MSG_FILE_LINE20h290413c064f2f02d14JE
+00103830 l     O .data.rel.ro.local._ZN3str10str.StrExt11slice_chars14_MSG_FILE_LINE20h290413c064f2f02dY2JE	00000014 _ZN3str10str.StrExt11slice_chars14_MSG_FILE_LINE20h290413c064f2f02dY2JE
+00103870 l     O .data.rel.ro.local._ZN3str10str.StrExt11slice_chars14_MSG_FILE_LINE20h290413c064f2f02do5JE	00000014 _ZN3str10str.StrExt11slice_chars14_MSG_FILE_LINE20h290413c064f2f02do5JE
+00103800 l     O .data.rel.ro.local._ZN9panicking18panic_bounds_check15__STATIC_FMTSTR20h62a823dca495254cM4BE	00000008 _ZN9panicking18panic_bounds_check15__STATIC_FMTSTR20h62a823dca495254cM4BE
+001037e8 l     O .data.rel.ro.local.const43996	00000008 const43996
+00103888 l     O .data.rel.ro.local.const44212	00000008 const44212
+001038b8 l     O .data.rel.ro.local.const44332	00000008 const44332
+001037a8 l     O .data.rel.ro.local.panic_bounds_check_loc43961	0000000c panic_bounds_check_loc43961
+001037b8 l     O .data.rel.ro.local.panic_bounds_check_loc43969	0000000c panic_bounds_check_loc43969
+001037c8 l     O .data.rel.ro.local.panic_bounds_check_loc43970	0000000c panic_bounds_check_loc43970
+001037d8 l     O .data.rel.ro.local.panic_bounds_check_loc43971	0000000c panic_bounds_check_loc43971
+001038c0 l     O .data.rel.ro.local.panic_bounds_check_loc44363	0000000c panic_bounds_check_loc44363
+001038d0 l     O .data.rel.ro.local.panic_bounds_check_loc44364	0000000c panic_bounds_check_loc44364
+001037f0 l     O .data.rel.ro.local.ref43999	00000010 ref43999
+00103818 l     O .data.rel.ro.local.ref44011	00000008 ref44011
+00103890 l     O .data.rel.ro.local.ref44226	00000010 ref44226
+00102be0 l     O .rodata.str43545	0000002a str43545
+00102c0a l     O .rodata.str43546	00000010 str43546
+00102c20 l     O .rodata.str43547	00000029 str43547
+00102c50 l     O .rodata.str43741	0000002b str43741
+00102c80 l     O .rodata.str43742	00000011 str43742
+00102c91 l     O .rodata.str43948	0000000f str43948
+00102ca0 l     O .rodata.str43997	00000020 str43997
+00102cc0 l     O .rodata.str43998	00000012 str43998
+00102ce0 l     O .rodata.str44009	00000011 str44009
+00102d00 l     O .rodata.str44010	0000002d str44010
+00102d30 l     O .rodata.str44150	00000012 str44150
+00102d50 l     O .rodata.str44168	0000001e str44168
+00102d70 l     O .rodata.str44196	0000002c str44196
+00102da0 l     O .rodata.str44197	0000002a str44197
+00102dd0 l     O .rodata.str44224	0000001b str44224
+00102deb l     O .rodata.str44225	00000002 str44225
+00102df0 l     O .rodata.str44228	00000012 str44228
+00102e02 l     O .rodata.str44331	00000005 str44331
+00102e10 l     O .rodata.str44362	00000012 str44362
+00000000 l    df *ABS*	00000000 
+00000000 l       *UND*	00000000 fmodf
+00000000 l       *UND*	00000000 log
+00000000 l       *UND*	00000000 __divdi3
+00000000 l       *UND*	00000000 exp2f
+00000000 l       *UND*	00000000 ldexpf
+00000000 l       *UND*	00000000 __powisf2
+00000000 l       *UND*	00000000 round
+00000000 l       *UND*	00000000 powf
+00000000 l       *UND*	00000000 __powidf2
+00000000 l       *UND*	00000000 ceil
+00000000 l       *UND*	00000000 logf
+00000000 l       *UND*	00000000 floor
+00000000 l       *UND*	00000000 truncf
+00000000 l       *UND*	00000000 roundf
+00000000 l       *UND*	00000000 ldexp
+00000000 l       *UND*	00000000 __umoddi3
+00000000 l       *UND*	00000000 __udivdi3
+00000000 l       *UND*	00000000 log10f
+00000000 l       *UND*	00000000 fmod
+00000000 l       *UND*	00000000 exp2
+00000000 l       *UND*	00000000 fma
+00000000 l       *UND*	00000000 pow
+00000000 l       *UND*	00000000 log10
+00000000 l       *UND*	00000000 log2f
+00000000 l       *UND*	00000000 memcmp
+00000000 l       *UND*	00000000 exp
+00000000 l       *UND*	00000000 ceilf
+00000000 l       *UND*	00000000 fmaf
+00102e24 l     O .got.plt	00000000 _GLOBAL_OFFSET_TABLE_
+00000000 l       *UND*	00000000 log2
+00000000 l       *UND*	00000000 __mulodi4
+00000000 l       *UND*	00000000 __moddi3
+00000000 l       *UND*	00000000 expf
+00000000 l       *UND*	00000000 floorf
+00000000 l       *UND*	00000000 trunc
+00103750 g     O .data.rel.ro.local._ZN5slice54_$u5b$T$u5d$.ops..Index$LT$ops..Range$LT$usize$GT$$GT$5index14_MSG_FILE_LINE20h290413c064f2f02dPEGE	00000014 _ZN5slice54_$u5b$T$u5d$.ops..Index$LT$ops..Range$LT$usize$GT$$GT$5index14_MSG_FILE_LINE20h290413c064f2f02dPEGE
+0010c000 g     O .bss._ZN4arch9interrupt3IDT20h983545c37c2081b32AaE	00001004 _ZN4arch9interrupt3IDT20h983545c37c2081b32AaE
+0010008e g       .text	00000000 initialize_tss
+00103820 g     O .data.rel.ro.local._ZN6result24Result$LT$T$C$$u20$E$GT$6unwrap15__STATIC_FMTSTR20h62a823dca495254cOxFE	00000008 _ZN6result24Result$LT$T$C$$u20$E$GT$6unwrap15__STATIC_FMTSTR20h62a823dca495254cOxFE
+00103630 g     O .data._ZN4arch3vga13global_writer20h7320555348a656958maE	0000000c _ZN4arch3vga13global_writer20h7320555348a656958maE
+00101e60 g     F .text._ZN3fmt23Formatter$LT$$u27$a$GT$12pad_integral20h298fa6c9a4576d6ce7ME	00000745 _ZN3fmt23Formatter$LT$$u27$a$GT$12pad_integral20h298fa6c9a4576d6ce7ME
+00100b10 g     F .text.memcpy	0000002d memcpy
+00100260 g     F .text._ZN4arch3vga13VgaTextWriter12write_string20h9605a3dc6f1f80deEwaE	0000010f _ZN4arch3vga13VgaTextWriter12write_string20h9605a3dc6f1f80deEwaE
+00102a20 g     F .text._ZN3fmt31Arguments$LT$$u27$a$GT$.Display3fmt20hf6cb0ffa42802120qZME	00000060 _ZN3fmt31Arguments$LT$$u27$a$GT$.Display3fmt20hf6cb0ffa42802120qZME
+00102a80 g     F .text._ZN3fmt3num18usize.fmt..Display3fmt20h5a72116d6e1d41fahSLE	00000018 _ZN3fmt3num18usize.fmt..Display3fmt20h5a72116d6e1d41fahSLE
+00102e30 g     O .data._ZN4arch3gdt3GDT20hf92372d50b1d2d24uaaE	000007fc _ZN4arch3gdt3GDT20hf92372d50b1d2d24uaaE
+001000f1 g       .text	00000000 reload_segments
+001000d0 g       .text	00000000 reload_gdt
+00101310 g     F .text._ZN9panicking18panic_bounds_check20h7a4ed14d5dbbcf40o4BE	00000078 _ZN9panicking18panic_bounds_check20h7a4ed14d5dbbcf40o4BE
+00101630 g     F .text._ZN3fmt23Formatter$LT$$u27$a$GT$3pad20h497469faa14543c2EcNE	0000039a _ZN3fmt23Formatter$LT$$u27$a$GT$3pad20h497469faa14543c2EcNE
+00101390 g     F .text._ZN9panicking9panic_fmt20h2099ce2a5132e427i5BE	000000b0 _ZN9panicking9panic_fmt20h2099ce2a5132e427i5BE
+001019d0 g     F .text._ZN4char15encode_utf8_raw20hf6494545cb1641b3SSBE	0000018d _ZN4char15encode_utf8_raw20hf6494545cb1641b3SSBE
+001009a0 g     F .text.rust_begin_unwind	0000012c rust_begin_unwind
+0010000c g     F .text	0000000e _start
+001015f0 g     F .text._ZN3fmt11str.Display3fmt20hbcfaae67ad570dd0cCNE	00000039 _ZN3fmt11str.Display3fmt20hbcfaae67ad570dd0cCNE
+00103790 g     O .data.rel.ro.local._ZN6option15Option$LT$T$GT$6unwrap14_MSG_FILE_LINE20h290413c064f2f02dDSEE	00000014 _ZN6option15Option$LT$T$GT$6unwrap14_MSG_FILE_LINE20h290413c064f2f02dDSEE
+001000b4 g       .text	00000000 reload_idt
+00108000 g       .bss	00000000 stack_top
+00100b40 g     F .text.memset	00000029 memset
+00100b70 g     F .text.main	0000071d main
+001025b0 g     F .text._ZN3fmt5write20h571471b90f74812cw1ME	000003fd _ZN3fmt5write20h571471b90f74812cw1ME
+00101290 g     F .text._ZN9panicking5panic20h4339036ec09534ffP3BE	00000072 _ZN9panicking5panic20h4339036ec09534ffP3BE
+00100710 g     F .text._ZN4arch3pic11disable_irq20h4aea3021ed94487fR3aE	000001ca _ZN4arch3pic11disable_irq20h4aea3021ed94487fR3aE
+00100120 g     F .text._ZN4arch3vga13VgaTextWriter10write_char20h8b31089050235e30RuaE	0000013e _ZN4arch3vga13VgaTextWriter10write_char20h8b31089050235e30RuaE
+00101d30 g     F .text._ZN3fmt3num15u8.fmt..Display3fmt20h85a2fb46ea8c159c5XLE	0000012a _ZN3fmt3num15u8.fmt..Display3fmt20h85a2fb46ea8c159c5XLE
+00100480 g     F .text.rust_int_test	000000c9 rust_int_test
+0010c000 g       .bss	00000000 esp0_top
+00103808 g     O .data.rel.ro.local._ZN6result24Result$LT$T$C$$u20$E$GT$6unwrap10_FILE_LINE20h76be75baa2d18581yxFE	0000000c _ZN6result24Result$LT$T$C$$u20$E$GT$6unwrap10_FILE_LINE20h76be75baa2d18581yxFE
+00103770 g     O .data.rel.ro.local._ZN5slice54_$u5b$T$u5d$.ops..Index$LT$ops..Range$LT$usize$GT$$GT$5index14_MSG_FILE_LINE20h290413c064f2f02diFGE	00000014 _ZN5slice54_$u5b$T$u5d$.ops..Index$LT$ops..Range$LT$usize$GT$$GT$5index14_MSG_FILE_LINE20h290413c064f2f02diFGE
+00101440 g     F .text._ZN3fmt3num16u32.fmt..Display3fmt20hb9dfb8db900b87c2H9LE	000001ac _ZN3fmt3num16u32.fmt..Display3fmt20hb9dfb8db900b87c2H9LE
+00100370 g     F .text._ZN4arch3vga13VgaTextWriter5clear20h8d06db369991da85hxaE	0000010d _ZN4arch3vga13VgaTextWriter5clear20h8d06db369991da85hxaE
+00101b60 g     F .text._ZN3str10str.StrExt11slice_chars20h5383ecd80c01cafbA2JE	000001cb _ZN3str10str.StrExt11slice_chars20h5383ecd80c01cafbA2JE
+001008e0 g     F .text._ZN4arch3pic8init_pic20h4fbac5dfb4582db6R6aE	000000b8 _ZN4arch3pic8init_pic20h4fbac5dfb4582db6R6aE
+001029b0 g     F .text._ZN3fmt24Error...core..fmt..Debug3fmt20h93ae86d71c1238e3TQME	00000045 _ZN3fmt24Error...core..fmt..Debug3fmt20h93ae86d71c1238e3TQME
+
+

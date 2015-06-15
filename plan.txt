@@ -40,3 +40,22 @@ seperate:
 	runtime: custom rust runtime so the std can be used from userspace programs
 	api: custom api so userspace programs can run kernel specific code
 	ext: custom standard library intended as an extension on libcore for internal use in the kernel
+
+
+
+PLANNED NOW:
+
+random/other:
+	kernel mode mem alloc
+	port some std to kernel mode (like resizeable vectors)
+
+barebones plan:
+	hardcoded keyboard device driver
+	single premade filesystem
+	kernelspace shell
+	no premption and all that
+
+afterwards:
+	1: multiprogramming (with preemption)
+	2: running programs
+	3: device manager & loader

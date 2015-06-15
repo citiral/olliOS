@@ -51,7 +51,7 @@ TSSEnd:
 .global initialize_tss
 initialize_tss:
 	lea 4(%esp), %eax
-	movw	%eax, TSS_SS0			#first set the SS0 to the gdt datasegment (0x10, probably)
+	movw	%ax, TSS_SS0			#first set the SS0 to the gdt datasegment (0x10, probably)
 	movl	$esp0_top, TSS_ESP0		#then set the stack to our special tss_esp0 stack
 	movw	$104,	TSS_IOPB+2
 	movw 	8(%esp), 	%ax				#set the index of the TSS in the GDT

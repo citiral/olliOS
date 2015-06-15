@@ -11,7 +11,8 @@ const PS2_INOUT: u16 = 0x60;
 const PS2_RW: u16 = 0x64;
 
 const MAX_IDT_ENTRIES: usize = 256;
-pub static mut IDT: Idt = Idt {
+
+pub static mut IDT: Idt<'static> = Idt {
 	table: [IdtDescriptor {
 		offset_low: 0,
 		selector: 0,
@@ -19,19 +20,22 @@ pub static mut IDT: Idt = Idt {
 		type_attr: 0,
 		offset_hi: 0,
 	};MAX_IDT_ENTRIES],
+	callbacks: [None; MAX_IDT_ENTRIES],
 	length: 0
 };
 
-pub struct Idt {
+pub struct Idt<'a> {
 	///The table containing the gdt descriptors
 	table: [IdtDescriptor;MAX_IDT_ENTRIES],
+	///the list of callbacks linked to the interrupts
+	callbacks: [Option<&'a FnMut()>; MAX_IDT_ENTRIES],
 	///amount of used descriptors in the table
 	length: usize,
 }
 
-impl Idt {
+impl<'a> Idt<'a> {
 		///generates a new gdt filled with empty entries
-	pub fn new() -> Idt {
+	pub fn new() -> Idt<'a> {
 		Idt {
 			table: [IdtDescriptor {
 				offset_low: 0,
@@ -40,6 +44,7 @@ impl Idt {
 				type_attr: 0,
 				offset_hi: 0,
 			};MAX_IDT_ENTRIES],
+			callbacks: [None; MAX_IDT_ENTRIES],
 			length: 0
 		}
 	}
@@ -175,7 +180,7 @@ impl IdtDescriptor {
 	}
 }
 
-pub fn create_empty_idt() -> Idt
+pub fn create_empty_idt<'a>() -> Idt<'a>
 {
 	let mut newidt = Idt::new();
 	for _ in 0..256 {
@@ -185,18 +190,47 @@ pub fn create_empty_idt() -> Idt
 	newidt
 }
 
+#[no_mangle]
 ///registers all interrupts to the IDT
-pub unsafe fn register_interrupts()
+pub unsafe extern "C"  fn register_interrupts()
 {
-	unsafe {
-		
+
+	let address: u32;
+
+	asm!("
+		jmp 2f
+	1:
+		pushal
+		cld
+		call rust_int_test
+		popal
+		iret
+	2:
+	leal 1b, %eax":"={eax}" (address):::"volatile");
+
+
+	/*unsafe {
 		//first, set all addresses to unused
 		for x in 0..256 {
-			IDT.get_entry(x).set_offset(label_addr!(int_unused) as u32);
+			IDT.get_entry(x).set_offset(address);
 		}
-			IDT.get_entry(0x21).set_offset(label_addr!(int_keyboard) as u32);
-}	
+		//IDT.get_entry(0x21).set_offset(label_addr!(int_keyboard) as u32);
+	}*/
+
+
 }
+
+#[no_mangle]
+pub extern "C" fn rust_int_test()
+{
+	unsafe {
+		vga_println!("I got a test int!");
+		//for x in 0..32 {
+		pic::end_interrupt(0);
+		//}
+	}
+}
+
 
 #[no_mangle]
 pub extern "C" fn rust_int_unused()

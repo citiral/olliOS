@@ -6,6 +6,7 @@
 .align 4
 int_unused:
 	pushal
+	#cdecl requires direction flag to be cleared
 	cld
 	call rust_int_unused
 	popal
@@ -15,7 +16,9 @@ int_unused:
 .align 4
 int_keyboard:
 	pushal
+	#cdecl requires direction flag to be cleared
 	cld
 	call rust_int_keyboard
 	popal
 	iretl
+	
