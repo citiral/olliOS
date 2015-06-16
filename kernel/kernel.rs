@@ -1,4 +1,4 @@
-#![feature(no_std, core, box_syntax, asm, lang_items)]
+#![feature(no_std, core, box_syntax, asm, lang_items, box_syntax, box_patterns)]
 #![no_std]
 #![crate_type="staticlib"]
 #![allow(dead_code)]

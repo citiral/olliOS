@@ -1,6 +1,7 @@
 use core::raw::{self, Repr};
 use macros;
 use core::fmt::Write;
+use core::ops;
 ///this file contains everything memory allocation related, it contains one or more different kinds of memory allocators that can be used 
 ///inside the kernel
 
@@ -12,6 +13,18 @@ pub const REC_HEAP_SIZE: usize = 1024*1024; //1 megabyte
 pub trait Allocator {
 	unsafe fn allocate(&mut self, size: usize, align: usize) -> *mut u8;
 	unsafe fn deallocate(&mut self, ptr: *mut u8, size: usize, align: usize);
+}
+
+pub struct Box<T> {
+	value: T
+}
+
+impl<T> ops::Deref for Box<T> {
+	type Target = T;
+
+	fn deref<'a>(&'a self) -> &'a T {
+        &self.value
+    }
 }
 
 ///A watermark allocator. The simplest of allocators, it never frees memory, it only keeps counting up and up.

@@ -99,7 +99,7 @@ pub unsafe fn init_pic()
 {
 	map_pics(0x20, 0x28);
 	clear_all_masks();
-	disable_irq(0);
+	//disable_irq(0);
 
 		for x in 0..16 {
 			end_interrupt(x as u8);
