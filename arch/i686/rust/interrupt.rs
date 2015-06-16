@@ -190,43 +190,76 @@ pub fn create_empty_idt<'a>() -> Idt<'a>
 	newidt
 }
 
+macro_rules! generate_int_handler {
+	($x: expr) => {{
+		let address: u32;
+		asm!(concat!("jmp 2f
+			.align 4
+		1:
+			pushal
+			cld
+			pushl $$", stringify!($x),"
+			call rust_int
+			add $$4, %esp
+			popal
+			iret
+		2:
+			leal 1b, %eax"):"={eax}" (address):::"volatile","alignstack");
+		IDT.get_entry($x).set_offset(address);
+	}}
+}
+
 #[no_mangle]
+#[inline(never)]
 ///registers all interrupts to the IDT
 pub unsafe extern "C"  fn register_interrupts()
 {
 
-	let address: u32;
+	/*let address: u32;
 
-	asm!("
-		jmp 2f
+	asm!("jmp 2f
+		.align 4
 	1:
 		pushal
 		cld
-		call rust_int_test
+		pushl $$4
+		call rust_int
+		add $$4, %esp
 		popal
 		iret
 	2:
-	leal 1b, %eax":"={eax}" (address):::"volatile");
+		leal 1b, %eax":"={eax}" (address):::"volatile","alignstack");
 
-
-	/*unsafe {
-		//first, set all addresses to unused
-		for x in 0..256 {
-			IDT.get_entry(x).set_offset(address);
-		}
-		//IDT.get_entry(0x21).set_offset(label_addr!(int_keyboard) as u32);
+	unsafe {
+		vga_println!("address is {}", address);
 	}*/
 
-
+	unsafe {
+		//first, set all addresses to unused
+		vga_prin
+		generate_int_handler!(0);
+		generate_int_handler!(1);
+		generate_int_handler!(2);
+		generate_int_handler!(3);
+		generate_int_handler!(4);
+		generate_int_handler!(0x21);
+		//loop_int_handlers!(0);
+		//let a = generate_int_handler!("0x24", "-2");
+		//IDT.get_entry(0x21).set_offset(a);
+		//IDT.get_entry(0x21).set_offset(label_addr!(int_keyboard) as u32);
+	}
 }
 
 #[no_mangle]
-pub extern "C" fn rust_int_test()
+pub extern "C" fn rust_int(interrupt: u32)
 {
 	unsafe {
-		vga_println!("I got a test int!");
+		let scan = io::inb(PS2_INOUT);
+
+		vga_println!("I got interrupt {}", interrupt);
 		//for x in 0..32 {
 		pic::end_interrupt(0);
+		pic::end_interrupt(1)
 		//}
 	}
 }
