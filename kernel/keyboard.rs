@@ -13,7 +13,8 @@ const KEYB_INT: usize = 0x21;
 const KEYS: usize = 255;
 
 pub static mut KEYBOARD: Keyboard = Keyboard {
-	keystates: [0;KEYS]
+	keystates: [0;KEYS],
+	currentState: InputState::WaitingForNewCommand,
 };
 
 pub enum Vkey {
@@ -87,21 +88,20 @@ pub enum Vkey {
 	Space,
 }
 
+enum InputState {
+	WaitingForNewCommand,
+	WaitingForReleasedKey,
+}
+
 ///this struct manages the low level aspects of the PS/2 keyboard
 ///it receives interrupt scancodes through a callback function, and, from there
 ///manages everything
 pub struct Keyboard {
-	keystates: [u8;KEYS]
+	keystates: [u8;KEYS],
+	currentState: InputState,
 }
 
 impl Keyboard {
-
-	pub fn new() -> Keyboard
-	{
-		Keyboard {
-			keystates: [0;KEYS],
-		}
-	}
 
 	///actives the interrupts on this keyboard
 	pub fn make_active(&'static mut self)
@@ -110,7 +110,66 @@ impl Keyboard {
 			interrupt::IDT.set_function(KEYB_INT, self);
 		}
 	}
-	
+
+	fn handle_new_commnand(&mut self, byte: u8)
+	{
+		match byte {
+			//this means we are getting a released button command. oh boi!
+			0xF0 => self.currentState = InputState::WaitingForReleasedKey,
+			//anything else is probably a keyinput
+			_ => {
+				let key = match byte {
+					0x1C => 'A',
+					0x32 => 'B',
+					0x21 => 'C',
+					0x23 => 'D',
+					0x24 => 'E',
+					0x2B => 'F',
+					0x34 => 'G',
+					0x33 => 'H',
+					0x43 => 'I',
+					0x3B => 'J',
+					0x42 => 'K',
+					0x4B => 'L',
+					0x3A => 'M',
+					0x31 => 'N',
+					0x44 => 'O',
+					0x4D => 'P',
+					0x15 => 'Q',
+					0x2D => 'R',
+					0x1B => 'S',
+					0x2C => 'T',
+					0x3C => 'U',
+					0x2A => 'V',
+					0x1D => 'W',
+					0x22 => 'X',
+					0x35 => 'Y',
+					0x1A => 'Z',
+					_ => '\0'
+				};
+				if key != '\0' {
+					unsafe { ::vga::global_writer.write_char(key) };
+				}
+			}
+		}
+	}
+
+	fn handle_waiting_for_released_key(&mut self, byte: u8)
+	{
+		self.currentState = InputState::WaitingForNewCommand;
+	}
+
+	fn handle_byte(&mut self, byte: u8)
+	{
+		match self.currentState {
+			InputState::WaitingForNewCommand => {
+				self.handle_new_commnand(byte);
+			},
+			InputState::WaitingForReleasedKey => {
+				self.handle_waiting_for_released_key(byte);
+			}
+		}
+	}
 }
 
 impl FnOnce<()> for Keyboard {
@@ -126,10 +185,15 @@ impl FnMut<()> for Keyboard {
 	{
 		unsafe {
 			let scan = io::inb(PS2_INOUT);
+			self.handle_byte(scan);
+			pic::end_interrupt(1);
+		}
 
+		/*unsafe {
+			let scan = io::inb(PS2_INOUT);
+			handle_byte(scan);
 			if (scan == 0xF0) {
 				let key = io::inb(PS2_INOUT);
-				vga_println!("released {:x}", key);
 			} else {
 
 				let key = match scan {
@@ -171,7 +235,7 @@ impl FnMut<()> for Keyboard {
 			pic::end_interrupt(1);
 			
 			}
-		()
+		()*/
 	}
 }
 
