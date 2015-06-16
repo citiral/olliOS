@@ -1,4 +1,4 @@
-#![feature(no_std, core, box_syntax, asm, lang_items, box_syntax, box_patterns)]
+#![feature(unboxed_closures, no_std, core, box_syntax, asm, lang_items, box_syntax, box_patterns)]
 #![no_std]
 #![crate_type="staticlib"]
 #![allow(dead_code)]
@@ -52,6 +52,13 @@ fn initialize_hal()
 	}
 }
 
+fn initialize()
+{
+	unsafe {
+		keyboard::KEYBOARD.make_active();
+	}
+}
+
 fn assert_correctness()
 {
 	unsafe {
@@ -73,6 +80,7 @@ pub fn main()
 
 	assert_correctness();
 	initialize_hal();
+	initialize();
 	
 	unsafe {
 		vga_println!("Initialising the PIC");
@@ -86,7 +94,6 @@ pub fn main()
 
 	loop {
 		unsafe {
-			vga_println!("We are halting!");
 			asm!("hlt");
 		}
 	}

@@ -4,13 +4,17 @@ use alloc::{self, Allocator};
 
 #[lang="stack_exhausted"]
 extern fn stack_exhausted() {
-    loop {}
+    loop {
+        unsafe {asm!("hlt")};
+    }
 }
 
 
 #[lang="eh_personality"]
 extern fn eh_personality() {
-    loop {}
+    loop {
+        unsafe {asm!("hlt")};
+    }
 } 
 
 #[cold] #[inline(never)]
@@ -36,7 +40,9 @@ fn panic_impl(fmt: Arguments, file: &'static str, line: u32) -> !
 		vga_println!("[PANIC] {} at line {}: {}", file, line, fmt);
 	}
 
-	loop {}
+	loop {
+        unsafe {asm!("hlt")};
+    }
 }
 
 #[lang = "owned_box"]

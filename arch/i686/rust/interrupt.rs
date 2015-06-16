@@ -9,11 +9,6 @@ use core::raw::{self, Repr};
 use core::mem;
 use core::ptr;
 
-use alloc::Box;
-
-const PS2_INOUT: u16 = 0x60;
-const PS2_RW: u16 = 0x64;
-
 const MAX_IDT_ENTRIES: usize = 256;
 
 pub static mut IDT: Idt<'static> = Idt {
@@ -233,15 +228,25 @@ macro_rules! generate_int_handler {
 pub extern "C" fn rust_int(interrupt: u32)
 {
 	unsafe {
-
-		let scan = io::inb(PS2_INOUT);
 		IDT.call_function(interrupt as usize);
-		vga_println!("I got interrupt {}", interrupt);
-		//for x in 0..32 {
-		//pic::end_interrupt(0);
-		//pic::end_interrupt(1)
-		//}
 	}
+}
+
+///the used asm functions
+extern "C" {
+	fn reload_idt(limit: u16, base: u32);
+}
+
+
+///Calling this will check if all parts of this module are working correctly (proper sizes, ...)
+///If this function fails it probably means the kernel has been improperly compiled and ignored some attributes, liked packed
+pub fn assert_correctness()
+{
+	assert_size!(Label, 4);
+	assert_size!(*mut Label, 4);
+	assert_size!(*mut u32, 4);
+	assert_size!(u32, 4);
+	assert_size!(IdtDescriptor, 8);
 }
 
 #[no_mangle]
@@ -508,8 +513,85 @@ pub unsafe extern "C"  fn register_interrupts()
 		generate_int_handler!(254);
 		generate_int_handler!(255);
 	}
+}
 
-	IDT.set_function(0x21, (&mut rust_int_keyboard) as &mut FnMut());
+/*
+static mut test:TestInt = TestInt;
+
+struct TestInt;
+
+impl FnOnce<()> for TestInt {
+	type Output = ();
+
+	extern "rust-call" fn call_once(self, args: ()) -> Self::Output
+	{
+		unsafe {vga_println!("Called once?")};
+		()
+	}
+}
+
+impl FnMut<()> for TestInt {
+	extern "rust-call" fn call_mut(&mut self, args: ()) -> ()
+	{
+		unsafe {
+			let scan = io::inb(PS2_INOUT);
+
+//		io::outb(PS2_INOUT, 0xF4);
+//		let response = io::inb(PS2_INOUT);
+
+//		vga_println!("response is {:x}", response);
+		//vga_println!("got key {} ", scan);
+
+		//io::outb(0x61, key | 0x80);
+		//io::outb(0x61, key);
+		//vga_println!("got key interrupt {:x}", scan);
+
+		if (scan == 0xF0) {
+			let key = io::inb(PS2_INOUT);
+			vga_println!("released {:x}", key);
+		} else {
+
+			let key = match scan {
+				0x1C => 'A',
+				0x32 => 'B',
+				0x21 => 'C',
+				0x23 => 'D',
+				0x24 => 'E',
+				0x2B => 'F',
+				0x34 => 'G',
+				0x33 => 'H',
+				0x43 => 'I',
+				0x3B => 'J',
+				0x42 => 'K',
+				0x4B => 'L',
+				0x3A => 'M',
+				0x31 => 'N',
+				0x44 => 'O',
+				0x4D => 'P',
+				0x15 => 'Q',
+				0x2D => 'R',
+				0x1B => 'S',
+				0x2C => 'T',
+				0x3C => 'U',
+				0x2A => 'V',
+				0x1D => 'W',
+				0x22 => 'X',
+				0x35 => 'Y',
+				0x1A => 'Z',
+				_ => '\0'
+			};
+			if key != '\0' {
+				::vga::global_writer.write_char(key);
+			}
+		}
+
+		//vga_println!("Keyboard interrupt scan {:x}", scan);
+		//io::outb(0x20, 0x20);
+		pic::end_interrupt(1);
+		
+		}
+		()
+	}
 }
 
 #[no_mangle]
@@ -588,22 +670,11 @@ pub extern "C" fn rust_int_keyboard()
 
 ///the used asm functions
 extern "C" {
-	fn reload_idt(limit: u16, base: u32);
 	static mut int_unused: Label;
 	static mut int_keyboard: Label;
 }
 
-///Calling this will check if all parts of this module are working correctly (proper sizes, ...)
-///If this function fails it probably means the kernel has been improperly compiled and ignored some attributes, liked packed
-pub fn assert_correctness()
-{
-	assert_size!(Label, 4);
-	assert_size!(*mut Label, 4);
-	assert_size!(*mut u32, 4);
-	assert_size!(u32, 4);
-	assert_size!(IdtDescriptor, 8);
-}
-
+*/
 
 
 
