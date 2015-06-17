@@ -17,6 +17,112 @@ pub static mut KEYBOARD: Keyboard = Keyboard {
 	currentState: InputState::WaitingForNewCommand,
 };
 
+enum InputState {
+	WaitingForNewCommand,
+	WaitingForReleasedKey,
+}
+
+///this struct manages the low level aspects of the PS/2 keyboard
+///it receives interrupt scancodes through a callback function, and, from there
+///manages everything
+pub struct Keyboard {
+	keystates: [u8;KEYS],
+	currentState: InputState,
+}
+
+impl Keyboard {
+
+	///actives the interrupts on this keyboard
+	pub fn make_active(&'static mut self)
+	{
+		unsafe {
+			interrupt::IDT.set_function(KEYB_INT, self);
+		}
+	}
+
+	fn handle_new_commnand(&mut self, byte: u8)
+	{
+		match byte {
+			//this means we are getting a released button command. oh boi!
+			0xF0 => self.currentState = InputState::WaitingForReleasedKey,
+			//anything else is probably a keyinput
+			_ => {
+				let pressedkey = match byte {
+					0x1C => Some(Vkey::A),
+					0x32 => Some(Vkey::B),
+					0x21 => Some(Vkey::C),
+					0x23 => Some(Vkey::D),
+					0x24 => Some(Vkey::E),
+					0x2B => Some(Vkey::F),
+					0x34 => Some(Vkey::G),
+					0x33 => Some(Vkey::H),
+					0x43 => Some(Vkey::I),
+					0x3B => Some(Vkey::J),
+					0x42 => Some(Vkey::K),
+					0x4B => Some(Vkey::L),
+					0x3A => Some(Vkey::M),
+					0x31 => Some(Vkey::N),
+					0x44 => Some(Vkey::O),
+					0x4D => Some(Vkey::P),
+					0x15 => Some(Vkey::Q),
+					0x2D => Some(Vkey::R),
+					0x1B => Some(Vkey::S),
+					0x2C => Some(Vkey::T),
+					0x3C => Some(Vkey::U),
+					0x2A => Some(Vkey::V),
+					0x1D => Some(Vkey::W),
+					0x22 => Some(Vkey::X),
+					0x35 => Some(Vkey::Y),
+					0x1A => Some(Vkey::Z),
+					_ => None,
+				};
+
+				if let Some(key) = pressedkey {
+					unsafe {
+						vga_println!("Key pressed");
+					}
+				}
+			}
+		}
+	}
+
+	fn handle_waiting_for_released_key(&mut self, byte: u8)
+	{
+		self.currentState = InputState::WaitingForNewCommand;
+	}
+
+	fn handle_byte(&mut self, byte: u8)
+	{
+		match self.currentState {
+			InputState::WaitingForNewCommand => {
+				self.handle_new_commnand(byte);
+			},
+			InputState::WaitingForReleasedKey => {
+				self.handle_waiting_for_released_key(byte);
+			}
+		}
+	}
+}
+
+impl FnOnce<()> for Keyboard {
+	type Output = ();
+
+	extern "rust-call" fn call_once(self, args: ()) -> Self::Output {
+		()
+	}
+}
+
+impl FnMut<()> for Keyboard {
+	extern "rust-call" fn call_mut(&mut self, args: ()) -> ()
+	{
+		unsafe {
+			let scan = io::inb(PS2_INOUT);
+			self.handle_byte(scan);
+			pic::end_interrupt(1);
+		}
+	}
+}
+
 pub enum Vkey {
 	A,
 	B,
@@ -86,158 +192,15 @@ pub enum Vkey {
 	Insert,
 	Delete,
 	Space,
+	F1,
+	F2,
+	F3,
+	F4,
+	F5,
+	F6,
+	F7,
+	F9,
+	F10,
+	F11,
+	F12,
 }
-
-enum InputState {
-	WaitingForNewCommand,
-	WaitingForReleasedKey,
-}
-
-///this struct manages the low level aspects of the PS/2 keyboard
-///it receives interrupt scancodes through a callback function, and, from there
-///manages everything
-pub struct Keyboard {
-	keystates: [u8;KEYS],
-	currentState: InputState,
-}
-
-impl Keyboard {
-
-	///actives the interrupts on this keyboard
-	pub fn make_active(&'static mut self)
-	{
-		unsafe {
-			interrupt::IDT.set_function(KEYB_INT, self);
-		}
-	}
-
-	fn handle_new_commnand(&mut self, byte: u8)
-	{
-		match byte {
-			//this means we are getting a released button command. oh boi!
-			0xF0 => self.currentState = InputState::WaitingForReleasedKey,
-			//anything else is probably a keyinput
-			_ => {
-				let key = match byte {
-					0x1C => 'A',
-					0x32 => 'B',
-					0x21 => 'C',
-					0x23 => 'D',
-					0x24 => 'E',
-					0x2B => 'F',
-					0x34 => 'G',
-					0x33 => 'H',
-					0x43 => 'I',
-					0x3B => 'J',
-					0x42 => 'K',
-					0x4B => 'L',
-					0x3A => 'M',
-					0x31 => 'N',
-					0x44 => 'O',
-					0x4D => 'P',
-					0x15 => 'Q',
-					0x2D => 'R',
-					0x1B => 'S',
-					0x2C => 'T',
-					0x3C => 'U',
-					0x2A => 'V',
-					0x1D => 'W',
-					0x22 => 'X',
-					0x35 => 'Y',
-					0x1A => 'Z',
-					_ => '\0'
-				};
-				if key != '\0' {
-					unsafe { ::vga::global_writer.write_char(key) };
-				}
-			}
-		}
-	}
-
-	fn handle_waiting_for_released_key(&mut self, byte: u8)
-	{
-		self.currentState = InputState::WaitingForNewCommand;
-	}
-
-	fn handle_byte(&mut self, byte: u8)
-	{
-		match self.currentState {
-			InputState::WaitingForNewCommand => {
-				self.handle_new_commnand(byte);
-			},
-			InputState::WaitingForReleasedKey => {
-				self.handle_waiting_for_released_key(byte);
-			}
-		}
-	}
-}
-
-impl FnOnce<()> for Keyboard {
-	type Output = ();
-
-	extern "rust-call" fn call_once(self, args: ()) -> Self::Output {
-		()
-	}
-}
-
-impl FnMut<()> for Keyboard {
-	extern "rust-call" fn call_mut(&mut self, args: ()) -> ()
-	{
-		unsafe {
-			let scan = io::inb(PS2_INOUT);
-			self.handle_byte(scan);
-			pic::end_interrupt(1);
-		}
-
-		/*unsafe {
-			let scan = io::inb(PS2_INOUT);
-			handle_byte(scan);
-			if (scan == 0xF0) {
-				let key = io::inb(PS2_INOUT);
-			} else {
-
-				let key = match scan {
-					0x1C => 'A',
-					0x32 => 'B',
-					0x21 => 'C',
-					0x23 => 'D',
-					0x24 => 'E',
-					0x2B => 'F',
-					0x34 => 'G',
-					0x33 => 'H',
-					0x43 => 'I',
-					0x3B => 'J',
-					0x42 => 'K',
-					0x4B => 'L',
-					0x3A => 'M',
-					0x31 => 'N',
-					0x44 => 'O',
-					0x4D => 'P',
-					0x15 => 'Q',
-					0x2D => 'R',
-					0x1B => 'S',
-					0x2C => 'T',
-					0x3C => 'U',
-					0x2A => 'V',
-					0x1D => 'W',
-					0x22 => 'X',
-					0x35 => 'Y',
-					0x1A => 'Z',
-					_ => '\0'
-				};
-				if key != '\0' {
-					::vga::global_writer.write_char(key);
-				}
-			}
-
-			//vga_println!("Keyboard interrupt scan {:x}", scan);
-			//io::outb(0x20, 0x20);
-			pic::end_interrupt(1);
-			
-			}
-		()*/
-	}
-}
-
-//ideas:
-// callback of interrupts by lambda expressions (can capture environment so callbacks can work on structs)

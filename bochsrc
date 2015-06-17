@@ -1,2 +1,2 @@
-  ata0-master: type=disk, path="ollios.img", cylinders=615, heads=6, spt=17
+  ata0-master: type=disk, path="./ollios.iso", cylinders=262143, heads=6, spt=17
   boot: disk
