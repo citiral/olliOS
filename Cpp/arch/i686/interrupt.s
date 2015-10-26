@@ -21,4 +21,3 @@ int_keyboard:
 	call rust_int_keyboard
 	popal
 	iretl
-	

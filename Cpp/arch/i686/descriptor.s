@@ -1,3 +1,5 @@
+#YOLO
+
 .set limit, 0
 .set base, 0
 
@@ -72,8 +74,8 @@ reload_idt:
 
 #reloads the gdt
 #(limit:u16, base:u32)
-.global reload_gdt
-reload_gdt:
+.global reloadGdt
+reloadGdt:
 	#move the arguments to the gdt ptr
 	movw 4(%esp), %ax
 	movw %ax, GDTPtr
