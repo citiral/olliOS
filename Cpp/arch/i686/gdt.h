@@ -1,16 +1,9 @@
 #pragma once
 
 #include "types.h"
+#include "descriptor.h"
 
 #define MAX_GDT_ENTRIES 255
-
-enum class Dpl: u8 {
-	Ring0 = 0,
-	Ring1 = 1,
-	Ring2 = 2,
-	Ring3 = 3,
-};
-
 
 //represents a high level entry for a gdtDescriptor
 class GdtDescriptor {
