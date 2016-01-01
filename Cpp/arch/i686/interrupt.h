@@ -4,6 +4,10 @@
 #include "types.h"
 
 #define MAX_IDT_ENTRIES 256
+#define THROW_INTERRUPT(x) __asm__ volatile("int $" #x);
+#define INT_KEYBOARD 0x21
+
+
 typedef void (*InterruptCallback)(u32);
 
 ///A single entry in the Idt table
@@ -12,7 +16,7 @@ class IdtDescriptor {
 		IdtDescriptor();
 		IdtDescriptor(u32 lower, u32 higher);
 		void setValues(u32 lower, u32 higher);
-
+		void setOffset(u32 offset);
 		u16 offsetLow;
 		u16 selector;
 		u8 zero;
@@ -29,7 +33,7 @@ public:
 	void callFunction(u32 index);
 	void setEntry(u32 index, IdtDescriptor entry);
 	void addEntry(IdtDescriptor entry);
-	IdtDescriptor getEntry(u32 index);
+	IdtDescriptor& getEntry(u32 index);
 
 
 private:
@@ -52,4 +56,5 @@ enum class GateType: u8 {
 
 void IdtcreateEmpty();
 void IdtFlush();
+extern "C" void __attribute__ ((noinline)) IdtRegisterInterrupts();
 extern "C" void reload_idt(u16 limit, u32 base);

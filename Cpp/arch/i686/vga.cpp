@@ -66,6 +66,11 @@ void VgaSetChar(char c) {
 	VGA_POINTER[currentVgaState.column + currentVgaState.row * VGA_WIDTH] = VgaGenerateEntry(c);
 }
 
+//sets the character pointed to by the x, y coordinates to c. This will not advance the vga state, nor will it handle special characters
+void VgaSetChar(char c, u16 x, u16 y) {
+	VGA_POINTER[x + y * VGA_WIDTH] = VgaGenerateEntry(c);
+}
+
 //writes the char* as a string until it reaches a null terminated. This will handle special characters
 void VgaWriteChars(char* c) {
 	while (*c != '\0') {
@@ -91,10 +96,30 @@ void VgaSetCursor(u16 x, u16 y) {
 
 //scrolls the vga screen up, moving all text downwards one line. The row pointer is not moved
 void VgaScrollUp() {
+	for (i32 x = 0 ; x < VGA_WIDTH ; x++)
+		for (i32 y = 1 ; y < VGA_HEIGHT-1 ; y++)
+			VgaSetChar(VgaGetChar(x, y-1), x, y);
+	
 	VgaUpdateCursor();
 }
 
 //scrolls the vga screen down, moving all text upwards one line. The row pointer is not moved
 void VgaScrollDown() {
+	for (i32 x = 0 ; x < VGA_WIDTH ; x++)
+		for (i32 y = 0 ; y < VGA_HEIGHT-2 ; y++)
+			VgaSetChar(VgaGetChar(x, y+1), x, y);
+	
 	VgaUpdateCursor();
+}
+
+//gets the character at the current cursor location
+char VgaGetChar() {
+	char character = (char)VGA_POINTER[currentVgaState.column + currentVgaState.row * VGA_WIDTH];
+	return character;
+}
+
+//gets the character at the given location
+char VgaGetChar(u16 x, u16 y) {
+	char character = (char)VGA_POINTER[x + y * VGA_WIDTH];
+	return character;
 }

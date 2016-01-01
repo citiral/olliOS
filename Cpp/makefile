@@ -1,40 +1,65 @@
+#structure: folders never start with /, always end with /
+
 CC = i686-elf-gcc
 AS = i686-elf-as
-ARCH = arch/i686
+ARCH = arch/i686/
 
-INCLUDE = -I  arch/i686  -I kernel
-CCFLAGS = -std=gnu++11 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti $(INCLUDE) -Wno-write-strings
+ROOT = root/
+OUTPUT=ollios.bin
+
+INCLUDE = -I $(ROOT)usr/include
+CCFLAGS = -std=gnu++11 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -fdiagnostics-color=auto -nostdlib
 LDFLAGS = -ffreestanding -O2 -nostdlib -lgcc
-OBJECTS = build/bootASM.o build/main.o build/vga.o build/io.o build/gdt.o build/descriptorASM.o build/interruptASM.o build/interrupt.o
+LIBS = $(ROOT)/usr/lib/libk.a
 
-all: kernel
+KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard $(ARCH)*.cpp)
+KERNEL_ASM = $(wildcard kernel/*.s) $(wildcard $(ARCH)*.s)
+HEADERS = $(wildcard kernel/*.h) $(wildcard $(ARCH)*.h)
 
-kernel: bootASM.o main.o vga.o io.o gdt.o descriptorASM.o descriptor.o interruptASM.o interrupt.o
-	$(CC) -T $(ARCH)/linker.ld -o ollios.bin $(LDFLAGS) $(OBJECTS)
+CRTI_OBJ=crti.o
+CRTN_OBJ=crtn.o
+CRTBEGIN_OBJ:=$(shell $(CC) $(CCFLAGS) -print-file-name=crtbegin.o)
+CRTEND_OBJ:=$(shell $(CC) $(CCFLAGS) -print-file-name=crtend.o)
 
-bootASM.o:
-	$(AS) $(ARCH)/boot.s -o build/bootASM.o
+#make a list of all objects, but taking special care of the order of crt* files
+OBJECTS = $(filter-out crti.o crtn.o, $(notdir $(KERNEL_CPP:.cpp=.o)) $(notdir $(KERNEL_ASM:.s=.o)))
 
-main.o:
-	$(CC) -c kernel/main.cpp -o build/main.o $(CCFLAGS)
+.PHONY: all kernel clean dir install install-headers install-kernel
 
-vga.o:
-	$(CC) -c $(ARCH)/vga.cpp -o build/vga.o $(CCFLAGS)
+all: dir install-headers kernel install-kernel
 
-io.o:
-	$(CC) -c $(ARCH)/io.cpp -o build/io.o $(CCFLAGS)
+kernel: $(CRTI_OBJ) $(OBJECTS) $(CRTN_OBJ)
+	$(CC) -T $(ARCH)linker.ld -o build/$(OUTPUT) $(CFLAGS) $(addprefix build/, $(CRTI_OBJ)) $(CRTBEGIN_OBJ) $(addprefix build/,$(OBJECTS)) $(CRTEND_OBJ) $(addprefix build/, $(CRTN_OBJ)) $(LDFLAGS) $(LIBS)
 
-gdt.o:
-	$(CC) -c $(ARCH)/gdt.cpp -o build/gdt.o $(CCFLAGS)
+clean:
+	rm -fr build root
 
-descriptorASM.o:
-	$(CC) -c $(ARCH)/descriptor.s -o build/descriptorASM.o $(CCFLAGS)
+%.o: kernel/%.cpp 
+	$(CC) -c $< -o build/$@ $(CCFLAGS) 
 
-descriptor.o:
-	$(CC) -c $(ARCH)/descriptor.cpp -o build/descriptor.o $(CCFLAGS)
+%.o: kernel/%.s
+	$(CC) -c $< -o build/$@ $(CCFLAGS)
 
-interruptASM.o:
-	$(CC) -c $(ARCH)/interrupt.s -o build/interruptASM.o $(CCFLAGS)
+%.o: $(ARCH)%.cpp 
+	$(CC) -c $< -o build/$@ $(CCFLAGS)
 
-interrupt.o:
-	$(CC) -c $(ARCH)/interrupt.cpp -o build/interrupt.o $(CCFLAGS)
+%.o: $(ARCH)%.s
+	$(CC) -c $< -o build/$@ $(CCFLAGS)
+
+dir:
+	mkdir -p build
+	mkdir -p $(ROOT)
+	mkdir -p $(ROOT)usr
+	mkdir -p $(ROOT)usr
+	mkdir -p $(ROOT)usr/include
+	mkdir -p $(ROOT)usr/boot
+	mkdir -p $(ROOT)usr/lib
+	mkdir -p $(ROOT)usr/bin
+
+install: install-headers install-kernel
+
+install-headers:
+	cp -Rv $(HEADERS) $(ROOT)usr/include
+
+install-kernel:
+	cp -RTv build/$(OUTPUT) $(ROOT)usr/boot/$(OUTPUT)

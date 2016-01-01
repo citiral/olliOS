@@ -40,6 +40,12 @@ void VgaScrollDown();
 void VgaWriteChar(char c);
 //sets the character pointed to by the current vga state to c. This will not advance the vga state, nor will it handle special characters
 void VgaSetChar(char c);
+//sets the character pointed to by the x, y coordinates to c. This will not advance the vga state, nor will it handle special characters
+void VgaSetChar(char c, u16 x, u16 y);
+//gets the character at the current cursor location
+char VgaGetChar();
+//gets the character at the given location
+char VgaGetChar(u16 x, u16 y);
 //advances the vga pointer by one character.
 void VgaAdvanceCharacter();
 //writes the char* as a string until it reaches a null terminated. This will handle special characters
