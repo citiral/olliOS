@@ -27,7 +27,7 @@ extern "C" void main() {
 	outb(0x64, 0x60);
 	outb(0x60, 0b00000001);
 	VgaWriteChars("Welcome to OlliOS!\n");
-	
+
 	while (true) {
 		__asm__ volatile("hlt");
 	}

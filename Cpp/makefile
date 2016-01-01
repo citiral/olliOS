@@ -3,12 +3,13 @@
 CC = i686-elf-gcc
 AS = i686-elf-as
 ARCH = arch/i686/
+MAKE = make
 
 ROOT = root/
 OUTPUT=ollios.bin
 
 INCLUDE = -I $(ROOT)usr/include
-CCFLAGS = -std=gnu++11 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -fdiagnostics-color=auto -nostdlib
+CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -fdiagnostics-color=auto -nostdlib
 LDFLAGS = -ffreestanding -O2 -nostdlib -lgcc
 LIBS = $(ROOT)/usr/lib/libk.a
 
@@ -24,23 +25,28 @@ CRTEND_OBJ:=$(shell $(CC) $(CCFLAGS) -print-file-name=crtend.o)
 #make a list of all objects, but taking special care of the order of crt* files
 OBJECTS = $(filter-out crti.o crtn.o, $(notdir $(KERNEL_CPP:.cpp=.o)) $(notdir $(KERNEL_ASM:.s=.o)))
 
-.PHONY: all kernel clean dir install install-headers install-kernel
+.PHONY: all compile-kernel clean dir libc install install-headers install-kernel
 
-all: dir install-headers kernel install-kernel
+all: dir install-headers libc compile-kernel install-kernel
 
-kernel: $(CRTI_OBJ) $(OBJECTS) $(CRTN_OBJ)
+libc:
+	$(MAKE) -C libc
+
+kernel: dir install-headers compile-kernel install-kernel
+
+compile-kernel: $(CRTI_OBJ) $(OBJECTS) $(CRTN_OBJ)
 	$(CC) -T $(ARCH)linker.ld -o build/$(OUTPUT) $(CFLAGS) $(addprefix build/, $(CRTI_OBJ)) $(CRTBEGIN_OBJ) $(addprefix build/,$(OBJECTS)) $(CRTEND_OBJ) $(addprefix build/, $(CRTN_OBJ)) $(LDFLAGS) $(LIBS)
 
 clean:
 	rm -fr build root
 
-%.o: kernel/%.cpp 
-	$(CC) -c $< -o build/$@ $(CCFLAGS) 
+%.o: kernel/%.cpp
+	$(CC) -c $< -o build/$@ $(CCFLAGS)
 
 %.o: kernel/%.s
 	$(CC) -c $< -o build/$@ $(CCFLAGS)
 
-%.o: $(ARCH)%.cpp 
+%.o: $(ARCH)%.cpp
 	$(CC) -c $< -o build/$@ $(CCFLAGS)
 
 %.o: $(ARCH)%.s

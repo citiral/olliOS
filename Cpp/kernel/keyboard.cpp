@@ -20,8 +20,8 @@ bool Keyboard::getKeyState(Keycode key) {
 
 void Keyboard::setKeyState(Keycode key, bool value) {
 	_keystates[(u8)key] = value;
-	
-	//if we have a keyeventcallback, send a keyevent packet 
+
+	//if we have a keyeventcallback, send a keyevent packet
 	if (_keyEventCallback != nullptr) {
 		//if we need to send a keypress packet
 		if (value) {

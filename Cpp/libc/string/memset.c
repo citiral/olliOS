@@ -1,27 +1,14 @@
 #include <string.h>
 #include <stddef.h>
 
-int memcmp(const void* dest, const void* source, size_t num)
-{
-	return 0;
-}
-
-void* memcpy(void* dest, const void* source, size_t num)
-{
-	return NULL;
-}
-
-void* memmove(void* dest, const void* source, size_t num)
-{
-	return NULL;
-}
-
 void* memset(void* ptr, int value, size_t num)
 {
-	return NULL;
-}
+	unsigned char* data = (unsigned char*)ptr;
+	
+	for (size_t i = 0 ; i < num ; i++)
+	{
+		data[i] = (unsigned char)value;
+	}
 
-size_t strlen(const char* str)
-{
-	return 0;
+	return ptr;
 }
