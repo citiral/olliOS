@@ -34,13 +34,53 @@ esp0_bottom:
 .skip 16384 # 16 KiB
 esp0_top:
 
-
 # The linker script specifies _start as the entry point to the kernel and the
 # bootloader will jump to this position once the kernel has been loaded. It
 # doesn't make sense to return from this function as the bootloader is gone.
+
+.set VIRTUAL_OFFSET, 0xC0000000
+.set VIRTUAL_PAGE_INDEX, VIRTUAL_OFFSET >> 22
+
+# allocate a page directory purely for bootstrapping the higher half kernel.
+# For memory reasons bootstrapping happens with 4MB pages
+
+.section .data
+.align 0x1000
+_bootstrap_page_directory:
+	.long 0x00000083 # memory map first mb
+	.rept VIRTUAL_PAGE_INDEX - 1
+	.long 0 # all 0 entries untill kernel
+	.endr
+	.long 0x00000083 # the memory directory of the higher half kernel
+	.rept 1024 - VIRTUAL_PAGE_INDEX - 1
+	.long 0 # all 0 entries untill kernel
+	.endr
+
 .section .text
-.global _start
-.type _start, @function
+.global loader
+.equ loader, _loader - 0xC0000000
+# higher half kernel bootstrap loader
+_loader:
+	# use the bootstrap page directory
+	mov $_bootstrap_page_directory - VIRTUAL_OFFSET, %eax
+	mov %eax, %cr3
+	mov $0x1234, %eax
+
+	# enable page size extensions
+
+	mov %cr4, %eax
+	or $0x00000010, %eax
+	mov %eax, %cr4
+
+	# enable paging
+	mov %cr0, %eax
+	or $0x80000000, %eax
+	mov %eax, %cr0
+
+	#jump to start with absolute jump, for paging to kick in
+	movl $_start, %ecx
+	jmp *%ecx
+
 _start:
 	# Welcome to kernel mode! We now have sufficient code for the bootloader to
 	# load and run our operating system. It doesn't do anything interesting yet.
@@ -65,11 +105,12 @@ _start:
 	# To set up a stack, we simply set the esp register to point to the top of
 	# our stack (as it grows downwards).
 	movl $stack_top, %esp
-
 	# We are now ready to actually execute C code. We cannot embed that in an
 	# assembly file, so we'll create a kernel.c file in a moment. In that file,
 	# we'll create a C entry point called kernel_main and call it here.
+	call _init
 	call main
+	call _fini
 
 	# In case the function returns, we'll want to put the computer into an
 	# infinite loop. To do that, we use the clear interrupt ('cli') instruction
