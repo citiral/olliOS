@@ -57,7 +57,7 @@ initialize_tss:
 	movl	$esp0_top, TSS_ESP0		#then set the stack to our special tss_esp0 stack
 	movw	$104,	TSS_IOPB+2
 	movw 	8(%esp), 	%ax				#set the index of the TSS in the GDT
-	ltr %ax	
+	ltr %ax
 	ret
 
 #loads the idt

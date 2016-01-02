@@ -1,7 +1,7 @@
 #include "vga.h"
 #include "io.h"
 
-static i16* VGA_POINTER = (i16*)0xB8000;
+static i16* VGA_POINTER = (i16*)0x000B8000;
 
 static VgaState currentVgaState = {
 	column: 0,
@@ -99,7 +99,7 @@ void VgaScrollUp() {
 	for (i32 x = 0 ; x < VGA_WIDTH ; x++)
 		for (i32 y = 1 ; y < VGA_HEIGHT-1 ; y++)
 			VgaSetChar(VgaGetChar(x, y-1), x, y);
-	
+
 	VgaUpdateCursor();
 }
 
@@ -108,7 +108,7 @@ void VgaScrollDown() {
 	for (i32 x = 0 ; x < VGA_WIDTH ; x++)
 		for (i32 y = 0 ; y < VGA_HEIGHT-2 ; y++)
 			VgaSetChar(VgaGetChar(x, y+1), x, y);
-	
+
 	VgaUpdateCursor();
 }
 

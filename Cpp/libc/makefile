@@ -1,10 +1,10 @@
-#structure: folders never start with /, always end with /
+#structure: folders never start or end with /
 
 CC = i686-elf-gcc
 AS = i686-elf-as
 AR = i686-elf-ar
 
-ARCH = arch/i686/
+ARCH = arch/i686
 
 ROOT = ../root/
 
@@ -32,10 +32,10 @@ libk.a: $(LIBK_OBJ)
 	$(AR) rcs ../build/$@ $(addprefix ../build/,$(notdir $(LIBK_OBJ)))
 
 %.o: %.c
-	$(CC) -c $< -o ../build/$(notdir $@) $(LIBC_CCFLAGS) 
+	$(CC) -c $< -o ../build/$(notdir $@) $(LIBC_CCFLAGS)
 
 %.libk.o: %.c
-	$(CC) -c $< -o ../build/$(notdir $@) $(LIBK_CCFLAGS) 
+	$(CC) -c $< -o ../build/$(notdir $@) $(LIBK_CCFLAGS)
 
 clean:
 	rm -f $(addprefix $(ROOT)usr/bin/, $(BINARIES))

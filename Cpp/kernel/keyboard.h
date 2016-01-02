@@ -52,12 +52,12 @@ public:
 	void setKeyState(Keycode key, bool value);
 	void setKeyEventCallback(KeyEventCallback callback);
 	void handleKeyInterrupt(int code);
-	
+
 private:
 	int code1;
 	int code2;
 	int code3;
-	
+
 	bool _keystates[(u8)Keycode::COUNT];
 	KeyEventCallback _keyEventCallback;
 };

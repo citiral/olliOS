@@ -6,6 +6,7 @@
 *.bin
 
 /doc
+/Cpp/root
 
 # Executables
 *.exe

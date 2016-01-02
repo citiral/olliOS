@@ -1,4 +1,4 @@
-#structure: folders never start with /, always end with /
+#structure: folders never start /, always end with /
 
 CC = i686-elf-gcc
 AS = i686-elf-as
@@ -9,13 +9,13 @@ ROOT = root/
 OUTPUT=ollios.bin
 
 INCLUDE = -I $(ROOT)usr/include
-CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -fdiagnostics-color=auto -nostdlib
+CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -fdiagnostics-color=auto -nostdlib -fno-threadsafe-statics
 LDFLAGS = -ffreestanding -O2 -nostdlib -lgcc
 LIBS = $(ROOT)/usr/lib/libk.a
 
-KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard $(ARCH)*.cpp)
-KERNEL_ASM = $(wildcard kernel/*.s) $(wildcard $(ARCH)*.s)
-HEADERS = $(wildcard kernel/*.h) $(wildcard $(ARCH)*.h)
+KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/util/*.cpp) $(wildcard $(ARCH)/*.cpp)
+KERNEL_ASM = $(wildcard kernel/*.s) $(wildcard $(ARCH)/*.s)
+HEADERS = $(wildcard kernel/*.h) $(wildcard kernel/util/*.h) $(wildcard $(ARCH)/*.h)
 
 CRTI_OBJ=crti.o
 CRTN_OBJ=crtn.o
@@ -41,6 +41,9 @@ clean:
 	rm -fr build root
 
 %.o: kernel/%.cpp
+	$(CC) -c $< -o build/$@ $(CCFLAGS)
+
+%.o: kernel/**/%.cpp
 	$(CC) -c $< -o build/$@ $(CCFLAGS)
 
 %.o: kernel/%.s

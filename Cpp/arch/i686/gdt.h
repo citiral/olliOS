@@ -6,7 +6,7 @@
 #define MAX_GDT_ENTRIES 255
 
 //represents a high level entry for a gdtDescriptor
-class GdtDescriptor {
+class __attribute__((packed)) GdtDescriptor {
 public:
 	GdtDescriptor();
 	GdtDescriptor(u32 lower, u32 higher);
