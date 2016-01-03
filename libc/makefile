@@ -8,8 +8,8 @@ ARCH = arch/i686
 
 ROOT = ../root/
 
-LIBC_CCFLAGS = -D__is_libc -D__is_kernel -std=gnu11 -O2 -g -Wall -Wextra -fno-exceptions $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -fdiagnostics-color=auto
-LIBK_CCFLAGS = -D__is_libk -D__is_kernel -std=gnu11 -fbuiltin -ffreestanding -O2 -g -Wall -Wextra -fno-exceptions $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -fdiagnostics-color=auto
+LIBC_CCFLAGS = -D__is_libc -D__is_kernel -std=gnu11 -O2 -g -Wall -Wextra -fno-exceptions $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -fdiagnostics-color=auto -nostdlib
+LIBK_CCFLAGS = -D__is_libk -D__is_kernel -std=gnu11 -fbuiltin -ffreestanding -O2 -g -Wall -Wextra -fno-exceptions $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -fdiagnostics-color=auto -nostdlib
 
 INCLUDE = -I $(ROOT)usr/include
 
@@ -40,7 +40,7 @@ libk.a: $(LIBK_OBJ)
 clean:
 	rm -f $(addprefix $(ROOT)usr/bin/, $(BINARIES))
 
-install: install-headers install-kernel
+install: install-headers install-binaries
 
 install-headers:
 	cp -Rv $(HEADERS) $(ROOT)usr/include

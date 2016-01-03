@@ -1,11 +1,7 @@
 #pragma once
-#include "singleton.h"
-#include "rtti.h"
 
-enum class DeviceType {
-    Keyboard,
-    Screen,
-};
+#include "singleton.h"
+#include "device.h"
 
 //there can ever be only 1 device manager
 class DeviceManager : public Singleton<DeviceManager>

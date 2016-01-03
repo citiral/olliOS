@@ -13,7 +13,7 @@ SECTIONS
 	{
 		*(.multiboot)
 		*(.text)
-		*(.rodata*)
+		*(.rodata)
 	}
 
    .data ALIGN (0x1000) : AT(ADDR(.data) - 0xC0000000) {

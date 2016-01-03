@@ -1,4 +1,6 @@
-#pragma once
+#ifndef __DESCRIPTOR_H
+#define __DESCRIPTOR_H
+
 #include "types.h"
 
 
@@ -22,3 +24,5 @@ struct DescriptorTablePointer {
 //the used asm functions for the descriptors
 //initializes the task state register
 extern "C" void initialize_tss(u16 datasegment, u16 gdtindex);
+
+#endif /* end of include guard: __DESCRIPTOR_H */

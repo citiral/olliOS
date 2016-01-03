@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __GDT_H
+#define __GDT_H
 
 #include "types.h"
 #include "descriptor.h"
@@ -32,3 +33,5 @@ public:
 
 void GdtCreateFlat();
 void GdtFlush();
+
+#endif /* end of include guard: __GDT_H */

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __RTTI_H
+#define __RTTI_H
 
 #include "stddef.h"
 
@@ -21,3 +22,5 @@ public:
         return typeOf<T>();
     }
 };
+
+#endif /* end of include guard: __RTTI_H */

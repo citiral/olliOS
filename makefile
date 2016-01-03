@@ -11,7 +11,7 @@ OUTPUT=ollios.bin
 INCLUDE = -I $(ROOT)usr/include
 CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -fdiagnostics-color=auto -nostdlib -fno-threadsafe-statics
 LDFLAGS = -ffreestanding -O2 -nostdlib -lgcc
-LIBS = $(ROOT)/usr/lib/libk.a
+LIBS = $(ROOT)/usr/lib/libk.a #$(ROOT)/usr/lib/libk++.a
 
 KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/util/*.cpp) $(wildcard $(ARCH)/*.cpp)
 KERNEL_ASM = $(wildcard kernel/*.s) $(wildcard $(ARCH)/*.s)
@@ -25,12 +25,15 @@ CRTEND_OBJ:=$(shell $(CC) $(CCFLAGS) -print-file-name=crtend.o)
 #make a list of all objects, but taking special care of the order of crt* files
 OBJECTS = $(filter-out crti.o crtn.o, $(notdir $(KERNEL_CPP:.cpp=.o)) $(notdir $(KERNEL_ASM:.s=.o)))
 
-.PHONY: all compile-kernel clean dir libc install install-headers install-kernel
+.PHONY: all compile-kernel clean dir libc libc++ install install-headers install-kernel
 
-all: dir install-headers libc compile-kernel install-kernel
+all: dir install-headers libc libc++ compile-kernel install-kernel
 
 libc:
 	$(MAKE) -C libc
+
+libc++:
+	$(MAKE) -C libc++
 
 kernel: dir install-headers compile-kernel install-kernel
 

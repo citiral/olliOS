@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __TYPES_H
+#define __TYPES_H
 
 typedef char 		i8;
 typedef short 		i16;
@@ -12,3 +13,5 @@ typedef unsigned long long 	u64;
 
 typedef float 		f32;
 typedef double 		f64;
+
+#endif /* end of include guard: __TYPES_H */

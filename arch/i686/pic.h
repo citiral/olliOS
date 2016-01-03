@@ -1,4 +1,6 @@
-#pragma once
+#ifndef __PIC_H
+#define __PIC_H
+
 #include "types.h"
 
 #define MASTER_COMMAND 0x20
@@ -21,3 +23,5 @@ void mapPics(u8 masterOffset, u8 slaveOffset);
 //initializes the pic and allows all interrupts
 //this also remaps the the pic so it doesn't conflict with intel reserved interrupts
 void PicInit();
+
+#endif /* end of include guard: __PIC_H */

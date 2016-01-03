@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __INTERRUPT_H
+#define __INTERRUPT_H
 
 #include "descriptor.h"
 #include "types.h"
@@ -45,7 +46,7 @@ private:
 	u32 _length;
 };
 
-///A gate type 
+///A gate type
 enum class GateType: u8 {
 	TaskGate32 = 5,
 	InterruptGate16 = 6,
@@ -58,3 +59,5 @@ void IdtcreateEmpty();
 void IdtFlush();
 extern "C" void __attribute__ ((noinline)) IdtRegisterInterrupts();
 extern "C" void reload_idt(u16 limit, u32 base);
+
+#endif /* end of include guard: __INTERRUPT_H */

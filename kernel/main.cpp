@@ -11,24 +11,24 @@
 void initCpu() {
 	GdtCreateFlat();
 	GdtFlush();
-	VgaWriteChars("Created GDT.\n");
+	vgaDriver.write("Created GDT.\n");
 	IdtcreateEmpty();
 	IdtFlush();
 	IdtRegisterInterrupts();
-	VgaWriteChars("Created IDT.\n");
+	vgaDriver.write("Created IDT.\n");
 	initialize_tss(0x10, 0x28);
-	VgaWriteChars("Created TSS.\n");
+	vgaDriver.write("Created TSS.\n");
 	THROW_INTERRUPT(250);
 }
 
 extern "C" void main() {
-	VgaClear();
+	vgaDriver.write("Hello world!\n");
 	initCpu();
 	PicInit();
 	outb(0x64, 0x60);
 	outb(0x60, 0b00000001);
-	VgaWriteChars("Welcome to OlliOS!\n");
-	
+	vgaDriver.write("Welcome to OlliOS!\n");
+
 	while (true) {
 		__asm__ volatile("hlt");
 	}
