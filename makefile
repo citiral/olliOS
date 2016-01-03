@@ -9,13 +9,13 @@ ROOT = root/
 OUTPUT=ollios.bin
 
 INCLUDE = -I $(ROOT)usr/include
-CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -fdiagnostics-color=auto -nostdlib -fno-threadsafe-statics
+CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -nostdlib -fno-threadsafe-statics
 LDFLAGS = -ffreestanding -O2 -nostdlib -lgcc
 LIBS = $(ROOT)/usr/lib/libk.a #$(ROOT)/usr/lib/libk++.a
 
-KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/util/*.cpp) $(wildcard $(ARCH)/*.cpp)
+KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/util/*.cpp) $(wildcard kernel/streams/*.cpp) $(wildcard $(ARCH)/*.cpp)  $(wildcard $(ARCH)streams/*.cpp)
 KERNEL_ASM = $(wildcard kernel/*.s) $(wildcard $(ARCH)/*.s)
-HEADERS = $(wildcard kernel/*.h) $(wildcard kernel/util/*.h) $(wildcard $(ARCH)/*.h)
+HEADERS = $(wildcard kernel/*.h) $(wildcard kernel/util/*.h) $(wildcard kernel/streams/*.h) $(wildcard $(ARCH)/*.h) $(wildcard $(ARCH)streams/*.h)
 
 CRTI_OBJ=crti.o
 CRTN_OBJ=crtn.o
@@ -25,9 +25,9 @@ CRTEND_OBJ:=$(shell $(CC) $(CCFLAGS) -print-file-name=crtend.o)
 #make a list of all objects, but taking special care of the order of crt* files
 OBJECTS = $(filter-out crti.o crtn.o, $(notdir $(KERNEL_CPP:.cpp=.o)) $(notdir $(KERNEL_ASM:.s=.o)))
 
-.PHONY: all compile-kernel clean dir libc libc++ install install-headers install-kernel
+.PHONY: all compile-kernel clean dir libc install install-headers install-kernel
 
-all: dir install-headers libc libc++ compile-kernel install-kernel
+all: dir install-headers libc compile-kernel install-kernel
 
 libc:
 	$(MAKE) -C libc
@@ -53,6 +53,9 @@ clean:
 	$(CC) -c $< -o build/$@ $(CCFLAGS)
 
 %.o: $(ARCH)%.cpp
+	$(CC) -c $< -o build/$@ $(CCFLAGS)
+
+%.o: $(ARCH)**/%.cpp
 	$(CC) -c $< -o build/$@ $(CCFLAGS)
 
 %.o: $(ARCH)%.s

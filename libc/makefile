@@ -8,8 +8,8 @@ ARCH = arch/i686
 
 ROOT = ../root/
 
-LIBC_CCFLAGS = -D__is_libc -D__is_kernel -std=gnu11 -O2 -g -Wall -Wextra -fno-exceptions $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -fdiagnostics-color=auto -nostdlib
-LIBK_CCFLAGS = -D__is_libk -D__is_kernel -std=gnu11 -fbuiltin -ffreestanding -O2 -g -Wall -Wextra -fno-exceptions $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -fdiagnostics-color=auto -nostdlib
+LIBC_CCFLAGS = -D__is_libc -D__is_kernel -std=gnu11 -O2 -g -Wall -Wextra -fno-exceptions $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -nostdlib
+LIBK_CCFLAGS = -D__is_libk -D__is_kernel -std=gnu11 -fbuiltin -ffreestanding -O2 -g -Wall -Wextra -fno-exceptions $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -nostdlib
 
 INCLUDE = -I $(ROOT)usr/include
 

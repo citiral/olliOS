@@ -8,8 +8,8 @@ ARCH = arch/i686
 
 ROOT = ../root/
 
-LIBC++_CCFLAGS = -D__is_libcpp -D__is_kernel -std=gnu++11 -O2 -g -Wall -Wextra -fno-exceptions $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -fdiagnostics-color=auto -nostdlib
-LIBK++_CCFLAGS = -D__is_libkpp -D__is_kernel -std=gnu++11 -fbuiltin -ffreestanding -O2 -g -Wall -Wextra -fno-exceptions $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -fdiagnostics-color=auto -nostdlib
+LIBC++_CCFLAGS = -D__is_libcpp -D__is_kernel -std=gnu++11 -O2 -g -Wall -Wextra -fno-exceptions $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -nostdlib
+LIBK++_CCFLAGS = -D__is_libkpp -D__is_kernel -std=gnu++11 -fbuiltin -ffreestanding -O2 -g -Wall -Wextra -fno-exceptions $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -nostdlib
 LIBSC = $(ROOT)/usr/lib/libc.a
 LIBSK = $(ROOT)/usr/lib/libk.a
 

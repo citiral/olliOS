@@ -6,7 +6,7 @@
 #include "singleton.h"
 #include "devicemanager.h"
 #include "io.h"
-#include <string.h>
+#include "string.h"
 
 void initCpu() {
 	GdtCreateFlat();
