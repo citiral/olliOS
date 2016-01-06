@@ -9,25 +9,26 @@
 #include "string.h"
 #include "InputFormatter.h"
 #include "keyboard.h"
+#include "stdio.h"
 
 void initCpu() {
 	GdtCreateFlat();
 	GdtFlush();
-	vgaDriver.write("Created GDT.\n");
+	printf("Created GDT.\n");
 	IdtcreateEmpty();
 	IdtFlush();
 	IdtRegisterInterrupts();
-	vgaDriver.write("Created IDT.\n");
+	printf("Created IDT.\n");
 	initialize_tss(0x10, 0x28);
-	vgaDriver.write("Created TSS.\n");
+	printf("Created TSS.\n");
 	THROW_INTERRUPT(250);
 }
 
 extern "C" void main() {
-	vgaDriver.write("Hello world!\n");
+	printf("Hello world!\n");
 	initCpu();
 	PicInit();
-	vgaDriver.write("Welcome to OlliOS!\n");
+	printf("Welcome to OlliOS!\n");
 
 	InputFormatter fmt;
 

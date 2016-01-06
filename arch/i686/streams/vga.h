@@ -44,7 +44,7 @@ public:
 	virtual size_t read(void* data, size_t amount);
 	//changes the position on the screen, counted in characters, starting from the top left,
 	//to the bottom right, lines first.
-	virtual void seek(i32 offset, SeekType position);
+	virtual void seek(i32 offset, int position);
 
 private:
 	//creates an entry for the vga memory from the given character c and the current state of the vga driver

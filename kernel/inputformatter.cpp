@@ -20,9 +20,9 @@ void InputFormatter::handleVirtualKeyEvent(VirtualKeyEvent event)
         _bufferIndex = 0;
     } else if (event.vkey == VirtualKeycode::BACKSPACE) {
         if (_bufferIndex > 0) {
-            vgaDriver.seek(-1, SeekType::CURRENT);
+            fseek(stdout, -1, SEEK_CUR);
             vgaDriver.write(" ", 1);
-            vgaDriver.seek(-1, SeekType::CURRENT);
+            fseek(stdout, -1, SEEK_CUR);
             _bufferIndex--;
         }
     } else if (event.vkey >= VirtualKeycode::A && event.vkey <= VirtualKeycode::Z) {
@@ -44,7 +44,7 @@ void InputFormatter::addChar(u8 character)
         _bufferIndex--;
     }
     _buffer[_bufferIndex] = character;
-    //TODO dynamically get the proper stream to write to
+
     vgaDriver.write(_buffer + _bufferIndex, 1);
     _bufferIndex++;
 }

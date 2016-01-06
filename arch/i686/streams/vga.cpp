@@ -63,15 +63,15 @@ size_t VgaDriver::read(void* data, size_t amount)
 	return 0;
 }
 
-void VgaDriver::seek(i32 offset, SeekType seek)
+void VgaDriver::seek(i32 offset, int seek)
 {
 	u32 position;
 
-	if (seek == SeekType::BEGIN)
+	if (seek == SEEK_SET)
 		position = 0;
-	else if (seek == SeekType::END)
+	else if (seek == SEEK_END)
 		position = VGA_WIDTH * VGA_HEIGHT - 1;
- 	else if (seek == SeekType::CURRENT)
+ 	else if (seek == SEEK_CUR)
 		position = _column + _row * VGA_WIDTH;
 
 	position += offset;

@@ -25,15 +25,12 @@ CRTEND_OBJ:=$(shell $(CC) $(CCFLAGS) -print-file-name=crtend.o)
 #make a list of all objects, but taking special care of the order of crt* files
 OBJECTS = $(filter-out crti.o crtn.o, $(notdir $(KERNEL_CPP:.cpp=.o)) $(notdir $(KERNEL_ASM:.s=.o)))
 
-.PHONY: all compile-kernel clean dir libc install install-headers install-kernel
+.PHONY: all compile-kernel clean dir libk install install-headers install-kernel
 
-all: dir install-headers libc compile-kernel install-kernel
+all: dir install-headers libk compile-kernel install-kernel
 
-libc:
-	$(MAKE) -C libc
-
-libc++:
-	$(MAKE) -C libc++
+libk:
+	$(MAKE) -C libk
 
 kernel: dir install-headers compile-kernel install-kernel
 

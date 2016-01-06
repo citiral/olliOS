@@ -3,18 +3,12 @@
 
 #include <stddef.h>
 #include "types.h"
-
+#include "stdio.h"
 /*
 * The stream will be the base of a lot of classes in the operating system.
 * Much like many other operating systems all device drivers, files,.. will
 * be represented as simple data streams.
 */
-
-enum class SeekType {
-    BEGIN,
-    CURRENT,
-    END,
-};
 
 class Stream {
 public:
@@ -37,7 +31,7 @@ public:
     // beginning. Positive offets are UNDEFINED BEHAVIOUR.
     // if position == SeekType.CURRENT, the file will seek starting from current
     // position.
-    virtual void seek(i32 offset, SeekType position) = 0;
+    virtual void seek(i32 offset, int position) = 0;
 };
 
 #endif
