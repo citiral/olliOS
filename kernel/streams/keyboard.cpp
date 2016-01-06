@@ -1,11 +1,41 @@
+#include "vga.h"
 #include "keyboard.h"
+#include "io.h"
+
+#define COMMAND_PORT 0x64
+#define IO_PORT 0x60
+
+#define CMD_SET_COMMAND_BYTE 0x60
+#define CMD_SET_SCAMECODE_SET 0xF0
 
 KeyboardDriver keyboardDriver;
+
+VirtualKeyEvent::VirtualKeyEvent()
+{
+	this->vkey = VirtualKeycode::INVALID;
+	this->status = 0;
+}
+
+VirtualKeyEvent::VirtualKeyEvent(VirtualKeycode vkey, u8 status)
+{
+	this->vkey = vkey;
+	this->status = status;
+}
 
 KeyboardDriver::KeyboardDriver():
 	_code1(0), _code2(0), _code3(0), _bufferPos(0), _bufferLength(0)
 {
+	//set the command byte to make the keyboard know we are working with interrupts.
+	outb(COMMAND_PORT, CMD_SET_COMMAND_BYTE);
+	outb(IO_PORT, 0b00000001);
 
+	u8 ack = inb(IO_PORT);
+	if (ack != 0xFA)
+		vgaDriver.write("Error in keyboard initialisation."); //TODO remove this
+
+	//switch to scan code set 3 because it is easier to work with.
+	//outb(COMMAND_PORT, CMD_SET_SCAMECODE_SET);
+	//outb(IO_PORT, 0x2);
 }
 
 KeyboardDriver::~KeyboardDriver()
@@ -20,44 +50,64 @@ DeviceType KeyboardDriver::getDeviceType() const
 
 const char* KeyboardDriver::getDeviceName() const
 {
-	return VGA_DRIVER_DEVICE_NAME;
+	return KEYBOARD_DRIVER_DEVICE_NAME;
 }
 
 size_t KeyboardDriver::write(const void* data, size_t amount)
 {
-	return 0;
 }
 
 size_t KeyboardDriver::write(const void* data)
 {
-	const char* chars = (const char*)data;
+	//loop over every character
+	const u8* chars = (const u8*)data;
 	size_t i = 0;
 	while (chars[i] != 0)
 	{
+		//add the code
+		addCode(chars[i]);
+
+		//check if the current sequence exists
+		VirtualKeycode make = convertMakeScancodeToKeycode();
+		if (make != VirtualKeycode::INVALID) {
+			pushBuffer(VirtualKeyEvent(make, 0b00000001));
+			clearCodes();
+		} else
+		{
+			VirtualKeycode breakcode = convertBreakScancodeToKeycode();
+			if (breakcode != VirtualKeycode::INVALID) {
+				pushBuffer(VirtualKeyEvent(breakcode, 0b00000000));
+				clearCodes();
+			}
+		}
 		i++;
-		//TODO
 	}
-	return 0;
+	return i * sizeof(VirtualKeycode);
 }
 
 size_t KeyboardDriver::read(void* data, size_t amount)
 {
-	u8* string = (u8*) data;
+	VirtualKeyEvent* string = (VirtualKeyEvent*) data;
 	size_t i;
-	for (i = 0 ; i < amount ; i++)
+	for (i = 0 ; i < amount / sizeof(VirtualKeyEvent) ; i++)
 	{
 		if (_bufferLength > 0)
 		{
-			string[i] = (u8)_buffer[_bufferPos];
-			advanceBuffer();
+			string[i] = popBuffer();
 		} else {
-			return i;
+			return i * sizeof(VirtualKeyEvent);
 		}
 	}
-	return i;
+	return i * sizeof(VirtualKeyEvent);
 }
 
-void KeyboardDriver::handleKeyInterrupt(unsigned char code)
+void KeyboardDriver::seek(i32 offset, SeekType position)
+{
+	//TODO throw error
+	return;
+}
+
+void KeyboardDriver::handleScanCode(unsigned char code)
 {
 	if (_code1 == 0)
 		_code1 = code;
@@ -67,19 +117,64 @@ void KeyboardDriver::handleKeyInterrupt(unsigned char code)
 		_code3 = code;
 }
 
-void KeyboardDriver::advanceBuffer()
+VirtualKeyEvent KeyboardDriver::popBuffer()
 {
+	if (_bufferLength <= 0)
+		return VirtualKeyEvent(VirtualKeycode::INVALID, 0);
+	VirtualKeyEvent key = _buffer[_bufferPos];
 	_bufferPos++;
 	_bufferLength--;
 	_bufferPos %= INPUT_BUFFER_SIZE;
+	return key;
+}
+
+void KeyboardDriver::addCode(u8 code)
+{
+	if (_code1 == 0)
+		_code1 = code;
+	else if (_code2 == 0)
+		_code2 = code;
+	else if (_code3 == 0)
+		_code3 = code;
+	else {
+		clearCodes();
+		addCode(code);
+	}
+
+}
+
+void KeyboardDriver::clearCodes()
+{
+	_code1 = 0;
+	_code2 = 0;
+	_code3 = 0;
+}
+
+void KeyboardDriver::pushBuffer(VirtualKeyEvent key)
+{
+	if (_bufferLength < INPUT_BUFFER_SIZE) {
+		size_t pos = (_bufferPos + _bufferLength) % INPUT_BUFFER_SIZE;
+		_buffer[pos] = key;
+		_bufferLength++;
+	}
 }
 
 VirtualKeycode KeyboardDriver::convertMakeScancodeToKeycode() {
 	VirtualKeycode code = scanset2_map1[_code1];
 	return code;
+}
 
-	//if map1 does not contain the item, check in another map
-	//TODO look in map 2 if code1 == e0
+VirtualKeycode KeyboardDriver::convertBreakScancodeToKeycode() {
+	//if code1 is F0, or code1 is E0 and code2 is F0, it's a break code m8
+	if (_code1 == 0xF0)
+	{
+		return scanset2_map1[_code2];
+	} else if (_code1 == 0xE0 && _code2 == 0xF0)
+	{
+		return scanset2_map1[_code3];
+	}
+
+	return VirtualKeycode::INVALID;
 }
 
 VirtualKeycode scanset2_map1[255] = {

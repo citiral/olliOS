@@ -7,6 +7,8 @@
 #include "devicemanager.h"
 #include "io.h"
 #include "string.h"
+#include "InputFormatter.h"
+#include "keyboard.h"
 
 void initCpu() {
 	GdtCreateFlat();
@@ -25,11 +27,19 @@ extern "C" void main() {
 	vgaDriver.write("Hello world!\n");
 	initCpu();
 	PicInit();
-	outb(0x64, 0x60);
-	outb(0x60, 0b00000001);
 	vgaDriver.write("Welcome to OlliOS!\n");
 
+	InputFormatter fmt;
+
 	while (true) {
+		VirtualKeyEvent input[10];
+		size_t read = keyboardDriver.read(input, 10);
+
+		for (size_t i = 0 ; i < read ; i += sizeof(VirtualKeyEvent))
+		{
+			fmt.handleVirtualKeyEvent(input[i]);
+		}
+
 		__asm__ volatile("hlt");
 	}
 }

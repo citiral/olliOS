@@ -5,11 +5,11 @@
 #include "pic.h"
 
 void intHandlerUndefined(u32 interrupt) {
-	vgaDriver.write("Undefined interrupt has been thrown: [TODO WRITE INTERRUPT]\n");
+	vgaDriver.write("Undefined interrupt has been thrown: [TODO WRITE INTERRUPT]\n"); //TODO print out the interrupt value
 }
 
 void intHandlerKeyboard(u32 interrupt) {
-	vgaDriver.write("Keyboard interrupt has been thrown.\n");
+	//vgaDriver.write("Keyboard interrupt has been thrown.\n");
 	u8 data[2];
 	data[0] = inb(0x60);
 	data[1] = 0;

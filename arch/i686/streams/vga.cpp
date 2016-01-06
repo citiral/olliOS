@@ -63,6 +63,28 @@ size_t VgaDriver::read(void* data, size_t amount)
 	return 0;
 }
 
+void VgaDriver::seek(i32 offset, SeekType seek)
+{
+	u32 position;
+
+	if (seek == SeekType::BEGIN)
+		position = 0;
+	else if (seek == SeekType::END)
+		position = VGA_WIDTH * VGA_HEIGHT - 1;
+ 	else if (seek == SeekType::CURRENT)
+		position = _column + _row * VGA_WIDTH;
+
+	position += offset;
+
+	_column = position % VGA_WIDTH;
+	_row = position / VGA_WIDTH;
+
+	_column %= VGA_WIDTH;
+	_row %= VGA_HEIGHT;
+
+	updateCursor();
+}
+
 i16 VgaDriver::generateEntry(char c) {
 	i16 ce = c;
 	i16 fe = (i16)_foregroundColor << 8;
