@@ -61,10 +61,9 @@ clean:
 dir:
 	mkdir -p build
 	mkdir -p $(ROOT)
-	mkdir -p $(ROOT)usr
+	mkdir -p $(ROOT)boot
 	mkdir -p $(ROOT)usr
 	mkdir -p $(ROOT)usr/include
-	mkdir -p $(ROOT)usr/boot
 	mkdir -p $(ROOT)usr/lib
 	mkdir -p $(ROOT)usr/bin
 
@@ -74,4 +73,4 @@ install-headers:
 	cp -Rv $(HEADERS) $(ROOT)usr/include
 
 install-kernel:
-	cp -RTv build/$(OUTPUT) $(ROOT)usr/boot/$(OUTPUT)
+	cp -RTv build/$(OUTPUT) $(ROOT)boot/$(OUTPUT)

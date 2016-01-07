@@ -55,6 +55,30 @@ const char* KeyboardDriver::getDeviceName() const
 
 size_t KeyboardDriver::write(const void* data, size_t amount)
 {
+	//loop over every character
+	const u8* chars = (const u8*)data;
+	size_t i;
+	for (i = 0 ; i < amount ; i++)
+	{
+		//add the code
+		addCode(chars[i]);
+
+		//check if the current sequence exists
+		VirtualKeycode make = convertMakeScancodeToKeycode();
+		if (make != VirtualKeycode::INVALID) {
+			pushBuffer(VirtualKeyEvent(make, 0b00000001));
+			clearCodes();
+		} else
+		{
+			VirtualKeycode breakcode = convertBreakScancodeToKeycode();
+			if (breakcode != VirtualKeycode::INVALID) {
+				pushBuffer(VirtualKeyEvent(breakcode, 0b00000000));
+				clearCodes();
+			}
+		}
+		i++;
+	}
+	return i * sizeof(VirtualKeycode);
 }
 
 size_t KeyboardDriver::write(const void* data)
@@ -199,15 +223,15 @@ VirtualKeycode scanset2_map1[255] = {
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
-	VirtualKeycode::Q,
+	VirtualKeycode::A,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,// 19
-	VirtualKeycode::Z,
-	VirtualKeycode::S,
-	VirtualKeycode::A,		// 1C
 	VirtualKeycode::W,
+	VirtualKeycode::S,
+	VirtualKeycode::Q,		// 1C
+	VirtualKeycode::Z,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,// 1F
 	VirtualKeycode::INVALID,// 20

@@ -7,9 +7,10 @@
 #include "devicemanager.h"
 #include "io.h"
 #include "string.h"
-#include "InputFormatter.h"
+#include "inputformatter.h"
 #include "keyboard.h"
 #include "stdio.h"
+#include "pagealloc.h"
 
 void initCpu() {
 	GdtCreateFlat();
@@ -29,6 +30,10 @@ extern "C" void main() {
 	initCpu();
 	PicInit();
 	printf("Welcome to OlliOS!\n");
+
+	PageEntry entry;
+	initializeEntry(entry);
+
 
 	InputFormatter fmt;
 

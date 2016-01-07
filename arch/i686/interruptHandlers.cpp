@@ -10,9 +10,8 @@ void intHandlerUndefined(u32 interrupt) {
 
 void intHandlerKeyboard(u32 interrupt) {
 	//vgaDriver.write("Keyboard interrupt has been thrown.\n");
-	u8 data[2];
-	data[0] = inb(0x60);
-	data[1] = 0;
-	keyboardDriver.write(data);
+	u8 data = inb(0x60);
+
+	keyboardDriver.write(&data, 1);
 	endInterrupt(1);
 }

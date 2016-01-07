@@ -1,4 +1,4 @@
-#include "InputFormatter.h"
+#include "inputformatter.h"
 #include "vga.h"
 
 InputFormatter::InputFormatter():
