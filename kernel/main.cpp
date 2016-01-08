@@ -10,30 +10,35 @@
 #include "inputformatter.h"
 #include "keyboard.h"
 #include "stdio.h"
+#include "paging.h"
 #include "pagealloc.h"
 
 void initCpu() {
 	GdtCreateFlat();
 	GdtFlush();
-	printf("Created GDT.\n");
+	PRINT_INIT("Created GDT.");
 	IdtcreateEmpty();
 	IdtFlush();
 	IdtRegisterInterrupts();
-	printf("Created IDT.\n");
+	PRINT_INIT("Created IDT.");
 	initialize_tss(0x10, 0x28);
-	printf("Created TSS.\n");
+	PRINT_INIT("Created TSS.");
 	THROW_INTERRUPT(250);
 }
 
 extern "C" void main() {
-	printf("Hello world!\n");
+	// first we properly initialize paging
+	//    1: we identity map 
+
+	PRINT_INIT("Hello world!");
 	initCpu();
 	PicInit();
-	printf("Welcome to OlliOS!\n");
+	
 
-	PageEntry entry;
-	initializeEntry(entry);
 
+
+	//pageAllocatorInitialize((void*)0x01000000, 1*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2 * 0x1000);
+	PRINT_INIT("Welcome to OlliOS!");
 
 	InputFormatter fmt;
 
@@ -45,7 +50,7 @@ extern "C" void main() {
 		{
 			fmt.handleVirtualKeyEvent(input[i]);
 		}
-
+		pagingEnablePSE();
 		__asm__ volatile("hlt");
 	}
 }

@@ -56,7 +56,9 @@ _bootstrap_page_directory:
 	.long 0 # all 0 entries untill kernel
 	.endr
 	.long 0x00000083 # the memory directory of the higher half kernel
-	.rept 1024 - VIRTUAL_PAGE_INDEX - 1
+	.long 0x00400083 # the memory directory of the higher half kernel
+	.long 0x00800083 # the memory directory of the higher half kernel
+	.rept 1024 - VIRTUAL_PAGE_INDEX - 3
 	.long 0 # all 0 entries untill kernel
 	.endr
 
