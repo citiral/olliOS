@@ -46,8 +46,119 @@ void pagingDisablePSE()
 		:::"%eax");
 }
 
-void pagingUseTable(void* table)
+PageDirectoryEntry::PageDirectoryEntry()
 {
-
+	value = 0;
 }
 
+void PageDirectoryEntry::setAddress(void* address)
+{
+	// mask out the old adress and add the new one
+	value &= 0x00000FFF;
+	value |= (u32)address;
+}
+
+void PageDirectoryEntry::enableFlag(u32 flag)
+{
+	value |= flag;
+}
+
+void PageDirectoryEntry::disableFlag(u32 flag)
+{
+	value &= 0xFFFFFFFF - flag;
+}
+
+bool PageDirectoryEntry::getFlag(u32 flag)
+{
+	return (value & flag) == flag;
+}
+
+void PageDirectory::insert(PageDirectoryEntry entry, void* vaddress)
+{
+	size_t index = (size_t)vaddress / 0x1000;
+	entries[index] = entry;
+}
+
+PageDirectoryEntry& PageDirectory::get(void* vaddress)
+{
+	//size_t index = (size_t)vaddress / 0x1000;
+	size_t index = (size_t)vaddress / 0x1000;
+	return entries[index];
+}
+
+void PageDirectory::use()
+{
+	u32 pos = (u32)entries - 0xC0000000;
+
+	asm volatile (
+		"mov $0x111000, %%eax\n"
+		"mov %%eax, %%cr3\n"
+		"a:nop\n"
+		"jmp a\n"
+		:: "r" (pos)
+	);
+}
+
+PageTableEntry::PageTableEntry()
+{
+	value = 0;
+}
+
+void PageTableEntry::setAddress(void* address)
+{
+	// mask out the old adress and add the new one
+	value &= 0x00000FFF;
+	value |= (u32)address;
+}
+
+void PageTableEntry::enableFlag(u32 flag)
+{
+	value |= flag;
+}
+
+void PageTableEntry::disableFlag(u32 flag)
+{
+	value &= 0xFFFFFFFF - flag;
+}
+
+bool PageTableEntry::getFlag(u32 flag)
+{
+	return (value & flag) == flag;
+}
+
+void PageDirectory::clear()
+{
+	for (size_t i = 0 ; i < 1024 ; i++)
+	{
+		entries[i].value = 0;
+	}
+}
+
+void PageTable::clear()
+{
+	for (size_t i = 0 ; i < 1024 ; i++)
+	{
+		entries[i].value = 0;
+	}
+	size = 0;
+}
+
+bool PageTable::push(PageTableEntry entry)
+{
+	if (size < 1024)
+	{
+		entries[size] = entry;
+		size++;
+	}
+}
+
+void PageTable::mapAll(void* start)
+{
+	for (size_t i = 0 ; i < 1024 ; i++)
+	{
+		entries[i].value = 0;
+		entries[i].setAddress((char*)start + i * 0x1000);
+		entries[i].enableFlag(PFLAG_PRESENT | PFLAG_RW);
+	}
+	size = 1024;
+}

@@ -70,7 +70,6 @@ _loader:
 	# use the bootstrap page directory
 	mov $_bootstrap_page_directory - VIRTUAL_OFFSET, %eax
 	mov %eax, %cr3
-	mov $0x1234, %eax
 
 	# enable page size extensions
 

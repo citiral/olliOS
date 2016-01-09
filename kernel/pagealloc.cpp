@@ -87,7 +87,7 @@ void pageAllocatorInitialize(void* start, size_t length)
 {
 	// set the start, rounded to 4k blocks
 	start = (char*)start + 0x1000 - ((u32)start % 0x1000);
-	
+
 	// round the length to page boundaries
 	length = length - ((u32)length % 0x1000);
 
@@ -108,12 +108,8 @@ PageTableEntry pageAlloc()
 {
 	//get a free location
 	void* location = pageStackPop();
+	PageTableEntry entry;
+	entry.setAddress(location);
 
-	return PageTableEntry(location);
-}
-
-
-PageTableEntry::PageTableEntry(void* address)
-{
-	value = (u32)address;
+	return entry;
 }
