@@ -13,24 +13,28 @@
 #include "paging.h"
 #include "pagealloc.h"
 
-void initCpu() {
-	GdtCreateFlat();
-	GdtFlush();
-	PRINT_INIT("Created GDT.");
-	IdtcreateEmpty();
-	IdtFlush();
-	IdtRegisterInterrupts();
-	PRINT_INIT("Created IDT.");
-	initialize_tss(0x10, 0x28);
-	PRINT_INIT("Created TSS.");
-}
-
 PageDirectory directory __PAGE_ALIGNED;
 PageTable table1 __PAGE_ALIGNED;
 PageTable table2 __PAGE_ALIGNED;
 PageTable table3 __PAGE_ALIGNED;
 
+int printa(int b)
+{
+	printf("a: %d", b);
+}
+
+extern "C" void initCpu() {
+	GdtCreateFlat();
+	GdtFlush();
+	IdtcreateEmpty();
+	IdtFlush();
+	IdtRegisterInterrupts();
+	initialize_tss(0x10, 0x28);
+	PicInit();
+}
+
 extern "C" void main() {
+	initCpu();
 	PRINT_INIT("initializing paging...");
 
 	directory.clear();
@@ -48,6 +52,22 @@ extern "C" void main() {
 	directory.get((void*)0xC0000000).enableFlag(PFLAG_PRESENT | PFLAG_RW);
 	directory.get((void*)0xC0400000).enableFlag(PFLAG_PRESENT | PFLAG_RW);
 	directory.get((void*)0xC0800000).enableFlag(PFLAG_PRESENT | PFLAG_RW);
+
+	printf("pd = %X\n", &directory);
+	printf("val1 = %X\n", directory.get((void*)0xC0000000).value);
+	printf("t1 = %X\n", &table1);
+
+	for (size_t i = 0 ; i < 6 ; i++)
+	{
+		printf("t1%d = %X\n", i, *((u32*)(char*)table1.entries + i));
+	}
+
+	printf("t1%d = %X\n",1, *((u32*)&table1.entries + 0));
+	printf("t1%d = %X\n",2, *((u32*)&table1.entries + 1));
+	printf("t1%d = %X\n",3, *((u32*)&table2.entries + 2));
+	printf("t1%d = %X\n",4, *((u32*)&table2.entries + 3));
+	printf("t1%d = %X\n",5, *((u32*)&table2.entries + 4));
+	printf("t1%d = %X\n",6, *((u32*)&table2.entries + 5));
 
 	/*directory.get((void*)0x00000000).setAddress((void*)0x00000000);
 	directory.get((void*)0xC0000000).setAddress((void*)0x00000000);
@@ -71,7 +91,7 @@ extern "C" void main() {
 	printf("table 1 is %u\n", directory.get((void*)0).value);
 	printf("table 2 is %u\n", directory.get((void*)0).value);*/
 
-	directory.use();
+	//directory.use();
 
 	PRINT_INIT("...paging initialized.");
 	// first we properly initialize paging
@@ -80,8 +100,6 @@ extern "C" void main() {
 	//setup p
 
 	PRINT_INIT("Hello world!");
-	initCpu();
-	PicInit();
 	//pageAllocatorInitialize((void*)0x01000000, 1*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2 * 0x1000);
 	PRINT_INIT("Welcome to OlliOS!");
 
@@ -95,7 +113,7 @@ extern "C" void main() {
 		{
 			fmt.handleVirtualKeyEvent(input[i]);
 		}
-		pagingEnablePSE();
+
 		__asm__ volatile("hlt");
 	}
 }

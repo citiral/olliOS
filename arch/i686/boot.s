@@ -2,13 +2,6 @@
 # $symbol => address
 # symbol => value
 
-# Declare constants used for creating a multiboot header.
-.set ALIGN,    1<<0             # align loaded modules on page boundaries
-.set MEMINFO,  1<<1             # provide memory map
-.set FLAGS,    ALIGN | MEMINFO  # this is the Multiboot 'flag' field
-.set MAGIC,    0x1BADB002       # 'magic number' lets bootloader find the header
-.set CHECKSUM, -(MAGIC + FLAGS) # checksum of above, to prove we are multiboot
-
 # Declare a header as in the Multiboot Standard. We put this into a special
 # section so we can force the header to be in the start of the final program.
 # You don't need to understand all these details as it is just magic values that
@@ -16,9 +9,19 @@
 # magic sequence and recognize us as a multiboot kernel.
 .section .multiboot
 .align 4
+header:
 .long MAGIC
 .long FLAGS
 .long CHECKSUM
+
+# Declare constants used for creating a multiboot header.
+.set ALIGN,    1<<0             # align loaded modules on page boundaries
+.set MEMINFO,  1<<1             # provide memory map
+.set ENTRY,		 1<<16
+.set FLAGS,    ALIGN | MEMINFO  # this is the Multiboot 'flag' field
+.set MAGIC,    0x1BADB002       # 'magic number' lets bootloader find the header
+.set CHECKSUM, -(MAGIC + FLAGS) # checksum of above, to prove we are multiboot
+
 
 # Currently the stack pointer register (esp) points at anything and using it may
 # cause massive harm. Instead, we'll provide our own stack. We will allocate
@@ -63,8 +66,10 @@ _bootstrap_page_directory:
 	.endr
 
 .section .text
-.global loader
-.equ loader, _loader - 0xC0000000
+
+#.global loader
+.global _loader
+#.equ loader, _loader - 0xC0000000
 # higher half kernel bootstrap loader
 _loader:
 	# use the bootstrap page directory
@@ -72,7 +77,6 @@ _loader:
 	mov %eax, %cr3
 
 	# enable page size extensions
-
 	mov %cr4, %eax
 	or $0x00000010, %eax
 	mov %eax, %cr4

@@ -35,5 +35,5 @@ void GdtCreateFlat() {
 }
 
 void GdtFlush() {
-	reloadGdt(GDTSize, (u32)GDTTable);
+	reloadGdt(GDTSize, (u32)GDTTable - 0xC0000000);
 }

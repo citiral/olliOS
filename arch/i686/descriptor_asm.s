@@ -53,8 +53,8 @@ TSSEnd:
 .global initialize_tss
 initialize_tss:
 	lea 4(%esp), %eax
-	movw	%ax, TSS_SS0			#first set the SS0 to the gdt datasegment (0x10, probably)
-	movl	$esp0_top, TSS_ESP0		#then set the stack to our special tss_esp0 stack
+	movw	%ax, TSS_SS0 - 0xC0000000			#first set the SS0 to the gdt datasegment (0x10, probably)
+	movl	$esp0_top - 0xC0000000, TSS_ESP0		#then set the stack to our special tss_esp0 stack
 	movw	$104,	TSS_IOPB+2
 	movw 	8(%esp), 	%ax				#set the index of the TSS in the GDT
 	ltr %ax
@@ -91,7 +91,7 @@ reloadGdt:
 #this routine reloads the segment registers
 .global reload_segments
 reload_segments:
-   	lcall $0x08,$.reload_CS		##0x08 points at the new code selector
+   	ljmp $0x08,$.reload_CS		##0x08 points at the new code selector
 .reload_CS:
 	movw	$0x10,	%ax			#0x10 points at the new data selector
 	movw	%ax,	%DS

@@ -91,10 +91,8 @@ void PageDirectory::use()
 	u32 pos = (u32)entries - 0xC0000000;
 
 	asm volatile (
-		"mov $0x111000, %%eax\n"
+		"mov %0, %%eax\n"
 		"mov %%eax, %%cr3\n"
-		"a:nop\n"
-		"jmp a\n"
 		:: "r" (pos)
 	);
 }
@@ -157,7 +155,7 @@ void PageTable::mapAll(void* start)
 	for (size_t i = 0 ; i < 1024 ; i++)
 	{
 		entries[i].value = 0;
-		entries[i].setAddress((char*)start + i * 0x1000);
+		entries[i].setAddress((char*)start + (i * 0x1000));
 		entries[i].enableFlag(PFLAG_PRESENT | PFLAG_RW);
 	}
 	size = 1024;

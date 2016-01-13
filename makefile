@@ -25,20 +25,21 @@ CRTEND_OBJ:=$(shell $(CC) $(CCFLAGS) -print-file-name=crtend.o)
 #make a list of all objects, but taking special care of the order of crt* files
 OBJECTS = $(filter-out crti.o crtn.o, $(notdir $(KERNEL_CPP:.cpp=.o)) $(notdir $(KERNEL_ASM:.s=.o)))
 
-.PHONY: all compile-kernel clean dir libk install install-headers install-kernel
+.PHONY: all compile-kernel clean dir libk install install-headers install-kernel iso
 
-all: dir install-headers libk compile-kernel install-kernel
+all: dir install-headers libk compile-kernel install-kernel install-grub iso
 
 libk:
 	$(MAKE) -C libk
 
-kernel: dir install-headers compile-kernel install-kernel
+kernel: dir install-headers compile-kernel install-kernel install-grub iso
 
 compile-kernel: $(CRTI_OBJ) $(OBJECTS) $(CRTN_OBJ)
 	$(CC) -T $(ARCH)linker.ld -o build/$(OUTPUT) $(CFLAGS) $(addprefix build/, $(CRTI_OBJ)) $(CRTBEGIN_OBJ) $(addprefix build/,$(OBJECTS)) $(CRTEND_OBJ) $(addprefix build/, $(CRTN_OBJ)) $(LDFLAGS) $(LIBS)
 
 clean:
 	rm -fr build root
+	rm ollios.iso
 
 %.o: kernel/%.cpp
 	$(CC) -c $< -o build/$@ $(CCFLAGS)
@@ -62,13 +63,18 @@ dir:
 	mkdir -p build
 	mkdir -p $(ROOT)
 	mkdir -p $(ROOT)boot
+	mkdir -p $(ROOT)boot/grub
 	mkdir -p $(ROOT)usr
 	mkdir -p $(ROOT)usr/include
 	mkdir -p $(ROOT)usr/lib
-	mkdir -p $(ROOT)usr/bin
 
-install: install-headers install-kernel
+iso:
+	grub-mkrescue ./root -o ./ollios.iso
 
+install: install-headers install-kernel install-grub
+
+install-grub:
+	cp -Rv grub/* $(ROOT)boot/grub
 install-headers:
 	cp -Rv $(HEADERS) $(ROOT)usr/include
 

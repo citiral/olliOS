@@ -29,10 +29,6 @@ KeyboardDriver::KeyboardDriver():
 	outb(COMMAND_PORT, CMD_SET_COMMAND_BYTE);
 	outb(IO_PORT, 0b00000001);
 
-	u8 ack = inb(IO_PORT);
-	if (ack != 0xFA)
-		vgaDriver.write("Error in keyboard initialisation."); //TODO remove this
-
 	//switch to scan code set 3 because it is easier to work with.
 	//outb(COMMAND_PORT, CMD_SET_SCAMECODE_SET);
 	//outb(IO_PORT, 0x2);

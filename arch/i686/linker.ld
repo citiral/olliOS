@@ -1,15 +1,14 @@
 /* Define the entry point to be _start, so the bootloader will look for _start (defined in boot.s) and run it*/
-ENTRY(loader)
+ENTRY(_loader)
 OUTPUT_FORMAT(elf32-i386)
 
 /* lets start by defining all the sections */
 SECTIONS
 {
-	/* we begin putting sections at the 1MB mark since that is where bootloaders usually search */
 	. = 0xC0100000;
 
 	/* As said in boot.s, the multiboot header should come first, so lets do that */
-	.text : AT(ADDR(.text) - 0xC0000000)
+	.text ALIGN(0x1000) : AT(ADDR(.text) - 0xC0000000)
 	{
 		*(.multiboot)
 		*(.text)
@@ -21,7 +20,7 @@ SECTIONS
    }
 
 	/* Read-write data (uninitialized) and stack */
-  .bss : AT(ADDR(.bss) - 0xC0000000)
+  .bss ALIGN(0x1000) : AT(ADDR(.bss) - 0xC0000000)
 	{
 		*(COMMON)
 		*(.bss)

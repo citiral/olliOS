@@ -5,6 +5,7 @@
 
 #define __PAGE_ALIGNED __attribute__((aligned(0x1000)))
 #define __PACKED __attribute__ ((__packed__))
+#define BOCHS_BREAKPOINT asm __volatile__ ("xchgw %bx, %bx");
 
 #define PRINT_INIT(X, ...) (printf("[init] " X "\n", ##__VA_ARGS__))
 

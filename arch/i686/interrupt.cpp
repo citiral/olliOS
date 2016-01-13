@@ -12,7 +12,7 @@ extern "C" void cppInt(u32 interrupt);
 		1: \n\
 			pushal \n\
 			cld \n\
-			pushl $" #x "\n\
+			push $" #x "\n\
 			call cppInt\n\
 			add $4, %%esp\n\
 			popal\n\
