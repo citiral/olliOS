@@ -1,2 +1,2 @@
 #!/bin/bash
-qemu-system-i386 --cdrom ollios.iso
+qemu-system-x86_64 --kernel build/ollios.bin

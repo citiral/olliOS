@@ -10,6 +10,25 @@
 	or $0x80000000, %eax
 	mov %eax, %cr0*/
 
+PageDirectory kernelPageDirectory __PAGE_ALIGNED;
+
+void PageInit()
+{
+    kernelPageDirectory.clear();
+
+    // identity map the first four megabytes
+    kernelPageDirectory.get(0).setAddress((void*)0x00000000);
+    kernelPageDirectory.get(0).enableFlag(PFLAG_PRESENT | PFLAG_RW | PFLAG_LARGEPAGE);
+
+    // map the last gb to the first gb
+    for (int i = 0 ; i < 0x40000000 / 0x00400000; i++) {
+        kernelPageDirectory.get(i + 768).setAddress((void*)0x00000000 + 0x00400000*i);
+        kernelPageDirectory.get(i + 768).enableFlag(PFLAG_PRESENT | PFLAG_RW | PFLAG_LARGEPAGE);
+    }
+
+    kernelPageDirectory.use();
+}
+
 void pagingEnablePaging()
 {
 	asm volatile (
@@ -73,28 +92,37 @@ bool PageDirectoryEntry::getFlag(u32 flag)
 	return (value & flag) == flag;
 }
 
-void PageDirectory::insert(PageDirectoryEntry entry, void* vaddress)
+void PageDirectory::set(PageDirectoryEntry entry, int index)
 {
-	size_t index = (size_t)vaddress / 0x1000;
 	entries[index] = entry;
 }
 
-PageDirectoryEntry& PageDirectory::get(void* vaddress)
+PageDirectoryEntry& PageDirectory::get(int index)
 {
 	//size_t index = (size_t)vaddress / 0x1000;
-	size_t index = (size_t)vaddress / 0x1000;
 	return entries[index];
 }
 
 void PageDirectory::use()
 {
-	u32 pos = (u32)entries - 0xC0000000;
+    // convert the entries from virtual to physical (kernel is virtually at 0xc0000000 but physically at 0x0)
+	u32 pos = (u32)&entries - 0xC0000000;
 
+    // set the actualy control register determining which page is used
 	asm volatile (
-		"mov %0, %%eax\n"
 		"mov %%eax, %%cr3\n"
-		:: "r" (pos)
+		:: "a" (pos)
 	);
+
+    BOCHS_BREAKPOINT
+
+    // do an absolute jump to force the cpu to recognize the new directory
+    asm volatile (
+        "movl $1f, %%eax\n\
+        jmp *%%eax\n\
+        1: nop"
+        ::: "eax"
+    );
 }
 
 PageTableEntry::PageTableEntry()
@@ -138,16 +166,17 @@ void PageTable::clear()
 	{
 		entries[i].value = 0;
 	}
-	size = 0;
 }
 
-bool PageTable::push(PageTableEntry entry)
+
+void PageTable::set(PageTableEntry entry, int index)
 {
-	if (size < 1024)
-	{
-		entries[size] = entry;
-		size++;
-	}
+    entries[index] = entry;
+}
+
+PageTableEntry PageTable::get(int index)
+{
+    return entries[index];
 }
 
 void PageTable::mapAll(void* start)
@@ -158,5 +187,4 @@ void PageTable::mapAll(void* start)
 		entries[i].setAddress((char*)start + (i * 0x1000));
 		entries[i].enableFlag(PFLAG_PRESENT | PFLAG_RW);
 	}
-	size = 1024;
 }

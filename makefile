@@ -13,9 +13,9 @@ CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O2 -Wall -Wextra -fno-excep
 LDFLAGS = -ffreestanding -O2 -nostdlib -lgcc
 LIBS = $(ROOT)/usr/lib/libk.a #$(ROOT)/usr/lib/libk++.a
 
-KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/util/*.cpp) $(wildcard kernel/streams/*.cpp) $(wildcard $(ARCH)/*.cpp)  $(wildcard $(ARCH)streams/*.cpp)
-KERNEL_ASM = $(wildcard kernel/*.s) $(wildcard $(ARCH)/*.s)
-HEADERS = $(wildcard kernel/*.h) $(wildcard kernel/util/*.h) $(wildcard kernel/streams/*.h) $(wildcard $(ARCH)/*.h) $(wildcard $(ARCH)streams/*.h)
+KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/util/*.cpp) $(wildcard kernel/streams/*.cpp)
+KERNEL_ASM = $(wildcard kernel/*.s)
+HEADERS = $(wildcard kernel/*.h) $(wildcard kernel/util/*.h) $(wildcard kernel/streams/*.h)
 
 CRTI_OBJ=crti.o
 CRTN_OBJ=crtn.o
@@ -25,7 +25,7 @@ CRTEND_OBJ:=$(shell $(CC) $(CCFLAGS) -print-file-name=crtend.o)
 #make a list of all objects, but taking special care of the order of crt* files
 OBJECTS = $(filter-out crti.o crtn.o, $(notdir $(KERNEL_CPP:.cpp=.o)) $(notdir $(KERNEL_ASM:.s=.o)))
 
-.PHONY: all compile-kernel clean dir libk install install-headers install-kernel iso
+.PHONY: all compile-kernel clean dir libk install install-grub install-headers install-kernel iso
 
 all: dir install-headers libk compile-kernel install-kernel install-grub iso
 
@@ -35,7 +35,7 @@ libk:
 kernel: dir install-headers compile-kernel install-kernel install-grub iso
 
 compile-kernel: $(CRTI_OBJ) $(OBJECTS) $(CRTN_OBJ)
-	$(CC) -T $(ARCH)linker.ld -o build/$(OUTPUT) $(CFLAGS) $(addprefix build/, $(CRTI_OBJ)) $(CRTBEGIN_OBJ) $(addprefix build/,$(OBJECTS)) $(CRTEND_OBJ) $(addprefix build/, $(CRTN_OBJ)) $(LDFLAGS) $(LIBS)
+	$(CC) -T kernel/linker.ld -o build/$(OUTPUT) $(CFLAGS) $(addprefix build/, $(CRTI_OBJ)) $(CRTBEGIN_OBJ) $(addprefix build/,$(OBJECTS)) $(CRTEND_OBJ) $(addprefix build/, $(CRTN_OBJ)) $(LDFLAGS) $(LIBS)
 
 clean:
 	rm -fr build root
@@ -48,15 +48,6 @@ clean:
 	$(CC) -c $< -o build/$@ $(CCFLAGS)
 
 %.o: kernel/%.s
-	$(CC) -c $< -o build/$@ $(CCFLAGS)
-
-%.o: $(ARCH)%.cpp
-	$(CC) -c $< -o build/$@ $(CCFLAGS)
-
-%.o: $(ARCH)**/%.cpp
-	$(CC) -c $< -o build/$@ $(CCFLAGS)
-
-%.o: $(ARCH)%.s
 	$(CC) -c $< -o build/$@ $(CCFLAGS)
 
 dir:
@@ -75,6 +66,7 @@ install: install-headers install-kernel install-grub
 
 install-grub:
 	cp -Rv grub/* $(ROOT)boot/grub
+
 install-headers:
 	cp -Rv $(HEADERS) $(ROOT)usr/include
 

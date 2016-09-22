@@ -28,10 +28,6 @@ KeyboardDriver::KeyboardDriver():
 	//set the command byte to make the keyboard know we are working with interrupts.
 	outb(COMMAND_PORT, CMD_SET_COMMAND_BYTE);
 	outb(IO_PORT, 0b00000001);
-
-	//switch to scan code set 3 because it is easier to work with.
-	//outb(COMMAND_PORT, CMD_SET_SCAMECODE_SET);
-	//outb(IO_PORT, 0x2);
 }
 
 KeyboardDriver::~KeyboardDriver()
@@ -185,7 +181,7 @@ VirtualKeycode KeyboardDriver::convertMakeScancodeToKeycode() {
 }
 
 VirtualKeycode KeyboardDriver::convertBreakScancodeToKeycode() {
-	//if code1 is F0, or code1 is E0 and code2 is F0, it's a break code m8
+	//if code1 is F0, or code1 is E0 and code2 is F0, it's a break code
 	if (_code1 == 0xF0)
 	{
 		return scanset2_map1[_code2];
