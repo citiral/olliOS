@@ -12,7 +12,7 @@ LIBK_CCFLAGS = -D__is_libk -D__is_kernel -std=gnu++11 -fbuiltin -ffreestanding -
 
 INCLUDE = -I $(ROOT)usr/include
 
-LIBK_CPP = $(wildcard string/*.cpp) $(wildcard stdio/*.cpp)
+LIBK_CPP = $(wildcard string/*.cpp) $(wildcard stdio/*.cpp) $(wildcard stdlib/*.cpp)
 HEADERS = $(wildcard include/*.h)
 
 BINARIES = libk.a

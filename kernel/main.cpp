@@ -1,26 +1,23 @@
 #include "types.h"
-#include "vga.h"
 #include "gdt.h"
 #include "interrupt.h"
 #include "pic.h"
-#include "singleton.h"
-#include "devicemanager.h"
 #include "io.h"
 #include "string.h"
 #include "inputformatter.h"
 #include "keyboard.h"
 #include "stdio.h"
 #include "paging.h"
-#include "pagealloc.h"
-
-
+#include "alloc.h"
+#include "linker.h"
+#include <stdlib.h>
 
 int printa(int b)
 {
 	printf("a: %d", b);
 }
 
-extern "C" void initCpu() {
+void initCpu() {
 	GdtCreateFlat();
 	GdtFlush();
 	IdtcreateEmpty();
@@ -31,12 +28,21 @@ extern "C" void initCpu() {
     PageInit();
 }
 
+void initKernel() {
+    // initialize the allocator to use memory from the end of the kernel up to 0xFFFFFFFF (which is 1gb - size of the kernel)
+    kernelAllocator.init(KERNEL_END, 0xFFFFFFFF - (size_t)KERNEL_END);
+}
+
 extern "C" void main() {
+    // init CPU related stuff
 	initCpu();
+    // init kernel related stuff
+    initKernel();
 
 	PRINT_INIT("Welcome to OlliOS!");
 
-	InputFormatter fmt;
+    InputFormatter fmt;
+
 	while (true) {
 		VirtualKeyEvent input[10];
 		size_t read = keyboardDriver.read(input, 10);

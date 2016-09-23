@@ -6,7 +6,7 @@ OUTPUT_FORMAT(elf32-i386)
 SECTIONS
 {
 	. = 0xC0100000;
-
+    __KERNEL_BEGIN = .;
 	/* As said in boot.s, the multiboot header should come first, so lets do that */
 	.text ALIGN(0x1000) : AT(ADDR(.text) - 0xC0000000)
 	{
@@ -30,5 +30,5 @@ SECTIONS
 
 	/* The compiler may produce other sections, by default it will put them in
 	   a segment with the same name. Simply add stuff here as needed. */
-	KERNEL_END = .;
+	__KERNEL_END = .;
 }
