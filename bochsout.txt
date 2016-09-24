@@ -32,7 +32,7 @@
 00000000000i[      ]   SB16 support: no
 00000000000i[      ]   USB support: yes
 00000000000i[      ]   VGA extension support: vbe
-00000000000i[MEM0  ] allocated memory at 0x7f8c870a1010. after alignment, vector=0x7f8c870a2000
+00000000000i[MEM0  ] allocated memory at 0x7fada0fa1010. after alignment, vector=0x7fada0fa2000
 00000000000i[MEM0  ] 32.00MB
 00000000000i[MEM0  ] mem block size = 0x00100000, blocks=32
 00000000000i[MEM0  ] rom at 0xfffe0000/131072 ('/usr/share/bochs/BIOS-bochs-latest')
@@ -43,7 +43,7 @@
 00000000000i[DEV   ] PIIX3 PCI-to-ISA bridge present at device 1, function 0
 00000000000i[PLUGIN] init_dev of 'cmos' plugin device by virtual method
 00000000000i[CMOS  ] Using local time for initial clock
-00000000000i[CMOS  ] Setting initial clock to: Fri Sep 23 10:58:27 2016 (time0=1474621107)
+00000000000i[CMOS  ] Setting initial clock to: Sat Sep 24 02:34:50 2016 (time0=1474677290)
 00000000000i[PLUGIN] init_dev of 'dma' plugin device by virtual method
 00000000000i[DMA   ] channel 4 used by cascade
 00000000000i[PLUGIN] init_dev of 'pic' plugin device by virtual method
@@ -71,7 +71,7 @@
 00000000000i[CD1   ] load cdrom with path='ollios.iso'
 00000000000i[CD1   ] Opening image file as a cd.
 00000000000i[HD    ] Media present in CD-ROM drive
-00000000000i[HD    ] Capacity is 8747 sectors (17.08 MB)
+00000000000i[HD    ] Capacity is 8768 sectors (17.12 MB)
 00000000000i[HD    ] Using boot sequence cdrom, none, none
 00000000000i[HD    ] Floppy boot signature check is enabled
 00000000000i[PLUGIN] init_dev of 'pci_ide' plugin device by virtual method
@@ -143,7 +143,6 @@
 00000000000i[PLUGIN] reset of 'iodebug' plugin device by virtual method
 00000000000i[PLUGIN] reset of 'usb_uhci' plugin device by virtual method
 00000000000i[      ] set SIGINT handler to bx_debug_ctrlc_handler
-00000000000i[      ] Ctrl-C detected in signal handler.
 00000000000i[      ] dbg: Quit
 00000000000i[CPU0  ] CPU is in real mode (active)
 00000000000i[CPU0  ] CS.mode = 16 bit
@@ -162,6 +161,6 @@
 00000000000i[CPU0  ] | EIP=0000fff0 (0000fff0)
 00000000000i[CPU0  ] | CR0=0x60000010 CR2=0x00000000
 00000000000i[CPU0  ] | CR3=0x00000000 CR4=0x00000000
-00000000000i[CMOS  ] Last time is 1474621107 (Fri Sep 23 10:58:27 2016)
+00000000000i[CMOS  ] Last time is 1474677290 (Sat Sep 24 02:34:50 2016)
 00000000000i[XGUI  ] Exit
 00000000000i[SIM   ] quit_sim called with exit code 0

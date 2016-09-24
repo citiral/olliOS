@@ -6,6 +6,11 @@
 
 void intHandlerUndefined(u32 interrupt) {
 	printf("Undefined interrupt has been thrown: %d\n", interrupt);
+    while (true) {
+        __asm volatile("cli");
+        __asm volatile("hlt");
+    }
+
 	endInterrupt(interrupt);
 }
 
