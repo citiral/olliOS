@@ -66,22 +66,23 @@ extern "C" void main() {
     //alloctest(1, 1);
     printf("lsize: %X\n", *((size_t*)kernelAllocator.buckets[29]));
 
-    alloctest(4, 2);
-    for (int i = 0 ; i < 100 ; i++) malloc(3);
-    alloctest(40, 500);
-    for (int i = 0 ; i < 100 ; i++) malloc(5);
-    alloctest(80, 30);
-    alloctest(45678, 100);
-    for (int i = 0 ; i < 100 ; i++) malloc(98);
-    alloctest(1, 1);
-    for (int i = 0 ; i < 100 ; i++) malloc(24);
-    alloctest(910, 100);
-    for (int i = 0 ; i < 100 ; i++) malloc(1000);
-    kernelAllocator.printStatistics();
-    kernelAllocator.merge();
-    printf("lsize: %X\n", *((size_t*)kernelAllocator.buckets[29]));
-    kernelAllocator.printStatistics();
-
+    for (int i = 0 ; i < 10 ; i++) {
+        alloctest(4, 2);
+        for (int i = 0; i < 100; i++) malloc(3);
+        alloctest(40, 500);
+        for (int i = 0; i < 100; i++) malloc(5);
+        alloctest(80, 30);
+        alloctest(45678, 100);
+        for (int i = 0; i < 100; i++) malloc(98);
+        alloctest(1, 1);
+        for (int i = 0; i < 100; i++) malloc(24);
+        alloctest(910, 100);
+        for (int i = 0; i < 100; i++) malloc(1000);
+        kernelAllocator.printStatistics();
+        kernelAllocator.merge();
+        printf("lsize: %X\n", *((size_t*) kernelAllocator.buckets[29]));
+        kernelAllocator.printStatistics();
+    }
     InputFormatter fmt;
 
 	while (true) {

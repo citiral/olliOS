@@ -156,7 +156,7 @@ void BucketAlloc::merge() {
 
         // if that region is in use, continue
         if (regNext[0] >= USED_FLAG) {
-            current += (regCur[0] ^ USED_FLAG) + 2 * sizeof(size_t); // advance current to the next region
+            current += regCur[0] + 2 * sizeof(size_t); // advance current to the next region
             continue;
         }
 
@@ -179,8 +179,6 @@ void BucketAlloc::merge() {
             insertIntoBucket(regCur);
         }
 
-        printf("current = %X, size = %X\n", current, regCur[0]);
-        //BOCHS_BREAKPOINT
         // and advance current to the next region, taking care of the used tag
         current += (regCur[0] & (~USED_FLAG)) + 2 * sizeof(size_t);
     }
