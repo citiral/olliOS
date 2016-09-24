@@ -6,12 +6,16 @@
 
 void intHandlerUndefined(u32 interrupt) {
 	printf("Undefined interrupt has been thrown: %d\n", interrupt);
+
+    // if the interrupt was thrown by an IRQ, end the interrupt
+    if (interrupt >= 0x20 && interrupt <= 0x2F)
+        endInterrupt(interrupt - 0x20);
+
     while (true) {
         __asm volatile("cli");
         __asm volatile("hlt");
     }
 
-	endInterrupt(interrupt);
 }
 
 void intHandlerKeyboard(u32 interrupt) {
@@ -22,5 +26,5 @@ void intHandlerKeyboard(u32 interrupt) {
     keyboardDriver.write(&data, 1);
 
     // and end the interrupt
-	endInterrupt(interrupt);
+	endInterrupt(interrupt - 0x20);
 }

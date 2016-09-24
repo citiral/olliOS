@@ -70,12 +70,12 @@ void mapPics(u8 masterOffset, u8 slaveOffset)
 	outb(MASTER_DATA, masterOffset);
 	outb(SLAVE_DATA, slaveOffset);
 
-	//tell master it has a slave
+	//tell master it has a slave at iRQ2 (00000100)
 	outb(MASTER_DATA, 4);
 	//tell slave the cascade identity(??)
 	outb(SLAVE_DATA, 2);
 
-	//and the last value that always needs to be send
+	//and tell them they must operate in 8086 mode
 	outb(MASTER_DATA, ICW4_8086);
 	outb(SLAVE_DATA, ICW4_8086);
 
@@ -87,6 +87,8 @@ void mapPics(u8 masterOffset, u8 slaveOffset)
 //this also remaps the the pic so it doesn't conflict with intel reserved interrupts
 void PicInit()
 {
+	// we remap the IRQs so IRQ 0-7 (master) throws interrupt 0x20-0x27  and the slave (IRQ 8-15) throws interrupt 0x28-0x2F
+	// this because the master in the defaults (0x08-x0F) and (0x70-0x77) overlaps intel reserved interrupts
 	mapPics(0x20, 0x28);
 	clearAllMasks();
 	disableIrq(0);

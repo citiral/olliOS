@@ -26,6 +26,7 @@ void PageInit()
         kernelPageDirectory.get(i + 768).enableFlag(PFLAG_PRESENT | PFLAG_RW | PFLAG_LARGEPAGE);
     }
 
+
     kernelPageDirectory.use();
 }
 

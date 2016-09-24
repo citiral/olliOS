@@ -9,7 +9,7 @@ ROOT = root/
 OUTPUT=ollios.bin
 
 INCLUDE = -I $(ROOT)usr/include
-CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -nostdlib -fno-threadsafe-statics
+CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -nostdlib -fno-threadsafe-statics -Werror=return-type
 LDFLAGS = -ffreestanding -O2 -nostdlib -lgcc
 LIBS = $(ROOT)/usr/lib/libk.a #$(ROOT)/usr/lib/libk++.a
 
@@ -60,7 +60,8 @@ dir:
 	mkdir -p $(ROOT)usr/lib
 
 iso:
-	grub-mkrescue ./root -o ./ollios.iso
+	mkisofs -R -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -boot-info-table -o ollios.iso root
+#	grub-mkrescue ./root -o ./ollios.iso
 
 install: install-headers install-kernel install-grub
 

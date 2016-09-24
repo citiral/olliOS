@@ -119,6 +119,20 @@ int printf(const char* format, ...)
                 case 'X':
                     written += printHexUpper(va_arg(argp, unsigned int));
                     break;
+                case 'c':
+                    putchar((char)va_arg(argp, unsigned int));
+                    written += 1;
+                    break;
+                case 's':
+                    char* string = va_arg(argp, char*);
+
+                    while (*string != '\0') {
+                        putchar(*string);
+                        string++;
+                    }
+
+                    written += 1;
+                    break;
             }
         }
         i++;

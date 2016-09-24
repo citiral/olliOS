@@ -5,5 +5,5 @@
 #include "alloc.h"
 
 #ifdef USE_WATERMARK_ALLOCATOR
-BucketAlloc kernelAllocator;
+BucketAlloc kernelAllocator = BucketAlloc();
 #endif
