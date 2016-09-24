@@ -14,18 +14,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9bf1d3fe-40f5-4de4-9dd8-a86ee0046478" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/kernel/alloc/BucketAlloc.cpp" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/kernel/alloc/BucketAlloc.h" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/kernel/alloc/WatermarkAlloc.cpp" afterPath="$PROJECT_DIR$/kernel/alloc/LinearAlloc.cpp" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/kernel/alloc/WatermarkAlloc.h" afterPath="$PROJECT_DIR$/kernel/alloc/LinearAlloc.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/ollios.iso" afterPath="$PROJECT_DIR$/ollios.iso" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/bochsout.txt" afterPath="$PROJECT_DIR$/bochsout.txt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/kernel/alloc.cpp" afterPath="$PROJECT_DIR$/kernel/alloc.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/kernel/alloc.h" afterPath="$PROJECT_DIR$/kernel/alloc.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/kernel/interruptHandlers.cpp" afterPath="$PROJECT_DIR$/kernel/interruptHandlers.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/kernel/alloc/BucketAlloc.cpp" afterPath="$PROJECT_DIR$/kernel/alloc/BucketAlloc.cpp" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/kernel/main.cpp" afterPath="$PROJECT_DIR$/kernel/main.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/libk/stdio/printf.cpp" afterPath="$PROJECT_DIR$/libk/stdio/printf.cpp" />
     </list>
     <ignored path="olliOS-git.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -46,21 +37,21 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="main.cpp" pinned="false" current-in-tab="true">
+      <file leaf-file-name="main.cpp" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/kernel/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="206">
-              <caret line="83" column="67" selection-start-line="83" selection-start-column="67" selection-end-line="83" selection-end-column="67" />
+            <state relative-caret-position="530">
+              <caret line="80" column="4" selection-start-line="80" selection-start-column="4" selection-end-line="80" selection-end-column="4" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="BucketAlloc.cpp" pinned="false" current-in-tab="false">
+      <file leaf-file-name="BucketAlloc.cpp" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/kernel/alloc/BucketAlloc.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-542">
-              <caret line="123" column="36" selection-start-line="123" selection-start-column="36" selection-end-line="123" selection-end-column="36" />
+            <state relative-caret-position="558">
+              <caret line="168" column="5" selection-start-line="168" selection-start-column="5" selection-end-line="168" selection-end-column="5" />
               <folding />
             </state>
           </provider>
@@ -173,8 +164,8 @@
         <option value="$PROJECT_DIR$/kernel/interrupt.cpp" />
         <option value="$PROJECT_DIR$/kernel/interruptHandlers.cpp" />
         <option value="$PROJECT_DIR$/kernel/alloc/BucketAlloc.h" />
-        <option value="$PROJECT_DIR$/kernel/alloc/BucketAlloc.cpp" />
         <option value="$PROJECT_DIR$/kernel/main.cpp" />
+        <option value="$PROJECT_DIR$/kernel/alloc/BucketAlloc.cpp" />
       </list>
     </option>
   </component>
@@ -973,18 +964,18 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/kernel/alloc/BucketAlloc.cpp">
+    <entry file="file://$PROJECT_DIR$/kernel/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-542">
-          <caret line="123" column="36" selection-start-line="123" selection-start-column="36" selection-end-line="123" selection-end-column="36" />
+        <state relative-caret-position="530">
+          <caret line="80" column="4" selection-start-line="80" selection-start-column="4" selection-end-line="80" selection-end-column="4" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/kernel/main.cpp">
+    <entry file="file://$PROJECT_DIR$/kernel/alloc/BucketAlloc.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="206">
-          <caret line="83" column="67" selection-start-line="83" selection-start-column="67" selection-end-line="83" selection-end-column="67" />
+        <state relative-caret-position="558">
+          <caret line="168" column="5" selection-start-line="168" selection-start-column="5" selection-end-line="168" selection-end-column="5" />
           <folding />
         </state>
       </provider>

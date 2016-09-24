@@ -40,25 +40,8 @@ void alloctest(size_t size, int count) {
 
     for (int i = 0; i < count; i++) {
         array[i] = (char*)malloc(size);
-        //for (int k = 0 ; k < size ; k++)
-        //    array[i][k] = 0;
-    }
-    for (int i = 0; i < count; i++) {
-        //printf("&&");
-        free(array[i]);
-    }
-    //printf("yy");
-    free(array);
-}
-
-void alloctest2(size_t size, int count) {
-    char** array = (char**)malloc(count * sizeof(char*));
-    printf("arr size is %d alloced %d\n", *(((size_t*)array) - 2) ^ 0x80000000, count * sizeof(char*));
-    for (int i = 0; i < count; i++) {
-        array[i] = (char*)malloc(size);
-        //printf("LOOL, 0: %X, 1: %X\n", ((size_t*)0xC0240170)[0], ((size_t*)0xC0240170)[1]);
-        //for (int k = 0 ; k < size ; k++)
-        //    array[i][k] = 0;
+        for (int k = 0 ; k < size ; k++)
+            array[i][k] = 0;
     }
     for (int i = 0; i < count; i++) {
         //printf("&&");
@@ -78,25 +61,26 @@ extern "C" void main() {
 
     //kernelAllocator.printStatistics();
     //kernelAllocator.printStatistics();
-    //kernelAllocator.printStatistics();
+    kernelAllocator.printStatistics();
     //printf("lsize: %X\n", *((size_t*)kernelAllocator.buckets[29]));
     //alloctest(1, 1);
     printf("lsize: %X\n", *((size_t*)kernelAllocator.buckets[29]));
-    printf("w");
+
     alloctest(4, 2);
-
-    alloctest(40, 2);
-    printf("a");
-    alloctest2(80, 3);
-    printf("b");
-    //alloctest(45678, 1);
-    //alloctest(1, 1);
-    printf("b");
-    //alloctest(910, 1);
-
+    for (int i = 0 ; i < 100 ; i++) malloc(3);
+    alloctest(40, 500);
+    for (int i = 0 ; i < 100 ; i++) malloc(5);
+    alloctest(80, 30);
+    alloctest(45678, 100);
+    for (int i = 0 ; i < 100 ; i++) malloc(98);
+    alloctest(1, 1);
+    for (int i = 0 ; i < 100 ; i++) malloc(24);
+    alloctest(910, 100);
+    for (int i = 0 ; i < 100 ; i++) malloc(1000);
+    kernelAllocator.printStatistics();
     kernelAllocator.merge();
     printf("lsize: %X\n", *((size_t*)kernelAllocator.buckets[29]));
-    //kernelAllocator.printStatistics();
+    kernelAllocator.printStatistics();
 
     InputFormatter fmt;
 
