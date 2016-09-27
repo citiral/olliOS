@@ -29,7 +29,6 @@
 AtaDriver ataDriver = AtaDriver();
 
 AtaDriver::AtaDriver() {
-
 }
 
 void AtaDriver::initialize() {
@@ -41,6 +40,7 @@ void AtaDriver::initialize() {
     if ((data = (unsigned short*)detectDevice(0)) != nullptr) {
         data[47] = 0;
         printf("Found master ATA device: %s\n", (char*)(data + 27));
+
         free(data);
     } if ((data = (unsigned short*)detectDevice(1)) != nullptr) {
         data[47] = 0;

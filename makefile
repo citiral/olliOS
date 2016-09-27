@@ -1,6 +1,6 @@
 #structure: folders never start /, always end with /
 
-CC = i686-elf-gcc
+CC = i686-elf-g++
 AS = i686-elf-as
 ARCH = arch/i686/
 MAKE = make
@@ -11,7 +11,7 @@ OUTPUT=ollios.bin
 INCLUDE = -I $(ROOT)usr/include
 CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -nostdlib -fno-threadsafe-statics -Werror=return-type
 LDFLAGS = -ffreestanding -O2 -nostdlib -lgcc
-LIBS = $(ROOT)/usr/lib/libk.a #$(ROOT)/usr/lib/libk++.a
+LIBS = $(ROOT)/usr/lib/libk.a $(ROOT)/usr/lib/libkpp.a
 
 KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/util/*.cpp) $(wildcard kernel/streams/*.cpp) $(wildcard kernel/alloc/*.cpp)
 KERNEL_ASM = $(wildcard kernel/*.s)
@@ -25,12 +25,15 @@ CRTEND_OBJ:=$(shell $(CC) $(CCFLAGS) -print-file-name=crtend.o)
 #make a list of all objects, but taking special care of the order of crt* files
 OBJECTS = $(filter-out crti.o crtn.o, $(notdir $(KERNEL_CPP:.cpp=.o)) $(notdir $(KERNEL_ASM:.s=.o)))
 
-.PHONY: all compile-kernel clean dir libk install install-grub install-headers install-kernel iso
+.PHONY: all compile-kernel clean dir libk libkpp install install-grub install-headers install-kernel iso
 
-all: dir install-headers libk compile-kernel install-kernel install-grub iso
+all: dir install-headers libk libkpp compile-kernel install-kernel install-grub iso
 
 libk:
 	$(MAKE) -C libk
+
+libkpp:
+	$(MAKE) -C libkpp
 
 kernel: dir install-headers compile-kernel install-kernel install-grub iso
 

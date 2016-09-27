@@ -12,7 +12,18 @@
 #include "linker.h"
 #include "alloc.h"
 #include "ata.h"
+#include <new>
 #include <stdlib.h>
+
+struct Foo {
+	Foo() {
+		printf("foo has been created!\n");
+	}
+
+	~Foo() {
+		printf("RIP foo.\n");
+	}
+};
 
 void initCpu() {
 	GdtCreateFlat();
@@ -28,6 +39,8 @@ void initCpu() {
 void initKernel() {
     // initialize the allocator to use memory from the end of the kernel up to 0xFFFFFFFF (which is 1gb - size of the kernel)
     kernelAllocator.init(KERNEL_END, 0xFFFFFFFF - (size_t)KERNEL_END);
+
+    // initialize the ata driver, this discovers the ata devices and registers them elsewhere in the kernel
     ataDriver.initialize();
 }
 

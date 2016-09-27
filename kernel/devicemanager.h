@@ -3,14 +3,19 @@
 #include "singleton.h"
 #include "device.h"
 
-//there can ever be only 1 device manager
-class DeviceManager : public Singleton<DeviceManager>
+#include "streams/device.h"
+#include <vector>
+
+class DeviceManager
 {
-private:
-  DeviceManager();
-  ~DeviceManager();
-
 public:
-    void registerDevice(DeviceType type);
+    DeviceManager();
+    ~DeviceManager();
 
+    void addDevice(Device* device);
+
+private:
+    std::vector<Device*> _devices;
 };
+
+extern DeviceManager deviceManager;

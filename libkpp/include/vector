@@ -1,0 +1,109 @@
+//
+// Created by Olivier on 25/09/16.
+//
+
+#ifndef OLLIOS_GIT_VECTOR_H
+#define OLLIOS_GIT_VECTOR_H
+
+#include "cstddef"
+#include "utility"
+#include <stdlib.h>
+
+namespace std {
+    template<class T>
+    class vector {
+    public:
+        // typedefs
+        using value_type = T;
+        using size_type = std::size_t;
+
+        vector() {
+            _length = 0;
+            _maxLength = 0;
+            _data = nullptr;
+        }
+
+        ~vector() {
+            // clean up all remaining elements
+            for (int i = 0; i < _length ; i++) {
+                _data[i].~T();
+                free(_data);
+            }
+        }
+
+        size_type size() const noexcept {
+            return _length;
+        }
+
+        size_type max_size() const noexcept {
+            return _maxLength;
+        }
+
+        T& at(size_type n) {
+            return _data[n];
+        }
+
+        const T& at(size_type n) const {
+            return _data[n];
+        }
+
+        T& operator[] (size_type n) {
+            return _data[n];
+        }
+
+        const T& operator[] (size_type n) const {
+            return _data[n];
+        }
+
+        void push_back(const value_type& val) {
+            // optionally expand the array
+            testExpand();
+            // use placement new to construct the element at the end of the array
+            new (_data[_length]) T(val);
+            _length++;
+        }
+
+        void push_back(value_type&& val) {
+            // optionally expand the array
+            testExpand();
+            // use placement new to construct the element at the end of the array
+            new (_data[_length]) T(val);
+            _length++;
+        }
+
+        void pop_back() {
+            // first call the last elements constructor and then remove it
+            if (_length > 0) {
+                _data[_length-1]->~T();
+                _length--;
+            }
+        }
+
+    private:
+        void testExpand() {
+            if (_length == _maxLength) {
+                // get the new size and allocate the array
+                _maxLength = _maxLength*1.5 + 1;
+                T* _datanew = calloc(_maxLength, sizeof(T));
+
+                // if the old array exists
+                if (_data != nullptr) {
+                    // move all elements from the original array to the new array
+                    for (int i = 0; i < _maxLength; i++) {
+                        _datanew = std::move(_data[i]);
+                    }
+
+                    // and replace the old array
+                    free(_data);
+                    _data = _datanew;
+                }
+            }
+        }
+
+        T* _data;
+        size_t _length;
+        size_t _maxLength;
+    };
+}
+
+#endif //OLLIOS_GIT_VECTOR_H

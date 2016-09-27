@@ -1,0 +1,19 @@
+//
+// Created by Olivier on 27/09/16.
+//
+
+#ifndef OLLIOS_GIT_UTILITY_H
+#define OLLIOS_GIT_UTILITY_H
+
+#include "type_traits"
+
+namespace std {
+    template<class T>
+    typename remove_reference<T>::type&& move(T&& a) noexcept
+    {
+        typedef typename remove_reference<T>::type&& RvalRef;
+        return static_cast<RvalRef>(a);
+    }
+}
+
+#endif //OLLIOS_GIT_UTILITY_H
