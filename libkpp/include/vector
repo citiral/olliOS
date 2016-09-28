@@ -8,6 +8,9 @@
 #include "cstddef"
 #include "utility"
 #include <stdlib.h>
+#include <new>
+
+// divergence of spec from vector: No iterators, no allocator, missing functions
 
 namespace std {
     template<class T>
@@ -39,6 +42,25 @@ namespace std {
             return _maxLength;
         }
 
+        size_t find(const T& value) const {
+            for (int i = 0 ; i < _length ; i++) {
+                if (_data[i] == value)
+                    return i;
+            }
+            return -1;
+        }
+
+        void erase(size_t position) {
+            // bubble all elements folowing the position one down
+            while (position + 1 < _length) {
+                _data[position] = std::move(_data[position + 1]);
+                position++;
+            }
+            // and run the destructor of the last element, then shrink the array
+            _data[position].~T();
+            _length--;
+        }
+
         T& at(size_type n) {
             return _data[n];
         }
@@ -59,15 +81,15 @@ namespace std {
             // optionally expand the array
             testExpand();
             // use placement new to construct the element at the end of the array
-            new (_data[_length]) T(val);
-            _length++;
+            //new (&_data[_length]) T(val);
+            //_length++;
         }
 
         void push_back(value_type&& val) {
             // optionally expand the array
             testExpand();
             // use placement new to construct the element at the end of the array
-            new (_data[_length]) T(val);
+            new (&_data[_length]) T(val);
             _length++;
         }
 
@@ -79,30 +101,59 @@ namespace std {
             }
         }
 
+        T& front() {
+            return _data[0];
+        }
+
+        T&& front() const {
+            return _data[0];
+        }
+
+        T& back() {
+            return _data[_length-1];
+        }
+
+        T&& back() const {
+            return _data[_length-1];
+        }
+
     private:
         void testExpand() {
             if (_length == _maxLength) {
-                // get the new size and allocate the array
-                _maxLength = _maxLength*1.5 + 1;
-                T* _datanew = calloc(_maxLength, sizeof(T));
+                printf("--EXPANDING: ");
+                // get the new size and (re)allocate the array
+                _maxLength = _maxLength*2 + 1;
 
-                // if the old array exists
-                if (_data != nullptr) {
-                    // move all elements from the original array to the new array
-                    for (int i = 0; i < _maxLength; i++) {
-                        _datanew = std::move(_data[i]);
+                if (_data == nullptr) {
+                    _data = static_cast<T*>(malloc(_maxLength * sizeof(T)));
+                } else {
+                    T*_datanew = static_cast<T*>(malloc(_maxLength * sizeof(T)));
+                    for (int i = 0; i < _length ; i++) {
+                        _datanew[i] = _data[i];
                     }
-
-                    // and replace the old array
                     free(_data);
-                    _data = _datanew;
+                    _datanew = _data;
                 }
+                printf("%X", _data);
             }
         }
 
         T* _data;
         size_t _length;
         size_t _maxLength;
+    };
+
+    template<class T>
+    bool operator==( const vector<T>& lhs,
+                     const vector<T>& rhs ) {
+        if (lhs.size() != rhs.size())
+           return false;
+
+        for (int i = 0; i < lhs.size(); i++)
+            if (!(lhs[i] == rhs[i]))
+                return false;
+
+        return true;
     };
 }
 

@@ -8,8 +8,6 @@
 #define CMD_SET_COMMAND_BYTE 0x60
 #define CMD_SET_SCAMECODE_SET 0xF0
 
-KeyboardDriver keyboardDriver;
-
 VirtualKeyEvent::VirtualKeyEvent()
 {
 	this->vkey = VirtualKeycode::INVALID;
@@ -99,6 +97,27 @@ size_t KeyboardDriver::write(const void* data)
 		i++;
 	}
 	return i * sizeof(VirtualKeycode);
+}
+
+size_t KeyboardDriver::write(char data) {
+	//add the code
+	addCode(data);
+
+	//check if the current sequence exists
+	VirtualKeycode make = convertMakeScancodeToKeycode();
+	if (make != VirtualKeycode::INVALID) {
+		pushBuffer(VirtualKeyEvent(make, 0b00000001));
+		clearCodes();
+	} else
+	{
+		VirtualKeycode breakcode = convertBreakScancodeToKeycode();
+		if (breakcode != VirtualKeycode::INVALID) {
+			pushBuffer(VirtualKeyEvent(breakcode, 0b00000000));
+			clearCodes();
+		}
+	}
+
+	return 1;
 }
 
 size_t KeyboardDriver::read(void* data, size_t amount)

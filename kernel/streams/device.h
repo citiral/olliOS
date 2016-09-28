@@ -6,6 +6,7 @@
 enum class DeviceType {
     Keyboard,
     Screen,
+    Storage,
 };
 
 /**

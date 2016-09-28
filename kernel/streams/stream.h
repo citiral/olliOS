@@ -17,9 +17,11 @@ public:
     // writes size_t bytes to the stream, starting from data. Returns the
     // amount of bytes actually written.
     virtual size_t write(const void* data, size_t amount) = 0;
-    // writes bytes to the stream untill a newline is encountered. Returns the
+    // writes bytes to the stream until a null terminator is encountered. Returns the
     // amount of bytes actually written.
     virtual size_t write(const void* data) = 0;
+    // writes a single byte to the stream, Returns the amount of bytes written (0 or 1)
+    virtual size_t write(char data) = 0;
     // reads size_t bytes from the device and inserts it into data.
     // returns the amount of bytes actually read.
     virtual size_t read(void* data, size_t amount) = 0;

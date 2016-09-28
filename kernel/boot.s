@@ -97,7 +97,11 @@ _start:
 	# assembly file, so we'll create a kernel.c file in a moment. In that file,
 	# we'll create a C entry point called kernel_main and call it here.
 	call _init
+	# push the multiboot structure on the stack
+	add $0xC0000000, %ebx
+	pushl %ebx
 	call main
+	popl %ebx
 	call _fini
 
 	# In case the function returns, we'll want to put the computer into an

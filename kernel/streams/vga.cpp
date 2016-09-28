@@ -57,6 +57,12 @@ size_t VgaDriver::write(const void* data)
 	return i;
 }
 
+size_t VgaDriver::write(char data)
+{
+	writeChar(data);
+	return 1;
+}
+
 size_t VgaDriver::read(void* data, size_t amount)
 {
 	//TODO: read maybe? perhaps do nothing

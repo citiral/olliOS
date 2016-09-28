@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __STREAMS_KEYBOARD_H
+#define __STREAMS_KEYBOARD_H
 
 #include "types.h"
 #include "device.h"
@@ -74,7 +75,7 @@ public:
 extern VirtualKeycode scanset2_map1[255];
 extern VirtualKeycode scanset2_map2[255];
 
-class KeyboardDriver {
+class KeyboardDriver : public Device {
 public:
 	KeyboardDriver();
 	virtual ~KeyboardDriver();
@@ -85,8 +86,10 @@ public:
 	virtual const char* getDeviceName() const;
 	//makes the driver process amount scancodes from data
 	virtual size_t write(const void* data, size_t amount);
-	//makes the driver process scancodes from data untill a nullpointer is occured
+	//makes the driver process scancodes from data until a nullpointer is occured
 	virtual size_t write(const void* data);
+	//makes the driver process a single scancode
+	virtual size_t write(char data);
 	//reads virtual keycodes from the keyboard buffer
 	virtual size_t read(void* data, size_t amount);
 	//does nothing!
@@ -118,4 +121,4 @@ private:
 	u8 _bufferLength;
 };
 
-extern KeyboardDriver keyboardDriver; //TODO: remove this and map it to the filesystem
+#endif

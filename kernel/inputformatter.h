@@ -3,8 +3,7 @@
 
 #include "types.h"
 #include "keyboard.h"
-
-#define INPUTFORMATTER_BUFFER_SIZE 64 //TODO dynamically allocate this for infinite size
+#include <vector>
 
 class InputFormatter {
 public:
@@ -17,10 +16,10 @@ public:
     // adds a char to the buffer and renders it
     void addChar(u8 character);
     // gets the current line, null terminated
-    const char* getLine();
+    std::vector<char> getNextLine();
+
 private:
-    char _buffer[INPUTFORMATTER_BUFFER_SIZE + 1];
-    u32 _bufferIndex;
+    std::vector<std::vector<char>> _input;
     bool _lineReady;
 };
 

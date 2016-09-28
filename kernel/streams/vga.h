@@ -40,6 +40,8 @@ public:
 	virtual size_t write(const void* data, size_t amount);
 	//prints bytes to the screen
 	virtual size_t write(const void* data);
+    //prints a byte to the screen
+    virtual size_t write(char data);
 	//reads amount bytes from the screen
 	virtual size_t read(void* data, size_t amount);
 	//changes the position on the screen, counted in characters, starting from the top left,

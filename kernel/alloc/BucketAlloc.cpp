@@ -27,6 +27,14 @@ void BucketAlloc::init(void* start, size_t length) {
     int bucket = nextLowestPowerOfTwo(length - sizeof(size_t) * 2);
     buckets[bucket] = start;
 
+
+    //for (int i = 0 ; i < length ; i++) {
+        //if (i % 0x10000 == 0)
+        //    printf("done %X\n", i);
+    //    ((char*)start)[i] = 0;
+    //}
+    //printf("done");
+
     // and mark the header of the memory to indicate the length, the next pointer (which is 0)
     *(size_t*)start = (length - sizeof(size_t) * 2);
     *((size_t*)start + 1) = 0;
@@ -38,6 +46,8 @@ void* BucketAlloc::malloc(size_t size) {
 
     // if it is null, lets do a merge step and try again
     if (mem == nullptr) {
+        printf("failed..");
+        printStatistics();
         merge();
         mem = mallocOneTry(size);
     }
@@ -206,7 +216,13 @@ size_t BucketAlloc::nextLowestPowerOfTwo(void* value) {
 
 void BucketAlloc::printStatistics() {
     printf("buckets:\n");
-    for (int i = 0 ; i < 32/4 ; i++) {
-        printf("%d: %X, %d: %X, %d: %X, %d: %X\n", i*4, buckets[i*4], i*4 + 1, buckets[i*4 + 1], i*4 + 2, buckets[i*4 + 2], i*4 + 3, buckets[i*4 + 3]);
+    for (int i = 0 ; i < 32 ; i++) {
+        if (buckets[i] == 0) {
+            printf("[%d]: 0 ", i);
+        } else {
+            printf("[%d]: %X:(%d)", i, buckets[i], *((size_t*)buckets[i]));
+        }
+
+        //printf("%d: %X, %d: %X, %d: %X, %d: %X\n", i*4, buckets[i*4], i*4 + 1, buckets[i*4 + 1], i*4 + 2, buckets[i*4 + 2], i*4 + 3, buckets[i*4 + 3]);
     }
 }

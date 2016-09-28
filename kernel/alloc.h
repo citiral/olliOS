@@ -6,6 +6,7 @@
 #define OLLIOS_GIT_ALLOC_H
 
 #include "BucketAlloc.h"
+#include "LinearAlloc.h"
 
 #define USE_WATERMARK_ALLOCATOR
 

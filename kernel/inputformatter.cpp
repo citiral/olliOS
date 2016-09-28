@@ -1,10 +1,11 @@
 #include "inputformatter.h"
+#include "devicemanager.h"
 #include "vga.h"
 
 InputFormatter::InputFormatter():
-    _bufferIndex(0), _lineReady(0)
+    _lineReady(0)
 {
-
+    _input.push_back(std::vector<char>());
 }
 
 void InputFormatter::handleVirtualKeyEvent(VirtualKeyEvent event)
@@ -15,15 +16,15 @@ void InputFormatter::handleVirtualKeyEvent(VirtualKeyEvent event)
 
     //first lets test the special characters
     if (event.vkey == VirtualKeycode::ENTER) {
-        addChar('\n');
+        deviceManager.getDevice(DeviceType::Screen, 0)->write('\n');
+        _input.front().push_back('\0');
         _lineReady = true;
-        _bufferIndex = 0;
+        _input.push_back(std::vector<char>());
     } else if (event.vkey == VirtualKeycode::BACKSPACE) {
-        if (_bufferIndex > 0) {
+        if (_input.front().size() > 0) {
             fseek(stdout, -1, SEEK_CUR);
             vgaDriver.write(" ", 1);
             fseek(stdout, -1, SEEK_CUR);
-            _bufferIndex--;
         }
     } else if (event.vkey >= VirtualKeycode::A && event.vkey <= VirtualKeycode::Z) {
         char key = (u8)event.vkey - (u8)VirtualKeycode::A;
@@ -40,17 +41,13 @@ bool InputFormatter::isLineReady() const
 
 void InputFormatter::addChar(u8 character)
 {
-    if (_bufferIndex >= INPUTFORMATTER_BUFFER_SIZE) {
-        _bufferIndex--;
-    }
-    _buffer[_bufferIndex] = character;
-
-    vgaDriver.write(_buffer + _bufferIndex, 1);
-    _bufferIndex++;
+    _input.front().push_back(character);
+    deviceManager.getDevice(DeviceType::Screen, 0)->write(character);
 }
 
-const char* InputFormatter::getLine()
+std::vector<char> InputFormatter::getNextLine()
 {
-    _buffer[_bufferIndex] = '\0';
-    return _buffer;
+    std::vector<char> string = _input.front();
+    _input.erase(0);
+    return string;
 }

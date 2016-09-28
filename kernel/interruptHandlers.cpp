@@ -1,5 +1,5 @@
 #include "interruptHandlers.h"
-#include "keyboard.h"
+#include "devicemanager.h"
 #include "vga.h"
 #include "io.h"
 #include "pic.h"
@@ -23,7 +23,7 @@ void intHandlerKeyboard(u32 interrupt) {
 	u8 data = inb(0x60);
 
     // send it to the keyboarddriver
-    keyboardDriver.write(&data, 1);
+    deviceManager.getDevice(DeviceType::Keyboard, 0)->write(data);
 
     // and end the interrupt
 	endInterrupt(interrupt - 0x20);

@@ -13,9 +13,15 @@ public:
     ~DeviceManager();
 
     void addDevice(Device* device);
+    void destroyDevice(Device* device);
+
+    Device* getDevice(DeviceType type, size_t device);
+    std::vector<Device*>& getDevices(DeviceType type);
 
 private:
-    std::vector<Device*> _devices;
+    std::vector<Device*> keyboardDevices;
+    std::vector<Device*> screenDevices;
+    std::vector<Device*> storageDevices;
 };
 
 extern DeviceManager deviceManager;
