@@ -15,16 +15,7 @@
   <component name="ChangeListManager">
     <list default="true" id="9bf1d3fe-40f5-4de4-9dd8-a86ee0046478" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/bochsout.txt" afterPath="$PROJECT_DIR$/bochsout.txt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/kernel/alloc/BucketAlloc.cpp" afterPath="$PROJECT_DIR$/kernel/alloc/BucketAlloc.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/kernel/alloc/BucketAlloc.h" afterPath="$PROJECT_DIR$/kernel/alloc/BucketAlloc.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/kernel/ata.cpp" afterPath="$PROJECT_DIR$/kernel/ata.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/kernel/devicemanager.cpp" afterPath="$PROJECT_DIR$/kernel/devicemanager.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/kernel/linker.h" afterPath="$PROJECT_DIR$/kernel/linker.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/kernel/linker.ld" afterPath="$PROJECT_DIR$/kernel/linker.ld" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/kernel/main.cpp" afterPath="$PROJECT_DIR$/kernel/main.cpp" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/kernel/multiboot.h" afterPath="$PROJECT_DIR$/kernel/multiboot.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/libkpp/include/vector" afterPath="$PROJECT_DIR$/libkpp/include/vector" />
     </list>
     <ignored path="olliOS-git.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -54,11 +45,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="main.cpp" pinned="false" current-in-tab="true">
+      <file leaf-file-name="main.cpp" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/kernel/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="600">
-              <caret line="102" column="9" selection-start-line="102" selection-start-column="9" selection-end-line="102" selection-end-column="9" />
+            <state relative-caret-position="549">
+              <caret line="99" column="48" selection-start-line="99" selection-start-column="48" selection-end-line="99" selection-end-column="48" />
               <folding />
             </state>
           </provider>
@@ -124,6 +115,16 @@
           </provider>
         </entry>
       </file>
+      <file leaf-file-name="multiboot.h" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/kernel/multiboot.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="442">
+              <caret line="26" column="3" selection-start-line="26" selection-start-column="3" selection-end-line="26" selection-end-column="3" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
       <file leaf-file-name="BucketAlloc.h" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/kernel/alloc/BucketAlloc.h">
           <provider selected="true" editor-type-id="text-editor">
@@ -184,7 +185,6 @@
         <option value="$PROJECT_DIR$/kernel/alloc.cpp" />
         <option value="$PROJECT_DIR$/grub/grub.cfg" />
         <option value="$PROJECT_DIR$/kernel/boot.s" />
-        <option value="$PROJECT_DIR$/kernel/multiboot.h" />
         <option value="$PROJECT_DIR$/kernel/alloc/BucketAlloc.h" />
         <option value="$PROJECT_DIR$/kernel/linker.ld" />
         <option value="$PROJECT_DIR$/kernel/linker.h" />
@@ -193,6 +193,7 @@
         <option value="$PROJECT_DIR$/kernel/ata.cpp" />
         <option value="$PROJECT_DIR$/kernel/main.cpp" />
         <option value="$PROJECT_DIR$/kernel/alloc/BucketAlloc.cpp" />
+        <option value="$PROJECT_DIR$/kernel/multiboot.h" />
       </list>
     </option>
   </component>
@@ -582,12 +583,12 @@
       <workItem from="1474986961994" duration="10116000" />
       <workItem from="1475072841641" duration="2036000" />
       <workItem from="1475083949492" duration="4582000" />
-      <workItem from="1475165631870" duration="11584000" />
+      <workItem from="1475165631870" duration="11717000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="59903000" />
+    <option name="totallyTimeSpent" value="60036000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
@@ -873,14 +874,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/kernel/multiboot.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="221">
-          <caret line="14" column="23" selection-start-line="14" selection-start-column="7" selection-end-line="14" selection-end-column="23" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/grub/menu.lst">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="51">
@@ -979,8 +972,16 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/kernel/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="600">
-          <caret line="102" column="9" selection-start-line="102" selection-start-column="9" selection-end-line="102" selection-end-column="9" />
+        <state relative-caret-position="549">
+          <caret line="99" column="48" selection-start-line="99" selection-start-column="48" selection-end-line="99" selection-end-column="48" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/kernel/multiboot.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="442">
+          <caret line="26" column="3" selection-start-line="26" selection-start-column="3" selection-end-line="26" selection-end-column="3" />
           <folding />
         </state>
       </provider>
