@@ -8,69 +8,129 @@
 #include "types.h"
 #include "cdefs.h"
 
-#define MULTIBOOT_MMAP_TYPE_RAM 1
+typedef unsigned short          multiboot_uint16_t;
+typedef unsigned int            multiboot_uint32_t;
+typedef unsigned long long      multiboot_uint64_t;
 
-struct __PACKED Multiboot_info_mods {
-    void* mod_start;
-    void* mod_end;
-    char* string;
-    u32 reserved;
+struct multiboot_header
+{
+    /* Must be MULTIBOOT_MAGIC - see above. */
+    multiboot_uint32_t magic;
+
+    /* Feature flags. */
+    multiboot_uint32_t flags;
+
+    /* The above fields plus this one must equal 0 mod 2^32. */
+    multiboot_uint32_t checksum;
+
+    /* These are only valid if MULTIBOOT_AOUT_KLUDGE is set. */
+    multiboot_uint32_t header_addr;
+    multiboot_uint32_t load_addr;
+    multiboot_uint32_t load_end_addr;
+    multiboot_uint32_t bss_end_addr;
+    multiboot_uint32_t entry_addr;
+
+    /* These are only valid if MULTIBOOT_VIDEO_MODE is set. */
+    multiboot_uint32_t mode_type;
+    multiboot_uint32_t width;
+    multiboot_uint32_t height;
+    multiboot_uint32_t depth;
 };
 
-struct __PACKED Multiboot_info_sym {
-    u32 tabsize;
-    u32 strsize;
-    void* addr;
-    u32 reserved;
+/* The symbol table for a.out. */
+struct multiboot_aout_symbol_table
+{
+    multiboot_uint32_t tabsize;
+    multiboot_uint32_t strsize;
+    multiboot_uint32_t addr;
+    multiboot_uint32_t reserved;
 };
+typedef struct multiboot_aout_symbol_table multiboot_aout_symbol_table_t;
 
-struct __PACKED Multiboot_info_elf {
-    u32 num;
-    u32 size;
-    void* addr;
-    u32 shndx;
+/* The section header table for ELF. */
+struct multiboot_elf_section_header_table
+{
+    multiboot_uint32_t num;
+    multiboot_uint32_t size;
+    multiboot_uint32_t addr;
+    multiboot_uint32_t shndx;
 };
+typedef struct multiboot_elf_section_header_table multiboot_elf_section_header_table_t;
 
-union Multiboot_info_sym_or_elf {
-    Multiboot_info_elf* elf;
-    Multiboot_info_sym* sym;
+struct multiboot_info
+{
+    /* Multiboot info version number */
+    multiboot_uint32_t flags;
+
+    /* Available memory from BIOS */
+    multiboot_uint32_t mem_lower;
+    multiboot_uint32_t mem_upper;
+
+    /* "root" partition */
+    multiboot_uint32_t boot_device;
+
+    /* Kernel command line */
+    multiboot_uint32_t cmdline;
+
+    /* Boot-Module list */
+    multiboot_uint32_t mods_count;
+    multiboot_uint32_t mods_addr;
+
+    union
+    {
+        multiboot_aout_symbol_table_t aout_sym;
+        multiboot_elf_section_header_table_t elf_sec;
+    } u;
+
+    /* Memory Mapping buffer */
+    multiboot_uint32_t mmap_length;
+    multiboot_uint32_t mmap_addr;
+
+    /* Drive Info buffer */
+    multiboot_uint32_t drives_length;
+    multiboot_uint32_t drives_addr;
+
+    /* ROM configuration table */
+    multiboot_uint32_t config_table;
+
+    /* Boot Loader Name */
+    multiboot_uint32_t boot_loader_name;
+
+    /* APM table */
+    multiboot_uint32_t apm_table;
+
+    /* Video */
+    multiboot_uint32_t vbe_control_info;
+    multiboot_uint32_t vbe_mode_info;
+    multiboot_uint16_t vbe_mode;
+    multiboot_uint16_t vbe_interface_seg;
+    multiboot_uint16_t vbe_interface_off;
+    multiboot_uint16_t vbe_interface_len;
 };
+typedef struct multiboot_info multiboot_info_t;
 
-struct __PACKED Multiboot_info_mmap {
-    void* base_addr_lower;
-    void* base_addr_higher;
-    void* length_lower;
-    void* length_higher;
-    u32 type;
+struct multiboot_mmap_entry
+{
+    multiboot_uint32_t size;
+    multiboot_uint64_t addr;
+    multiboot_uint64_t len;
+#define MULTIBOOT_MEMORY_AVAILABLE              1
+#define MULTIBOOT_MEMORY_RESERVED               2
+    multiboot_uint32_t type;
+} __attribute__((packed));
+typedef struct multiboot_mmap_entry multiboot_memory_map_t;
+
+struct multiboot_mod_list
+{
+    /* the memory used goes from bytes 'mod_start' to 'mod_end-1' inclusive */
+    multiboot_uint32_t mod_start;
+    multiboot_uint32_t mod_end;
+
+    /* Module command line */
+    multiboot_uint32_t cmdline;
+
+    /* padding to take it to 16 bytes (must be zero) */
+    multiboot_uint32_t pad;
 };
-
-struct __PACKED Multiboot_info_drives {
-    u32 size;
-    // remaining fields are of undefined size so they should be fetched dynamically
-};
-
-struct __PACKED Multiboot_info {
-    u32 flags;
-    u32 mem_lower;
-    u32 mem_upper;
-    u32 boot_device;
-    u32 cmdline;
-    u32 mods_count;
-    Multiboot_info_mods* mods_addr;
-    Multiboot_info_sym_or_elf* syms[3];
-    u32 mmap_length;
-    Multiboot_info_mmap* mmap_addr;
-    u32 drives_length;
-    Multiboot_info_drives* drives_addr;
-    u32 config_table;
-    u32 boot_loader_name;
-    u32 apm_table;
-    u32 vbe_control_info;
-    u32 vbe_mode_info;
-    u32 vbe_mode;
-    u32 vbe_interface_seg;
-    u32 vbe_interface_off;
-    u32 vbe_interface_len;
-};
-
+typedef struct multiboot_mod_list multiboot_module_t;
 #endif //OLLIOS_GIT_MULTIBOOT_H

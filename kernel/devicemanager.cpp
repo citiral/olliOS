@@ -1,6 +1,6 @@
 #include "devicemanager.h"
 
-DeviceManager deviceManager = DeviceManager();
+DeviceManager deviceManager;
 
 DeviceManager::DeviceManager() {
 

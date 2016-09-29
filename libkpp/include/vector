@@ -26,12 +26,86 @@ namespace std {
             _data = nullptr;
         }
 
+        vector(vector<T>& ref) {
+            _length = ref._length;
+            _maxLength = ref._maxLength;
+
+            if (_maxLength > 0) {
+                _data = static_cast<T*>(malloc(_maxLength * sizeof(T)));
+
+                for (int i = 0; i < _length; i++) {
+                    _data[i] = ref._data[i];
+                }
+            } else {
+                _data = nullptr;
+            }
+        }
+
+        vector(vector<T>&& ref) {
+            _length = ref._length;
+            _maxLength = ref._maxLength;
+            _data = ref._data;
+
+            ref._data = nullptr;
+            ref._length = 0;
+            ref._maxLength = 0;
+        }
+
         ~vector() {
             // clean up all remaining elements
-            for (int i = 0; i < _length ; i++) {
-                _data[i].~T();
+            if (_data != nullptr) {
+                for (int i = 0; i < _length; i++) {
+                    _data[i].~T();
+                }
+
                 free(_data);
             }
+        }
+
+        vector<T>& operator=(const vector<T>& ref) {
+            // clean up all remaining elements
+            if (_data != nullptr) {
+                for (int i = 0; i < _length; i++) {
+                    _data[i].~T();
+                }
+
+                free(_data);
+            }
+
+            _length = ref._length;
+            _maxLength = ref._maxLength;
+            if (_maxLength > 0) {
+                _data = static_cast<T*>(malloc(_maxLength * sizeof(T)));
+
+                for (int i = 0; i < _length; i++) {
+                    _data[i] = ref._data[i];
+                }
+            } else {
+                _data = nullptr;
+            }
+
+            return *this;
+        }
+
+        vector<T>& operator==(const vector<T>&& ref) {
+            // clean up all remaining elements
+            if (_data != nullptr) {
+                for (int i = 0; i < _length; i++) {
+                    _data[i].~T();
+                }
+
+                free(_data);
+            }
+
+            _length = ref._length;
+            _maxLength = ref._maxLength;
+            _data = ref._data;
+
+            ref._data = nullptr;
+            ref._length = 0;
+            ref._maxLength = 0;
+
+            return *this;
         }
 
         size_type size() const noexcept {
@@ -81,8 +155,8 @@ namespace std {
             // optionally expand the array
             testExpand();
             // use placement new to construct the element at the end of the array
-            //new (&_data[_length]) T(val);
-            //_length++;
+            new (&_data[_length]) T(val);
+            _length++;
         }
 
         void push_back(value_type&& val) {
@@ -120,21 +194,14 @@ namespace std {
     private:
         void testExpand() {
             if (_length == _maxLength) {
-                printf("--EXPANDING: ");
                 // get the new size and (re)allocate the array
                 _maxLength = _maxLength*2 + 1;
 
                 if (_data == nullptr) {
                     _data = static_cast<T*>(malloc(_maxLength * sizeof(T)));
                 } else {
-                    T*_datanew = static_cast<T*>(malloc(_maxLength * sizeof(T)));
-                    for (int i = 0; i < _length ; i++) {
-                        _datanew[i] = _data[i];
-                    }
-                    free(_data);
-                    _datanew = _data;
+                    _data = static_cast<T*>(realloc(_data, _maxLength * sizeof(T)));
                 }
-                printf("%X", _data);
             }
         }
 

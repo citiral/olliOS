@@ -40,12 +40,11 @@ void AtaDriver::initialize() {
     if ((data = (unsigned short*)detectDevice(0)) != nullptr) {
         data[47] = 0;
         printf("Found master ATA device: %s\n", (char*)(data + 27));
-
-        free(data);
+        delete[] data;
     } if ((data = (unsigned short*)detectDevice(1)) != nullptr) {
         data[47] = 0;
         printf("Found slave ATA device: %s\n", (char*)(data + 27));
-        free(data);
+        delete[] data;
     }
 }
 
@@ -91,7 +90,7 @@ unsigned short* AtaDriver::detectDevice(int device) {
     }
 
     // otherwise alloc space for the 512 bytes that are going to be answered
-    unsigned short* data = (unsigned short*)malloc(256);
+    unsigned short* data = new unsigned short[256];
 
     // we already know the device is ready to send data so we can just start receiving immediately
     for (int i = 0 ; i < 256 ; i++) {

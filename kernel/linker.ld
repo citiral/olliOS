@@ -30,5 +30,6 @@ SECTIONS
 
 	/* The compiler may produce other sections, by default it will put them in
 	   a segment with the same name. Simply add stuff here as needed. */
-	__KERNEL_END = .;
+	__KERNEL_END_VIRTUAL = .;
+	__KERNEL_END_PHYSICAL = . - 0xC0000000;
 }

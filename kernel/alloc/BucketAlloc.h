@@ -22,6 +22,7 @@ public:
     void printStatistics();
 
 private:
+    void mergeOneArea(void* start, void* end);
     void* mallocOneTry(size_t size);
     void insertIntoBucket(size_t* region);
 
@@ -32,8 +33,7 @@ private:
 
 public:
     void* buckets[32];
-    void* start;
-    void* end;
+    void* memoryLinkedList;
 };
 
 #endif //OLLIOS_GIT_BUCKETALLOC_H

@@ -19,87 +19,91 @@
 #include <new>
 #include <stdlib.h>
 
-struct Foo {
-	Foo() {
-		printf("foo has been created!\n");
-	}
-
-	~Foo() {
-		printf("RIP foo.\n");
-	}
-};
-
 void initCpu() {
+    // setup a flat segmentation structure. We're going to be using paging anyway.
 	GdtCreateFlat();
 	GdtFlush();
+
+    // Then we set up the interupt tables so we can actually use interrupts (these contain function pointers to interrupt handlers)
 	IdtcreateEmpty();
 	IdtFlush();
 	IdtRegisterInterrupts();
+
+    // I forgot what this does but it has to do with interrupts.. I believe
 	initialize_tss(0x10, 0x28);
+
+    // Program the PIC so interrupts make sense (0-32 is reserved for intel, ...)
 	PicInit();
+
+    // and finally initialize paging from C since it's about time.
     PageInit();
 }
 
-void initKernel() {
-    // initialize the allocator to use memory from the end of the kernel up to 0xFFFFFFFF (which is 1gb - size of the kernel)
-    kernelAllocator.init(KERNEL_END, 0xCFFFFFFF - (size_t)KERNEL_END);
-
-    // initialize the ata driver, this discovers the ata devices and registers them elsewhere in the kernel
-    // ataDriver.initialize();
-
-    // and register the default vga and and keyboard driver
-    // deviceManager.addDevice(&vgaDriver);
-    // deviceManager.addDevice(new KeyboardDriver());
-}
-
-extern "C" void main(Multiboot_info* multiboot) {
-    // init CPU related stuff
+extern "C" void main(multiboot_info* multiboot) {
+    // init lowlevel CPU related stuff
 	initCpu();
-    // init kernel related stuff
-    initKernel();
 
-    printf("Multiboot flags: %X\n", *(size_t*)multiboot);
-    printf("Multiboot flags: %X\n", multiboot->flags);
-
+    // use the multiboot header to discover valid memory regions
     if ((multiboot->flags & (1 << 6)) == 0) {
-        printf("No MMAP specified by multiboot.. :(");
+        // if multiboot didn't pass us our usable memory areas (which it really always should) use a default.
+        printf("No MMAP specified by multiboot.. :(, we'll YOLO allocate the last gb to the memory allocator");
+        kernelAllocator.init((void*)KERNEL_END_VIRTUAL, 0xFFFFFFFF - (size_t)KERNEL_END_VIRTUAL);
     } else {
-        /*for (int i = 0; i < multiboot->mmap_length; i++) {
-            printf("Found memory of type %d, starting from %X with length %X\n", multiboot->mmap_addr[i].type,
-                   multiboot->mmap_addr[i].base_addr_lower, multiboot->mmap_addr[i].length_lower);
-        }*/
+        // loop over each mmap descriptor, these are of variable size so the loop is special
+        for (multiboot_memory_map_t* mmap = (multiboot_memory_map_t*)multiboot->mmap_addr;
+             (u64)mmap != (u64)multiboot->mmap_addr + multiboot->mmap_length;
+             mmap = (multiboot_memory_map_t*)((char*)mmap + mmap->size + sizeof(mmap->size))) {
+
+            void* addr = (void*)mmap->addr;
+            size_t length = (size_t)mmap->len;
+
+            // only use it if type is 1 (usable RAM)
+            if (mmap->type != 1)
+                continue;
+
+            // only use the first physical gb
+            if ((size_t)addr >= 0x40000000)
+                continue;
+
+            // don't let this shit overlap with the kernel itself
+            if ((size_t)addr < (size_t)KERNEL_END_PHYSICAL) {
+                size_t diff = (size_t)KERNEL_END_PHYSICAL - (size_t) addr;
+                addr = (void*)((size_t)addr + diff);
+
+                if (length < diff)
+                    continue;
+
+                length -= diff;
+            }
+
+            kernelAllocator.init(addr + 0xC0000000, length);
+        }
     }
 
 	PRINT_INIT("Welcome to OlliOS!");
 
-    //InputFormatter fmt;
+    // initialize the ATA driveer
+    ataDriver.initialize();
 
-    //kernelAllocator.printStatistics();
+    // and register the default vga and and keyboard driver
+    deviceManager.addDevice(&vgaDriver);
+    deviceManager.addDevice(new KeyboardDriver());
 
+    InputFormatter fmt;
 
-
-    /*for (int i = 0 ; i < 20 ; i++) {
-        printf("alloccing [%d]\n", i);
-        free(malloc(i * 2 + 1 * sizeof(int)));
-        kernelAllocator.printStatistics();
-    }*/
-
-    /*std::vector<char> beep;
-    printf("\n");
-    for (int i = 0 ; i < 100 ; i++) {
-        printf("a");
-        beep.push_back('a');
-    }*/
-
-    /*while (true) {
+    while (true) {
 		VirtualKeyEvent input[10];
-		size_t read = deviceManager.getDevice(DeviceType::Keyboard, 0)->read(input, 10);
+		int read = deviceManager.getDevice(DeviceType::Keyboard, 0)->read(input, 10);
 
 		for (size_t i = 0 ; i < read ; i += sizeof(VirtualKeyEvent))
 		{
 			fmt.handleVirtualKeyEvent(input[i]);
 		}
 
+        //if (fmt.isLineReady()) {
+
+        //}
+
 		__asm__ volatile("hlt");
-	}*/
+	}
 }

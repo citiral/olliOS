@@ -15,38 +15,47 @@ BucketAlloc::BucketAlloc() {
 }
 
 void BucketAlloc::init(void* start, size_t length) {
-    // these two values are used for the merging step
-    this->start = start;
-    end = start + length;
+    // if the length is less than or equal to 16 we are nothing with the memory since not even or nothing but our headers would fit
+    if (length <= 16)
+        return;
 
-    // clear the buckets
-    for (int i = 0 ; i < 32 ; i++) {
-        buckets[i] = 0;
-    }
+    // advance start by 8 to skip the global linked list header we are going to add at the end
+    start = (void*)((char*)start + sizeof(size_t) * 2);
+    length -= sizeof(size_t) * 2;
+
     // throw the memory in the corresponding bucket
     int bucket = nextLowestPowerOfTwo(length - sizeof(size_t) * 2);
     buckets[bucket] = start;
 
-
-    //for (int i = 0 ; i < length ; i++) {
-        //if (i % 0x10000 == 0)
-        //    printf("done %X\n", i);
-    //    ((char*)start)[i] = 0;
-    //}
-    //printf("done");
-
     // and mark the header of the memory to indicate the length, the next pointer (which is 0)
     *(size_t*)start = (length - sizeof(size_t) * 2);
     *((size_t*)start + 1) = 0;
+
+    // and register it in the global linked list chain
+    *((size_t*)start - 2) = (size_t)memoryLinkedList;
+    *((size_t*)start - 1) = (size_t)start + length;
+    memoryLinkedList = ((size_t*)start - 2);
 }
 
 void* BucketAlloc::malloc(size_t size) {
+
+    for (int i = 31 ; i >= 0; i--) {
+        if (buckets[i] != 0) {
+            break;
+        }
+    }
+
     // try to allocate the memory
     void* mem = mallocOneTry(size);
 
+    for (int i = 31 ; i >= 0; i--) {
+        if (buckets[i] != 0) {
+            break;
+        }
+    }
+
     // if it is null, lets do a merge step and try again
     if (mem == nullptr) {
-        printf("failed..");
         printStatistics();
         merge();
         mem = mallocOneTry(size);
@@ -140,12 +149,8 @@ void* BucketAlloc::calloc(size_t num, size_t size) {
     return malloc(num * size);
 }
 
-void BucketAlloc::merge() {
-    // first we clear all buckets since they will be rebuild after the merge
-    for (int i = 0 ; i < 32 ; i++)
-        buckets[i] = 0;
-
-    // keep going untill we passed all memory
+void BucketAlloc::mergeOneArea(void* start, void* end) {
+// keep going untill we passed all memory
     void* current = start;
     while (current < end) {
         // get the current region
@@ -191,6 +196,26 @@ void BucketAlloc::merge() {
 
         // and advance current to the next region, taking care of the used tag
         current += (regCur[0] & (~USED_FLAG)) + 2 * sizeof(size_t);
+    }
+}
+
+void BucketAlloc::merge() {
+    // first we clear all buckets since they will be rebuild after the merge
+    for (int i = 0 ; i < 32 ; i++)
+        buckets[i] = 0;
+
+    // now loop over each area and merge it
+    size_t* current = (size_t*)memoryLinkedList;
+
+    while (current != nullptr) {
+        // get the end pointer from the header of the area
+        void* end = (void*)current[1];
+
+        // merge it
+        mergeOneArea(current + 2, end);
+
+        // and advance in the list
+        current = (size_t*)current[0];
     }
 }
 
