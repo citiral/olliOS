@@ -3,10 +3,10 @@
 
 #include "stream.h"
 
-enum class DeviceType {
-    Keyboard,
-    Screen,
-    Storage,
+enum class DeviceType: u8 {
+    Keyboard = 0,
+    Screen = 1,
+    Storage = 2,
 };
 
 /**

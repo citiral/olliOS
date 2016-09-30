@@ -1,5 +1,5 @@
 #include "inputformatter.h"
-#include "devicemanager.h"
+#include "../devicemanager.h"
 #include "vga.h"
 
 InputFormatter::InputFormatter():
@@ -25,6 +25,7 @@ void InputFormatter::handleVirtualKeyEvent(VirtualKeyEvent event)
             fseek(stdout, -1, SEEK_CUR);
             vgaDriver.write(" ", 1);
             fseek(stdout, -1, SEEK_CUR);
+            _input.front().pop_back();
         }
     } else if (event.vkey >= VirtualKeycode::A && event.vkey <= VirtualKeycode::Z) {
         char key = (u8)event.vkey - (u8)VirtualKeycode::A;
@@ -36,7 +37,7 @@ void InputFormatter::handleVirtualKeyEvent(VirtualKeyEvent event)
 
 bool InputFormatter::isLineReady() const
 {
-    return _lineReady;
+    return _input.size() > 1;
 }
 
 void InputFormatter::addChar(u8 character)

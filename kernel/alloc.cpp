@@ -4,6 +4,8 @@
 
 #include "alloc.h"
 
-#ifdef USE_WATERMARK_ALLOCATOR
+#if __KERNEL_ALLOCATOR == __KERNEL_ALLOCATOR_LINEAR
+LinearAlloc kernelAllocator = LinearAlloc();
+#elif __KERNEL_ALLOCATOR == __KERNEL_ALLOCATOR_BUCKET
 BucketAlloc kernelAllocator = BucketAlloc();
 #endif

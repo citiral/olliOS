@@ -126,13 +126,15 @@ namespace std {
 
         void erase(size_t position) {
             // bubble all elements folowing the position one down
-            while (position + 1 < _length) {
-                _data[position] = std::move(_data[position + 1]);
-                position++;
+            for (int i = position ; i + 1 < _length ; i++) {
+                _data[i] = std::move(_data[i+1]);
             }
+
             // and run the destructor of the last element, then shrink the array
-            _data[position].~T();
-            _length--;
+            if (_length > 0) {
+                _data[_length - 1].~T();
+                _length--;
+            }
         }
 
         T& at(size_type n) {
@@ -170,7 +172,7 @@ namespace std {
         void pop_back() {
             // first call the last elements constructor and then remove it
             if (_length > 0) {
-                _data[_length-1]->~T();
+                _data[_length-1].~T();
                 _length--;
             }
         }
@@ -189,6 +191,14 @@ namespace std {
 
         T&& back() const {
             return _data[_length-1];
+        }
+
+        T* data() {
+            return _data;
+        }
+
+        const T* data() const {
+            return _data;
         }
 
     private:

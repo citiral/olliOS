@@ -33,7 +33,7 @@
 00000000000i[      ]   SB16 support: yes
 00000000000i[      ]   USB support: yes
 00000000000i[      ]   VGA extension support: vbe cirrus voodoo
-00000000000i[MEM0  ] allocated memory at 04183020. after alignment, vector=04184000
+00000000000i[MEM0  ] allocated memory at 043DE020. after alignment, vector=043DF000
 00000000000i[MEM0  ] 32.00MB
 00000000000i[MEM0  ] mem block size = 0x00100000, blocks=32
 00000000000i[MEM0  ] rom at 0xfffe0000/131072 ('D:\tools\Bochs-2.6.8/BIOS-bochs-latest')
@@ -46,7 +46,7 @@
 00000000000i[DEV   ] PIIX3 PCI-to-ISA bridge present at device 1, function 0
 00000000000i[PLUGIN] init_dev of 'cmos' plugin device by virtual method
 00000000000i[CMOS  ] Using local time for initial clock
-00000000000i[CMOS  ] Setting initial clock to: Thu Sep 29 20:14:08 2016 (time0=1475172848)
+00000000000i[CMOS  ] Setting initial clock to: Fri Sep 30 17:19:52 2016 (time0=1475248792)
 00000000000i[PLUGIN] init_dev of 'dma' plugin device by virtual method
 00000000000i[DMA   ] channel 4 used by cascade
 00000000000i[PLUGIN] init_dev of 'pic' plugin device by virtual method
@@ -75,7 +75,12 @@
 00000000000i[CD1   ] load cdrom with path='ollios.iso'
 00000000000i[CD1   ] Opening image file as a cd
 00000000000i[HD    ] Media present in CD-ROM drive
-00000000000i[HD    ] Capacity is 367 sectors (0.72 MB)
+00000000000i[HD    ] Capacity is 375 sectors (0.73 MB)
+00000000000i[HD    ] CD on ata0-1: 'ollios.iso'
+00000000000i[CD2   ] load cdrom with path='ollios.iso'
+00000000000i[CD2   ] Opening image file as a cd
+00000000000i[HD    ] Media present in CD-ROM drive
+00000000000i[HD    ] Capacity is 375 sectors (0.73 MB)
 00000000000i[HD    ] Using boot sequence cdrom, none, none
 00000000000i[HD    ] Floppy boot signature check is enabled
 00000000000i[PLUGIN] init_dev of 'pci_ide' plugin device by virtual method
@@ -189,26 +194,25 @@
 00004867263i[BXVGA ] VBE known Display Interface b0c0
 00004867282i[BXVGA ] VBE known Display Interface b0c5
 00004870206i[VBIOS ] VBE Bios $Id: vbe.c,v 1.65 2014/07/08 18:02:25 vruppert Exp $
-00009081804i[BIOS  ] IDE time out
-00055617440i[BIOS  ] Booting from 07c0:0000
-00055694296i[BIOS  ] *** int 15h function AX=c300, BX=0001 not yet supported!
-00071269299i[CPU0  ] WARNING: HLT instruction with IF=0!
-00090420000p[WINGUI] >>PANIC<< POWER button turned off.
-00090420000i[CPU0  ] CPU is in protected mode (halted)
-00090420000i[CPU0  ] CS.mode = 32 bit
-00090420000i[CPU0  ] SS.mode = 32 bit
-00090420000i[CPU0  ] EFER   = 0x00000000
-00090420000i[CPU0  ] | EAX=ffffffee  EBX=0000000e  ECX=000003d5  EDX=000003d5
-00090420000i[CPU0  ] | ESP=c023d464  EBP=c023d518  ESI=c023d500  EDI=00000000
-00090420000i[CPU0  ] | IOPL=0 id vip vif ac vm rf nt of df if tf SF zf AF pf cf
-00090420000i[CPU0  ] | SEG sltr(index|ti|rpl)     base    limit G D
-00090420000i[CPU0  ] |  CS:0008( 0001| 0|  0) 00000000 ffffffff 1 1
-00090420000i[CPU0  ] |  DS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-00090420000i[CPU0  ] |  SS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-00090420000i[CPU0  ] |  ES:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-00090420000i[CPU0  ] |  FS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-00090420000i[CPU0  ] |  GS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-00090420000i[CPU0  ] | EIP=c0103b52 (c0103b52)
-00090420000i[CPU0  ] | CR0=0xe0000011 CR2=0x10900000
-00090420000i[CPU0  ] | CR3=0x00138000 CR4=0x00000010
-00090420000i[CPU0  ] 0x00000000c0103b52>> jmp .-4 (0xc0103b50) : EBFC
+00051498132i[BIOS  ] Booting from 07c0:0000
+00051574596i[BIOS  ] *** int 15h function AX=c300, BX=0001 not yet supported!
+00064593197i[KBD   ] keyboard: scan convert turned off
+02387040000p[WINGUI] >>PANIC<< POWER button turned off.
+02387040000i[CPU0  ] CPU is in protected mode (halted)
+02387040000i[CPU0  ] CS.mode = 32 bit
+02387040000i[CPU0  ] SS.mode = 32 bit
+02387040000i[CPU0  ] EFER   = 0x00000000
+02387040000i[CPU0  ] | EAX=c023d400  EBX=c023d4f4  ECX=00000001  EDX=00000029
+02387040000i[CPU0  ] | ESP=c023d490  EBP=00000002  ESI=c023d4b0  EDI=00000002
+02387040000i[CPU0  ] | IOPL=0 id vip vif ac vm rf nt of df IF tf sf ZF af PF cf
+02387040000i[CPU0  ] | SEG sltr(index|ti|rpl)     base    limit G D
+02387040000i[CPU0  ] |  CS:0008( 0001| 0|  0) 00000000 ffffffff 1 1
+02387040000i[CPU0  ] |  DS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+02387040000i[CPU0  ] |  SS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+02387040000i[CPU0  ] |  ES:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+02387040000i[CPU0  ] |  FS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+02387040000i[CPU0  ] |  GS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+02387040000i[CPU0  ] | EIP=c010388a (c010388a)
+02387040000i[CPU0  ] | CR0=0xe0000011 CR2=0x00000000
+02387040000i[CPU0  ] | CR3=0x00138000 CR4=0x00000010
+02387040000i[CPU0  ] 0x00000000c010388a>> jmp .-124 (0xc0103810) : EB84

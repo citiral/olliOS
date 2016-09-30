@@ -8,5 +8,8 @@
 #define BOCHS_BREAKPOINT asm __volatile__ ("xchgw %bx, %bx");
 
 #define PRINT_INIT(X, ...) (printf("[init] " X "\n", ##__VA_ARGS__))
+#define PRINT_UNIMPLEMENTED (printf("[UNIMPLEMENTED] %s:%s", __FILE__, __LINE__))
+
+#define UNIMPLEMENTED(FUNC, R) FUNC { PRINT_UNIMPLEMENTED; return R; }
 
 #endif /* end of include guard: __CDEFS_H */

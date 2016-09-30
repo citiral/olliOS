@@ -3,7 +3,11 @@
 //
 
 #include "ata.h"
-#include "io.h"
+#include "atapacketdevice.h"
+#include "atapiodevice.h"
+#include "../io.h"
+#include "../cdefs.h"
+#include "../devicemanager.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -24,6 +28,7 @@
 
 #define PORT_DEVICE_CONTROL 0x3F6
 
+#define COMMAND_IDENTIFY_DRIVE  0xEC
 #define COMMAND_IDENTIFY_PACKET_DRIVE  0xA1
 
 AtaDriver ataDriver = AtaDriver();
@@ -32,19 +37,15 @@ AtaDriver::AtaDriver() {
 }
 
 void AtaDriver::initialize() {
-    // first of all disable irqs
-    outb(PORT_DEVICE_CONTROL, 2);
+    // first of all disable irqs and reset both drives
+    outb(PORT_DEVICE_CONTROL, (1<<1));
 
     // detect each device
     unsigned short* data;
     if ((data = (unsigned short*)detectDevice(0)) != nullptr) {
-        data[47] = 0;
-        printf("Found master ATA device: %s\n", (char*)(data + 27));
-        delete[] data;
+        PRINT_INIT("Found master ATA device: %s", (char*)(data + 27));
     } if ((data = (unsigned short*)detectDevice(1)) != nullptr) {
-        data[47] = 0;
-        printf("Found slave ATA device: %s\n", (char*)(data + 27));
-        delete[] data;
+        PRINT_INIT("Found slave ATA device: %s", (char*)(data + 27));
     }
 }
 
@@ -68,14 +69,23 @@ unsigned short* AtaDriver::detectDevice(int device) {
     // select the device we want to detect
     selectDevice(device);
 
-    // set all parameters to 0 (although the spec says the values don't matter)
+    // set these to 0 to properly recognize the signature
     outb(PORT_SECTOR_COUNT, 0);
     outb(PORT_LBA_LOW, 0);
     outb(PORT_LBA_MID, 0);
     outb(PORT_LBA_HIGH, 0);
 
     // execute the identify command
-    outb(PORT_COMMAND, COMMAND_IDENTIFY_PACKET_DRIVE);
+    outb(PORT_COMMAND, COMMAND_IDENTIFY_DRIVE);
+
+    bool isPacket = false;
+
+    // check if the signature matches that of a packet device
+    if (inb(PORT_SECTOR_COUNT) == 0x1 && inb(PORT_LBA_LOW) == 0x1 && inb(PORT_LBA_MID) == 0x14 && inb(PORT_LBA_HIGH) == 0xEB) {
+        // do the same again but send the identify packet drive command
+        outb(PORT_COMMAND, COMMAND_IDENTIFY_PACKET_DRIVE);
+        isPacket = true;
+    }
 
     // if the status register is not 0 there is a device connected
      if (inb(PORT_STATUS) == 0)
@@ -99,6 +109,16 @@ unsigned short* AtaDriver::detectDevice(int device) {
 
         // and convert it to little endian
         data[i] = ((val >> 8) & 0xFF) + ((val & 0xFF) << 8);
+    }
+
+    // set 47 to null, this means the device name will be null terminated, and the value at 47 is unimportant (reserved) anyway.
+    data[47] = 0;
+
+    // register it to the devicemanager
+    if (isPacket) {
+        deviceManager.addDevice(new AtaPacketDevice(data));
+    } else {
+        deviceManager.addDevice(new AtaPioDevice(data));
     }
 
     return data;

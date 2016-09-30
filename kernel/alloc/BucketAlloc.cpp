@@ -245,7 +245,7 @@ void BucketAlloc::printStatistics() {
         if (buckets[i] == 0) {
             printf("[%d]: 0 ", i);
         } else {
-            printf("[%d]: %X:(%d)", i, buckets[i], *((size_t*)buckets[i]));
+            printf("[%d]: %X:(%d) ", i, buckets[i], *((size_t*)buckets[i]));
         }
 
         //printf("%d: %X, %d: %X, %d: %X, %d: %X\n", i*4, buckets[i*4], i*4 + 1, buckets[i*4 + 1], i*4 + 2, buckets[i*4 + 2], i*4 + 3, buckets[i*4 + 3]);

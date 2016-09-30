@@ -5,7 +5,7 @@
 #ifndef OLLIOS_GIT_ATA_H
 #define OLLIOS_GIT_ATA_H
 
-#include <types.h>
+#include "../types.h"
 
 // ftp://ftp.seagate.com/acrobat/reference/111-1c.pdf
 // http://www.t13.org/documents/uploadeddocuments/docs2006/d1699r3f-ata8-acs.pdf

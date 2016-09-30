@@ -7,10 +7,11 @@
 
 #include "BucketAlloc.h"
 #include "LinearAlloc.h"
+#include "options.h"
 
-#define USE_WATERMARK_ALLOCATOR
-
-#ifdef USE_WATERMARK_ALLOCATOR
+#if __KERNEL_ALLOCATOR == __KERNEL_ALLOCATOR_LINEAR
+extern LinearAlloc kernelAllocator;
+#elif __KERNEL_ALLOCATOR == __KERNEL_ALLOCATOR_BUCKET
 extern BucketAlloc kernelAllocator;
 #endif
 
