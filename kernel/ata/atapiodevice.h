@@ -20,7 +20,7 @@ public:
     UNIMPLEMENTED(size_t write(const void* data), 0);
     UNIMPLEMENTED(size_t write(char data), 0);
     UNIMPLEMENTED(size_t read(void* data, size_t amount), 0);
-    UNIMPLEMENTED(void seek(i32 offset, int position),);
+    UNIMPLEMENTED(size_t seek(i32 offset, int position), 0);
 
 private:
     unsigned short* _data;

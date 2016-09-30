@@ -69,7 +69,7 @@ size_t VgaDriver::read(void* data, size_t amount)
 	return 0;
 }
 
-void VgaDriver::seek(i32 offset, int seek)
+size_t VgaDriver::seek(i32 offset, int seek)
 {
 	u32 position;
 
@@ -89,6 +89,8 @@ void VgaDriver::seek(i32 offset, int seek)
 	_row %= VGA_HEIGHT;
 
 	updateCursor();
+
+	return 0;
 }
 
 i16 VgaDriver::generateEntry(char c) {

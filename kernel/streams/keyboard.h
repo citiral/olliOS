@@ -93,7 +93,7 @@ public:
 	//reads virtual keycodes from the keyboard buffer
 	virtual size_t read(void* data, size_t amount);
 	//does nothing!
-    virtual void seek(i32 offset, int position);
+    virtual size_t seek(i32 offset, int position);
 
 private:
 	// add a code to the current scanecode list.

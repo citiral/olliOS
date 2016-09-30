@@ -3,6 +3,5 @@
 
 int fseek(FILE* stream, long int offset, int origin)
 {
-    stream->seek(offset, origin);
-    return 0;
+    return stream->seek(offset, origin);
 }

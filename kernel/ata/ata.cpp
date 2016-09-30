@@ -11,34 +11,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define PORT_DATA           0x1F0
-#define PORT_FEATURE        0x1F1
-#define PORT_ERROR          0x1F1
-#define PORT_SECTOR_COUNT   0x1F2
-#define PORT_SECTOR_NUMER   0x1F3
-#define PORT_LBA_LOW        0x1F3
-#define PORT_CYLINDER_LOW   0x1F4
-#define PORT_LBA_MID        0x1F4
-#define PORT_CYLINDER_HIGH  0x1F5
-#define PORT_LBA_HIGH       0x1F5
-#define PORT_DRIVE          0x1F6
-#define PORT_HEAD           0x1F6
-#define PORT_COMMAND        0x1F7
-#define PORT_STATUS         0x1F7
-
-#define PORT_DEVICE_CONTROL 0x3F6
-
-#define COMMAND_IDENTIFY_DRIVE  0xEC
-#define COMMAND_IDENTIFY_PACKET_DRIVE  0xA1
-
 AtaDriver ataDriver = AtaDriver();
 
-AtaDriver::AtaDriver() {
+AtaDriver::AtaDriver(): _interrupted(false) {
 }
 
 void AtaDriver::initialize() {
-    // first of all disable irqs and reset both drives
-    outb(PORT_DEVICE_CONTROL, (1<<1));
+    _interrupted = false;
 
     // detect each device
     unsigned short* data;
@@ -91,13 +70,14 @@ unsigned short* AtaDriver::detectDevice(int device) {
      if (inb(PORT_STATUS) == 0)
          return nullptr;
 
-    // wait until the drive is no longer busy
-    waitForBusy();
+    // wait until the drive is ready
+    waitForInterrupt();
+    /*waitForBusy();
 
     // if the drive is about to send an error, fail the detection
     if (waitForDataOrError() == 0) {
         return nullptr;
-    }
+    }*/
 
     // otherwise alloc space for the 512 bytes that are going to be answered
     unsigned short* data = new unsigned short[256];
@@ -116,7 +96,7 @@ unsigned short* AtaDriver::detectDevice(int device) {
 
     // register it to the devicemanager
     if (isPacket) {
-        deviceManager.addDevice(new AtaPacketDevice(data));
+        deviceManager.addDevice(new AtaPacketDevice(data, device));
     } else {
         deviceManager.addDevice(new AtaPioDevice(data));
     }
@@ -144,4 +124,17 @@ bool AtaDriver::waitForDataOrError() {
             return false;
 
     } while (true);
+}
+
+void AtaDriver::waitForInterrupt() {
+    while (_interrupted == false) {
+        asm __volatile ("pause");
+    }
+    _interrupted = false;
+    // read the status register to acknowledge the IRQ
+    inb(PORT_STATUS);
+}
+
+void AtaDriver::notifyInterrupt() {
+    _interrupted = true;
 }

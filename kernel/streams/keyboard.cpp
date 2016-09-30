@@ -136,10 +136,10 @@ size_t KeyboardDriver::read(void* data, size_t amount)
 	return i * sizeof(VirtualKeyEvent);
 }
 
-void KeyboardDriver::seek(i32 offset, int position)
+size_t KeyboardDriver::seek(i32 offset, int position)
 {
-	//TODO throw error
-	return;
+	//you can't seek in a keyboard, dummy
+	return 1;
 }
 
 void KeyboardDriver::handleScanCode(unsigned char code)

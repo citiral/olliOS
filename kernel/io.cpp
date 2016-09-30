@@ -26,6 +26,13 @@ void outl(u16 port, u32 value)
 		:"a" (value), "dN" (port) );
 }
 
+void outsw (unsigned short int port, const void *addr, unsigned long int count)
+{
+    __asm__ __volatile__ ("cld ; rep ; outsw":"=S" (addr),
+    "=c" (count):"d" (port), "0" (addr), "1" (count));
+}
+
+
 u8 inb(u16 port)
 {
 	u8 value;
@@ -50,4 +57,10 @@ u32 inl(u16 port)
 		:"=a" (value)
 		:"dN" (port));
 	return value;
+}
+
+void insw (unsigned short int port, void *addr, unsigned long int count)
+{
+    __asm__ __volatile__ ("cld ; rep ; insw":"=D" (addr),
+    "=c" (count):"d" (port), "0" (addr), "1" (count));
 }

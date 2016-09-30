@@ -33,7 +33,7 @@ public:
     // beginning. Positive offets are UNDEFINED BEHAVIOUR.
     // if position == SeekType.CURRENT, the file will seek starting from current
     // position.
-    virtual void seek(i32 offset, int position) = 0;
+    virtual size_t seek(i32 offset, int position) = 0;
 };
 
 #endif

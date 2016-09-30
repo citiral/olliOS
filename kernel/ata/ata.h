@@ -7,6 +7,29 @@
 
 #include "../types.h"
 
+#define PORT_DATA           0x1F0
+#define PORT_FEATURE        0x1F1
+#define PORT_ERROR          0x1F1
+#define PORT_SECTOR_COUNT   0x1F2
+#define PORT_SECTOR_NUMER   0x1F3
+#define PORT_LBA_LOW        0x1F3
+#define PORT_CYLINDER_LOW   0x1F4
+#define PORT_LBA_MID        0x1F4
+#define PORT_CYLINDER_HIGH  0x1F5
+#define PORT_LBA_HIGH       0x1F5
+#define PORT_DRIVE          0x1F6
+#define PORT_HEAD           0x1F6
+#define PORT_COMMAND        0x1F7
+#define PORT_STATUS         0x1F7
+
+#define PORT_DEVICE_CONTROL 0x3F6
+
+#define COMMAND_IDENTIFY_DRIVE  0xEC
+#define COMMAND_IDENTIFY_PACKET_DRIVE  0xA1
+#define COMMAND_PACKET      0xA0
+
+//TODO: once scheduling is implemented, this should be partially redesigned
+// http://www.seagate.com/support/disc/manuals/ata/d1153r17.pdf
 // ftp://ftp.seagate.com/acrobat/reference/111-1c.pdf
 // http://www.t13.org/documents/uploadeddocuments/docs2006/d1699r3f-ata8-acs.pdf
 
@@ -33,7 +56,6 @@ public:
 
     void printDeviceInformation();
 
-private:
     // if device is 0, it selects the master device, so he will receive all commands. If it is 1, the slave device is selected
     void selectDevice(int device);
 
@@ -46,6 +68,15 @@ private:
     // keeps polling the status register until the drive is reporting it has data or has an error
     // returns true if there is data available, returns zero if there is an error available
     bool waitForDataOrError();
+
+    // keeps waiting until interrupted is set to true. This is then set to false.
+    void waitForInterrupt();
+
+    // notifies the ata driver an interrupt has happened
+    void notifyInterrupt();
+
+private:
+    bool _interrupted;
 };
 
 

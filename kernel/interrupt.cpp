@@ -363,4 +363,6 @@ extern "C" void __attribute__ ((noinline)) IdtRegisterInterrupts()
 	for (u32 x = 0 ; x < 256 ; x++)
 		idt.setFunction(x, &intHandlerUndefined);
 	idt.setFunction(INT_KEYBOARD, &intHandlerKeyboard);
+    idt.setFunction(INT_ATA_BUS1, &intHandlerAta);
+    idt.setFunction(INT_ATA_BUS2, &intHandlerAta);
 }

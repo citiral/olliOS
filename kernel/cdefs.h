@@ -12,4 +12,8 @@
 
 #define UNIMPLEMENTED(FUNC, R) FUNC { PRINT_UNIMPLEMENTED; return R; }
 
+#define SIZEOF_GB 0x40000000
+#define SIZEOF_MB 0x100000
+#define SIZEOF_KB 0x400
+
 #endif /* end of include guard: __CDEFS_H */

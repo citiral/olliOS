@@ -3,6 +3,7 @@
 #include "vga.h"
 #include "io.h"
 #include "pic.h"
+#include "ata/ata.h"
 
 void intHandlerUndefined(u32 interrupt) {
 	printf("Undefined interrupt has been thrown: %d\n", interrupt);
@@ -27,4 +28,9 @@ void intHandlerKeyboard(u32 interrupt) {
 
     // and end the interrupt
 	endInterrupt(interrupt - 0x20);
+}
+
+void intHandlerAta(u32 interrupt) {
+    ataDriver.notifyInterrupt();
+    endInterrupt(0x20);
 }

@@ -7,6 +7,8 @@
 #define MAX_IDT_ENTRIES 256
 #define THROW_INTERRUPT(x) __asm__ volatile("int $" #x);
 #define INT_KEYBOARD 0x21
+#define INT_ATA_BUS1 46
+#define INT_ATA_BUS2 47
 
 
 typedef void (*InterruptCallback)(u32);

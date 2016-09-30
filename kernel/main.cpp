@@ -98,6 +98,17 @@ extern "C" void main(multiboot_info* multiboot) {
 
     PRINT_INIT("Welcome to OlliOS!");
 
+    char* data = new char[2048];
+    if (deviceManager.getDevice(DeviceType::Storage, 0)->seek(0x10 * SIZEOF_KB * 2, SEEK_SET) !=0)
+        printf("err seeking");
+
+    printf("Read %d bytes.", deviceManager.getDevice(DeviceType::Storage, 0)->read(data, 2048));
+    int sum = 0;
+    for (int i = 0 ; i < 2048; i++)
+        sum += data[i];
+    printf("%d", sum);
+    delete[] data;
+
     KernelShell shell;
     shell.enter();
 }
