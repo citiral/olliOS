@@ -29,8 +29,6 @@ size_t AtaPacketDevice::read(void* data, size_t amount) {
     // round amount to the lowest block (2k boundary)
     amount -= amount % 2048;
 
-    printf("amount is %d", amount);
-
     // we are not going to use DMA (set dma bit to zero)
     outb(PORT_FEATURE, 0);
 
@@ -99,13 +97,13 @@ size_t AtaPacketDevice::read(void* data, size_t amount) {
 
 size_t AtaPacketDevice::seek(i32 offset, int position) {
     // we only accept 2kb boundaries
-    if (position % 2048 != 0)
+    if (offset % 2048 != 0)
         return 1;
 
-    position /= 2048;
+    offset /= 2048;
 
     if (position == SEEK_SET)
-        _lba = position;
+        _lba = offset;
     else if (position == SEEK_CUR)
         _lba += offset;
     else if (position == SEEK_END)
