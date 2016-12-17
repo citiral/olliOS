@@ -88,6 +88,7 @@ size_t AtaPacketDevice::read(void* data, size_t amount) {
 
     // the device is going to send us one last interrupt
     ataDriver.waitForBusy();
+    ataDriver.waitForInterrupt();
 
     // advance the lba by wordcount / 1024 (advance once for each 2K block read)
     _lba += wordcount / 1024;

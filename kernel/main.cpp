@@ -103,13 +103,14 @@ extern "C" void main(multiboot_info* multiboot) {
 
     if (deviceManager.getDevice(DeviceType::Storage, 0)->seek(0x10 * SIZEOF_KB * 2, SEEK_SET) != 0)
         printf("err seeking");
-
+    printf("found");
+    
     deviceManager.getDevice(DeviceType::Storage, 0)->read(data, 2048);
-
+    
     for (int i = 0; i < 2048; i++)
         sum += data[i];
 
-    printf("id is: %c%c%c%c%c", data[1], data[2], data[3], data[4], data[5]);
+    printf("id is: %d", data[0]);
 
     delete[] data;
 
