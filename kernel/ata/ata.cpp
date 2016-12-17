@@ -109,6 +109,7 @@ void AtaDriver::waitForBusy() {
     char status;
     do {
         status = inb(PORT_STATUS);
+        asm volatile ("pause");
     } while ((status & 0x80) == 0x80);
 }
 
@@ -122,15 +123,16 @@ bool AtaDriver::waitForDataOrError() {
 
         if ((status & 0x01) == 0x01)
             return false;
-
+        asm volatile ("pause");
     } while (true);
 }
 
 void AtaDriver::waitForInterrupt() {
     while (_interrupted == false) {
-        asm __volatile ("pause");
+        asm volatile("pause");        
     }
     _interrupted = false;
+
     // read the status register to acknowledge the IRQ
     inb(PORT_STATUS);
 }

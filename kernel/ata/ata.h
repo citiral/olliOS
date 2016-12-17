@@ -76,7 +76,8 @@ public:
     void notifyInterrupt();
 
 private:
-    bool _interrupted;
+    // This has to be volatile, otherwise codegen might cache it in a register which won't detect changes by interrupt
+    volatile bool _interrupted;
 };
 
 
