@@ -6,42 +6,38 @@
 #define OLLIOS_GIT_FILESYSTEM_H
 
 #include "../streams/stream.h"
+#include "../util/linkedlist.h"
 #include <vector>
+
+enum class FileType {
+    FILE = 1,
+    FOLDER = 2,
+};
+
+using File = Stream;
+
+class FileDescriptor {
+    virtual ~FileDescriptor() {};
+
+    // returns the full name of the file. This is the full path including the directory
+    virtual const char* getFullName() const = 0;
+
+    // returns the type of the item this descriptor describes.
+    virtual FileType getFileType() = 0;
+
+    // opens the file/folder so we can read/write to the file/folder. TODO: make sure a file can be Write opened only once
+    virtual File* open() = 0;
+};
 
 /*
  * Abstract filesystem. This provides an API that can be implemented by physical and virtual filesystems.
  */
 class FileSystem {
-    /*
-     * Returns the list of files contained in the given directory
-     */
-    std::vector<File> readDirectory(const char* directory) = 0;
-
-    /*
-     * Returns the list of files contained in the given file (if the file is a directory)
-     */
-    std::vector<File> readDirectory(File* file) = 0;
-
-    /*
-     * returns the root directory of the filesystem
-     */
-    File* getRoot() = 0;
+    virtual ~FileDescriptor() {};
+    virtual FileDescriptor* getFile(const char* dir) = 0;
+    virtual std::vector<const char*> getFolderContents() = 0;
 };
 
-enum class FileType: u8 {
-    FOLDER = 0,
-    FILE = 1,
-};
-
-/*
- * Abstract file interface. This provides an API that can be implemented by physical and virtual files.
- */
-class File: public Stream {
-    //returns the type of the file (device or folder)
-    virtual FileType getDeviceType() const = 0;
-
-    //returns the name of the file.
-    virtual const char* getFileName() const = 0;
-};
+extern FileSystem* rootFileSystem;
 
 #endif //OLLIOS_GIT_FILESYSTEM_H

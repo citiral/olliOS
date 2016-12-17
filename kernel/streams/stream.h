@@ -10,6 +10,8 @@
 * be represented as simple data streams.
 */
 
+#define STREAM_SIZE_UNDEFINED -1
+
 class Stream {
 public:
     virtual ~Stream();

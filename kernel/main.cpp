@@ -113,6 +113,26 @@ extern "C" void main(multiboot_info* multiboot) {
 
     delete[] data;
 
+    const char* string = "/test/help/bvba";
+    int depth = 0;
+    while (true) {
+        int length = strcspn(string, "/");
+
+        printf("Dir %d: ", depth);
+        for (int i = 0 ; i < length ; i++) {
+            printf("%c", string[i]);
+        }
+        printf("\n");
+
+        string += length;
+        if (*string == '\0')
+            break;
+        else
+            string++;
+
+        depth++;
+    }
+
     KernelShell shell;
     shell.enter();
 }
