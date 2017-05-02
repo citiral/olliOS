@@ -1,7 +1,7 @@
 #ifndef __VGA_H
 #define __VGA_H
 
-#include "device.h"
+#include "streams/device.h"
 #include "types.h"
 
 #define VGA_DRIVER_DEVICE_NAME "VGA"

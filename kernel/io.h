@@ -6,7 +6,7 @@
 ///
 ///functions suffixed with b expect an u8, those with w an u16 and l an u32
 
-#include <stddef.h>
+#include "kstd/cstddef.h"
 #include "types.h"
 
 void outb(u16 port, u8 value);

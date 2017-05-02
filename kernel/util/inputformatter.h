@@ -1,9 +1,9 @@
 #ifndef __INPUT_FORMATTER
 #define __INPUT_FORMATTER
 
-#include "../types.h"
-#include "keyboard.h"
-#include <vector>
+#include "types.h"
+#include "streams/keyboard.h"
+#include "kstd/vector.h"
 
 class InputFormatter {
 public:

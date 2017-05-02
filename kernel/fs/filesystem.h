@@ -5,37 +5,24 @@
 #ifndef OLLIOS_GIT_FILESYSTEM_H
 #define OLLIOS_GIT_FILESYSTEM_H
 
-#include "../streams/stream.h"
-#include "../util/linkedlist.h"
-#include <vector>
+#include "streams/stream.h"
 
-enum class FileType {
-    FILE = 1,
-    FOLDER = 2,
+enum DirEntryType {
+    Folder,
+    File,
 };
 
-using File = Stream;
 
-class FileDescriptor {
-    virtual ~FileDescriptor() {};
+class DirEntry : Stream {
+public:
+    virtual ~DirEntry();
 
-    // returns the full name of the file. This is the full path including the directory
-    virtual const char* getFullName() const = 0;
-
-    // returns the type of the item this descriptor describes.
-    virtual FileType getFileType() = 0;
-
-    // opens the file/folder so we can read/write to the file/folder. TODO: make sure a file can be Write opened only once
-    virtual File* open() = 0;
+    DirEntryType type;
 };
 
-/*
- * Abstract filesystem. This provides an API that can be implemented by physical and virtual filesystems.
- */
 class FileSystem {
-    virtual ~FileDescriptor() {};
-    virtual FileDescriptor* getFile(const char* dir) = 0;
-    virtual std::vector<const char*> getFolderContents() = 0;
+public:
+    virtual DirEntry* openDir(const char* path) = 0;
 };
 
 extern FileSystem* rootFileSystem;

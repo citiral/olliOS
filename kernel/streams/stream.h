@@ -1,9 +1,9 @@
 #ifndef __STREAM_H
 #define __STREAM_H
 
-#include <stddef.h>
+#include "kstd/cstddef.h"
 #include "types.h"
-#include "stdio.h"
+#include <stdio.h>
 /*
 * The stream will be the base of a lot of classes in the operating system.
 * Much like many other operating systems all device drivers, files,.. will

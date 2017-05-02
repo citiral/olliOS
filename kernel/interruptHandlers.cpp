@@ -1,6 +1,6 @@
 #include "interruptHandlers.h"
 #include "devicemanager.h"
-#include "vga.h"
+#include "streams/vga.h"
 #include "io.h"
 #include "pic.h"
 #include "ata/ata.h"

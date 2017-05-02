@@ -2,12 +2,12 @@
 // Created by Olivier on 24/09/16.
 //
 
-#include "ata.h"
-#include "atapacketdevice.h"
-#include "atapiodevice.h"
-#include "../io.h"
-#include "../cdefs.h"
-#include "../devicemanager.h"
+#include "ata/ata.h"
+#include "ata/atapacketdevice.h"
+#include "ata/atapiodevice.h"
+#include "io.h"
+#include "cdefs.h"
+#include "devicemanager.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -22,9 +22,9 @@ void AtaDriver::initialize() {
     // detect each device
     unsigned short* data;
     if ((data = (unsigned short*)detectDevice(0)) != nullptr) {
-        PRINT_INIT("Found master ATA device: %s", (char*)(data + 27));
+        LOG_INFO("Found master ATA device: %s", (char*)(data + 27));
     } if ((data = (unsigned short*)detectDevice(1)) != nullptr) {
-        PRINT_INIT("Found slave ATA device: %s", (char*)(data + 27));
+        LOG_INFO("Found slave ATA device: %s", (char*)(data + 27));
     }
 }
 

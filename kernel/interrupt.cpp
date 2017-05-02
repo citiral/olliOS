@@ -80,7 +80,6 @@ IdtDescriptor& Idt::getEntry(u32 index) {
 	return _table[index];
 }
 
-#include "vga.h"
 void cppInt(u32 interrupt) {
 	idt.callFunction(interrupt);
 }

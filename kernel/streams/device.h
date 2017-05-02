@@ -1,7 +1,7 @@
 #ifndef __DEVICE_H
 #define __DEVICE_H
 
-#include "stream.h"
+#include "streams/stream.h"
 
 enum class DeviceType: u8 {
     Keyboard = 0,

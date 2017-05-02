@@ -5,7 +5,7 @@
 #ifndef OLLIOS_GIT_BUCKETALLOC_H
 #define OLLIOS_GIT_BUCKETALLOC_H
 
-#include <stddef.h>
+#include "kstd/cstddef.h"
 
 class BucketAlloc {
 public:

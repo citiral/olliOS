@@ -4,11 +4,12 @@
 #include "pic.h"
 #include "io.h"
 #include "string.h"
-#include "keyboard.h"
+#include "streams/keyboard.h"
 #include "stdio.h"
 #include "paging.h"
 #include "alloc.h"
 #include "linker.h"
+#include "fs/iso9660.h"
 #include "alloc.h"
 #include "ata/ata.h"
 #include "devicemanager.h"
@@ -16,32 +17,32 @@
 #include "streams/keyboard.h"
 #include "multiboot.h"
 #include "kernelshell.h"
-#include <new>
+#include "kstd/new.h"
 #include <stdlib.h>
 
 void initCpu() {
     // setup a flat segmentation structure. We're going to be using paging anyway.
 	GdtCreateFlat();
 	GdtFlush();
-    PRINT_INIT("GDT initialized.");
+    LOG_STARTUP("GDT initialized.");
 
     // Then we set up the interupt tables so we can actually use interrupts (these contain function pointers to interrupt handlers)
 	IdtcreateEmpty();
 	IdtFlush();
 	IdtRegisterInterrupts();
-    PRINT_INIT("IDT initialized.");
+    LOG_STARTUP("IDT initialized.");
 
     // I forgot what this does but it has to do with interrupts.. I believe
 	initialize_tss(0x10, 0x28);
-    PRINT_INIT("TSS initialized.");
+    LOG_STARTUP("TSS initialized.");
 
     // Program the PIC so interrupts make sense (0-32 is reserved for intel, ...)
 	PicInit();
-    PRINT_INIT("PIC initialized.");
+    LOG_STARTUP("PIC initialized.");
 
     // and finally initialize paging from C since it's about time.
     PageInit();
-    PRINT_INIT("Paging initialized.");
+    LOG_STARTUP("Paging initialized.");
 }
 
 extern "C" void main(multiboot_info* multiboot) {
@@ -51,7 +52,7 @@ extern "C" void main(multiboot_info* multiboot) {
     // use the multiboot header to discover valid memory regions
     if ((multiboot->flags & (1 << 6)) == 0) {
         // if multiboot didn't pass us our usable memory areas (which it really always should) use a default.
-        PRINT_INIT("Err: No MMAP specified by multiboot.");
+        LOG_STARTUP("Err: No MMAP specified by multiboot.");
         kernelAllocator.init((void*)KERNEL_END_VIRTUAL, 0xFFFFFFFF - (size_t)KERNEL_END_VIRTUAL);
     } else {
         // loop over each mmap descriptor, these are of variable size so the loop is special
@@ -82,24 +83,25 @@ extern "C" void main(multiboot_info* multiboot) {
             }
 
             kernelAllocator.init(addr + 0xC0000000, length);
-            PRINT_INIT("Allocating memory %X - %X.", addr + 0xC0000000, addr + 0xC0000000 + length);
+            LOG_STARTUP("Allocating memory %X - %X.", addr + 0xC0000000, addr + 0xC0000000 + length);
         }
     }
 
     // initialize the ATA driveer
     ataDriver.initialize();
-    PRINT_INIT("ATA driver initialized.");
+    LOG_STARTUP("ATA driver initialized.");
 
     // and register the default vga and and keyboard driver
     deviceManager.addDevice(&vgaDriver);
-    PRINT_INIT("VGA driver initialized.");
+    LOG_STARTUP("VGA driver initialized.");
     deviceManager.addDevice(new KeyboardDriver());
-    PRINT_INIT("Keyboard driver initialized.");
+    LOG_STARTUP("Keyboard driver initialized.");
 
-    PRINT_INIT("Welcome to OlliOS!");
+    LOG_STARTUP("Welcome to OlliOS!");
 
-    char* data = new char[2048];
-    int sum = 0;
+    Iso9660FileSystem fs(deviceManager.getDevice(DeviceType::Storage, 0));
+    
+    /*char* data = new char[2048];
 
     if (deviceManager.getDevice(DeviceType::Storage, 0)->seek(0x10 * SIZEOF_KB * 2, SEEK_SET) != 0)
         printf("err seeking");
@@ -107,14 +109,12 @@ extern "C" void main(multiboot_info* multiboot) {
     
     deviceManager.getDevice(DeviceType::Storage, 0)->read(data, 2048);
     
-    for (int i = 0; i < 2048; i++)
-        sum += data[i];
 
     printf("id is: %d", data[0]);
 
     delete[] data;
 
-    const char* string = "/test/help/bvba";
+    const char* string = "/test/help/bvb";
     int depth = 0;
     while (true) {
         int length = strcspn(string, "/");
@@ -132,7 +132,7 @@ extern "C" void main(multiboot_info* multiboot) {
             string++;
 
         depth++;
-    }
+    }*/
 
     KernelShell shell;
     shell.enter();

@@ -2,7 +2,7 @@
 // Created by Olivier on 30/09/16.
 //
 
-#include "atapiodevice.h"
+#include "ata/atapiodevice.h"
 
 AtaPioDevice::AtaPioDevice(unsigned short* data): _data(data) {
 }

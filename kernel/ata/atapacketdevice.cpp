@@ -3,9 +3,9 @@
 //
 
 #include <stdio.h>
-#include "../io.h"
-#include "ata.h"
-#include "atapacketdevice.h"
+#include "io.h"
+#include "ata/ata.h"
+#include "ata/atapacketdevice.h"
 
 AtaPacketDevice::AtaPacketDevice(unsigned short* data, u8 drive): _data(data), _drive(drive), _lba(0) {
 }
@@ -108,7 +108,7 @@ size_t AtaPacketDevice::seek(i32 offset, int position) {
     else if (position == SEEK_CUR)
         _lba += offset;
     else if (position == SEEK_END)
-        PRINT_UNIMPLEMENTED;
+        LOG_UNIMPLEMENTED();
 
     return 0;
 }

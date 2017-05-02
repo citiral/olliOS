@@ -11,11 +11,11 @@ OUTPUT=ollios.bin
 INCLUDE = -I $(ROOT)usr/include
 CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -nostdlib -fno-threadsafe-statics -Werror=return-type
 LDFLAGS = -ffreestanding -O2 -nostdlib -lgcc
-LIBS = $(ROOT)/usr/lib/libk.a $(ROOT)/usr/lib/libkpp.a
+LIBS = $(ROOT)/usr/lib/libk.a
 
-KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/util/*.cpp) $(wildcard kernel/streams/*.cpp) $(wildcard kernel/alloc/*.cpp) $(wildcard kernel/ata/*.cpp)
+KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/util/*.cpp) $(wildcard kernel/streams/*.cpp) $(wildcard kernel/alloc/*.cpp) $(wildcard kernel/ata/*.cpp) $(wildcard kernel/fs/*.cpp) $(wildcard kernel/kstd/*.cpp)
 KERNEL_ASM = $(wildcard kernel/*.s)
-HEADERS = $(wildcard kernel/*.h) $(wildcard kernel/util/*.h) $(wildcard kernel/streams/*.h) $(wildcard kernel/alloc/*.h) $(wildcard kernel/ata/*.h)
+HEADERS = $(wildcard kernel/*.h) $(wildcard kernel/util/*.h) $(wildcard kernel/streams/*.h) $(wildcard kernel/alloc/*.h) $(wildcard kernel/ata/*.h) $(wildcard kernel/fs/*.h) $(wildcard kernel/kstd/*.h)
 
 CRTI_OBJ=crti.o
 CRTN_OBJ=crtn.o
@@ -25,15 +25,15 @@ CRTEND_OBJ:=$(shell $(CC) $(CCFLAGS) -print-file-name=crtend.o)
 #make a list of all objects, but taking special care of the order of crt* files
 OBJECTS = $(filter-out crti.o crtn.o, $(notdir $(KERNEL_CPP:.cpp=.o)) $(notdir $(KERNEL_ASM:.s=.o)))
 
-.PHONY: all compile-kernel clean dir libk libkpp install install-grub install-headers install-kernel iso
+.PHONY: all compile-kernel clean dir libk install install-grub install-headers install-kernel iso
 
-all: dir install-headers libk libkpp compile-kernel install-kernel install-grub iso
+all: dir iso
 
 libk:
 	$(MAKE) -C libk
 
-libkpp:
-	$(MAKE) -C libkpp
+#libkpp:
+#	$(MAKE) -C libkpp
 
 kernel: dir install-headers compile-kernel install-kernel install-grub iso
 
@@ -62,7 +62,7 @@ dir:
 	mkdir -p $(ROOT)usr/include
 	mkdir -p $(ROOT)usr/lib
 
-iso:
+iso: install
 	mkisofs -R -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -boot-info-table -o ollios.iso root
 #	grub-mkrescue ./root -o ./ollios.iso
 
@@ -72,7 +72,8 @@ install-grub:
 	cp -Rv grub/* $(ROOT)boot/grub
 
 install-headers:
-	cp -Rv $(HEADERS) $(ROOT)usr/include
+	cd kernel && cp --parents -v *.h  ../$(ROOT)usr/include/
+	cd kernel && cp --parents -v **/*.h  ../$(ROOT)usr/include/
 
-install-kernel:
+install-kernel: libk compile-kernel
 	cp -RTv build/$(OUTPUT) $(ROOT)boot/$(OUTPUT)

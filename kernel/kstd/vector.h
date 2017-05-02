@@ -5,10 +5,10 @@
 #ifndef OLLIOS_GIT_VECTOR_H
 #define OLLIOS_GIT_VECTOR_H
 
-#include "cstddef"
-#include "utility"
+#include "kstd/cstddef.h"
+#include "kstd/utility.h"
+#include "kstd/new.h"
 #include <stdlib.h>
-#include <new>
 
 // divergence of spec from vector: No iterators, no allocator, missing functions
 

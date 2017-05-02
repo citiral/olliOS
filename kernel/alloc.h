@@ -5,8 +5,8 @@
 #ifndef OLLIOS_GIT_ALLOC_H
 #define OLLIOS_GIT_ALLOC_H
 
-#include "BucketAlloc.h"
-#include "LinearAlloc.h"
+#include "alloc/BucketAlloc.h"
+#include "alloc/LinearAlloc.h"
 #include "options.h"
 
 #if __KERNEL_ALLOCATOR == __KERNEL_ALLOCATOR_LINEAR

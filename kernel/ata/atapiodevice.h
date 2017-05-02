@@ -5,8 +5,8 @@
 #ifndef OLLIOS_GIT_ATAPIODEVICE_H
 #define OLLIOS_GIT_ATAPIODEVICE_H
 
-#include "../streams/device.h"
-#include "../cdefs.h"
+#include "streams/device.h"
+#include "cdefs.h"
 
 class AtaPioDevice: public Device {
 public:

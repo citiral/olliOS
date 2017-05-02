@@ -1,4 +1,4 @@
-#include "device.h"
+#include "streams/device.h"
 
 Device::~Device()
 {

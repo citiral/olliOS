@@ -5,9 +5,9 @@
 #ifndef OLLIOS_GIT_KERNELSHELL_H
 #define OLLIOS_GIT_KERNELSHELL_H
 
-#include "utility/inputformatter.h"
-#include <vector>
-#include <utility>
+#include "util/inputformatter.h"
+#include "kstd/vector.h"
+#include "kstd/utility.h"
 
 class KernelShell {
 public:

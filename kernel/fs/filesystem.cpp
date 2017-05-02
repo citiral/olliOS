@@ -2,4 +2,8 @@
 // Created by Olivier on 01/10/16.
 //
 
-FileSystem* rootFileSystem;
+#include "fs/filesystem.h"
+
+DirEntry::~DirEntry() {
+
+}

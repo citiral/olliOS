@@ -2,7 +2,7 @@
 // Created by citiral on 9/23/16.
 //
 
-#include "LinearAlloc.h"
+#include "alloc/LinearAlloc.h"
 #include "linker.h"
 #include <stdio.h>
 #include <string.h>

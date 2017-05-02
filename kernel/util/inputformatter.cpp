@@ -1,6 +1,6 @@
-#include "inputformatter.h"
-#include "../devicemanager.h"
-#include "vga.h"
+#include "util/inputformatter.h"
+#include "devicemanager.h"
+#include "streams/vga.h"
 
 InputFormatter::InputFormatter():
     _lineReady(0)

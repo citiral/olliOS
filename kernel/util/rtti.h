@@ -1,7 +1,7 @@
 #ifndef __RTTI_H
 #define __RTTI_H
 
-#include "stddef.h"
+#include "kstd/cstddef.h"
 
 typedef size_t type_t;
 

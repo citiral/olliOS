@@ -5,7 +5,7 @@
 #ifndef OLLIOS_GIT_ATA_H
 #define OLLIOS_GIT_ATA_H
 
-#include "../types.h"
+#include "types.h"
 
 #define PORT_DATA           0x1F0
 #define PORT_FEATURE        0x1F1

@@ -1,5 +1,5 @@
-#include "vga.h"
-#include "keyboard.h"
+#include "streams/vga.h"
+#include "streams/keyboard.h"
 #include "io.h"
 
 #define COMMAND_PORT 0x64

@@ -12,11 +12,11 @@ LIBK_CCFLAGS = -D__is_libk -D__is_kernel -std=gnu++11 -fbuiltin -ffreestanding -
 
 INCLUDE = -I $(ROOT)usr/include
 
-LIBK_CPP = $(wildcard string/*.cpp) $(wildcard stdio/*.cpp) $(wildcard stdlib/*.cpp)
+LIBK_C = $(wildcard string/*.c) $(wildcard stdio/*.c) $(wildcard stdlib/*.c)
 HEADERS = $(wildcard include/*.h)
 
 BINARIES = libk.a
-LIBK_OBJ = $(LIBK_CPP:.cpp=.o)
+LIBK_OBJ = $(LIBK_C:.c=.o)
 
 .PHONY: all clean install install-headers install-binaries
 
@@ -25,7 +25,7 @@ all: install-headers $(BINARIES) install-binaries
 libk.a: $(LIBK_OBJ)
 	$(AR) rcs ../build/$@ $(addprefix ../build/,$(notdir $(LIBK_OBJ)))
 
-%.o: %.cpp
+%.o: %.c
 	$(CC) -c $< -o ../build/$(notdir $@) $(LIBK_CCFLAGS)
 
 clean:

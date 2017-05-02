@@ -2,7 +2,7 @@
 #define __STREAMS_KEYBOARD_H
 
 #include "types.h"
-#include "device.h"
+#include "streams/device.h"
 
 #define INPUT_BUFFER_SIZE 16
 #define KEYBOARD_DRIVER_DEVICE_NAME "KEYBOARD"

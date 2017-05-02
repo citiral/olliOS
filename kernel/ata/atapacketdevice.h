@@ -5,8 +5,8 @@
 #ifndef OLLIOS_GIT_ATAPACKETDEVICE_H
 #define OLLIOS_GIT_ATAPACKETDEVICE_H
 
-#include "../streams/device.h"
-#include "../cdefs.h"
+#include "streams/device.h"
+#include "cdefs.h"
 
 // SCSI command reference
 // http://www.seagate.com/staticfiles/support/disc/manuals/Interface%20manuals/100293068c.pdf
