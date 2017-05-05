@@ -1,5 +1,4 @@
-#ifndef __PAGING_H
-#define __PAGING_H
+#pragma once
 
 #include "cdefs.h"
 #include "types.h"
@@ -50,23 +49,6 @@ public:
     u32 value;
 };
 
-// a page directory. This is the thing that the cr3 will point to to use these pages
-class PageDirectory {
-public:
-	// clears the directory, setting everything to 0
-	void clear();
-	// sets the pagetable at the given index
-	void set(PageDirectoryEntry entry, int index);
-	// gets the page directory entry at the given virtual address
-	PageDirectoryEntry& get(int index);
-	// uses the page directory
-	void use();
-
-private:
-    // the entries in the directory
-    PageDirectoryEntry entries[1024];
-};
-
 // a page table. instances of this struct should always be page aligned (0x1000)
 class PageTable {
 public:
@@ -81,6 +63,27 @@ public:
 private:
     // the entries in the table
     PageTableEntry entries[1024];
+};
+
+// a page directory. This is the thing that the cr3 will point to to use these pages
+class PageDirectory {
+public:
+    // Allocates the pagetable 
+    void allocate();
+    void deallocate();
+
+	// clears the directory, setting everything to 0
+	void clear();
+	// sets the pagetable at the given index
+	void set(PageDirectoryEntry entry, int index);
+	// gets the page directory entry at the given virtual address
+	PageDirectoryEntry& get(int index);
+	// uses the page directory
+	void use();
+
+private:
+    // the entries in the directory
+    PageDirectoryEntry entries[1024];
 };
 
 void PageInit();

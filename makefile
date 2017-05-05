@@ -13,9 +13,9 @@ CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O2 -Wall -Wextra -fno-excep
 LDFLAGS = -ffreestanding -O2 -nostdlib -lgcc
 LIBS = $(ROOT)/usr/lib/libk.a
 
-KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/util/*.cpp) $(wildcard kernel/streams/*.cpp) $(wildcard kernel/alloc/*.cpp) $(wildcard kernel/ata/*.cpp) $(wildcard kernel/fs/*.cpp) $(wildcard kernel/kstd/*.cpp)
+KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/util/*.cpp) $(wildcard kernel/streams/*.cpp) $(wildcard kernel/alloc/*.cpp) $(wildcard kernel/ata/*.cpp) $(wildcard kernel/fs/*.cpp) $(wildcard kernel/kstd/*.cpp)  $(wildcard kernel/memory/*.cpp)
 KERNEL_ASM = $(wildcard kernel/*.s)
-HEADERS = $(wildcard kernel/*.h) $(wildcard kernel/util/*.h) $(wildcard kernel/streams/*.h) $(wildcard kernel/alloc/*.h) $(wildcard kernel/ata/*.h) $(wildcard kernel/fs/*.h) $(wildcard kernel/kstd/*.h)
+HEADERS = $(wildcard kernel/*.h) $(wildcard kernel/util/*.h) $(wildcard kernel/streams/*.h) $(wildcard kernel/alloc/*.h) $(wildcard kernel/ata/*.h) $(wildcard kernel/fs/*.h) $(wildcard kernel/kstd/*.h)  $(wildcard kernel/memory/*.h)
 
 CRTI_OBJ=crti.o
 CRTN_OBJ=crtn.o

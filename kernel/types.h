@@ -1,6 +1,8 @@
 #ifndef __TYPES_H
 #define __TYPES_H
 
+#include <stddef.h>
+
 typedef char 		i8;
 typedef short 		i16;
 typedef int 		i32;

@@ -15,6 +15,7 @@
 #include "devicemanager.h"
 #include "streams/vga.h"
 #include "streams/keyboard.h"
+#include "memory/physical.h"
 #include "multiboot.h"
 #include "kernelshell.h"
 #include "kstd/new.h"
@@ -39,21 +40,19 @@ void initCpu() {
     // Program the PIC so interrupts make sense (0-32 is reserved for intel, ...)
 	PicInit();
     LOG_STARTUP("PIC initialized.");
-
-    // and finally initialize paging from C since it's about time.
-    PageInit();
-    LOG_STARTUP("Paging initialized.");
 }
 
-extern "C" void main(multiboot_info* multiboot) {
-    // init lowlevel CPU related stuff
-	initCpu();
+void initMemory(multiboot_info* multiboot) {
+    physicalMemoryManager.init();
 
     // use the multiboot header to discover valid memory regions
     if ((multiboot->flags & (1 << 6)) == 0) {
         // if multiboot didn't pass us our usable memory areas (which it really always should) use a default.
         LOG_STARTUP("Err: No MMAP specified by multiboot.");
         kernelAllocator.init((void*)KERNEL_END_VIRTUAL, 0xFFFFFFFF - (size_t)KERNEL_END_VIRTUAL);
+
+        // set up the physical memory allocator from the end of the kernel to the end of the address space
+        physicalMemoryManager.registerAvailableMemory(KERNEL_END_PHYSICAL, 0xFFFFFFFF);
     } else {
         // loop over each mmap descriptor, these are of variable size so the loop is special
         for (multiboot_memory_map_t* mmap = (multiboot_memory_map_t*)multiboot->mmap_addr;
@@ -81,11 +80,24 @@ extern "C" void main(multiboot_info* multiboot) {
 
                 length -= diff;
             }
-
             kernelAllocator.init(addr + 0xC0000000, length);
             LOG_STARTUP("Allocating memory %X - %X.", addr + 0xC0000000, addr + 0xC0000000 + length);
+
+            physicalMemoryManager.registerAvailableMemory(addr, length);
         }
     }
+
+    // and finally initialize paging from C since it's about time.
+    PageInit();
+    LOG_STARTUP("Paging initialized.");
+}
+
+extern "C" void main(multiboot_info* multiboot) {
+    // init lowlevel CPU related stuff
+	initCpu();
+
+    // init the memory management
+    initMemory(multiboot);
 
     // initialize the ATA driveer
     ataDriver.initialize();
