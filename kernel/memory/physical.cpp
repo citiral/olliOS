@@ -4,7 +4,7 @@ PhysicalMemoryManager physicalMemoryManager;
 
 void PhysicalMemoryManager::init() {
     // We initially set all physical memory as unalocated
-    memset(_bitmap, 0xFF, DEVICE_MAX_MEMORY / 0x8000);
+    memset(_bitmap, 0xFF, DEVICE_MAX_MEMORY / (0x8000));
 }
 
 void PhysicalMemoryManager::registerAvailableMemory(void* start, size_t length) {
@@ -13,6 +13,15 @@ void PhysicalMemoryManager::registerAvailableMemory(void* start, size_t length) 
         size_t index = ((size_t)start + offset) / 0x1000;
 
         _bitmap[index/8] &= ~(0b10000000 >> (index % 8));
+    }
+}
+
+void PhysicalMemoryManager::reservePhysicalMemory(void* start, size_t length) {
+    // set all the matching bits to 1
+    for (size_t offset = 0 ; offset < length ; offset += 0x1000) {
+        size_t index = ((size_t)start + offset) / 0x1000;
+
+        _bitmap[index/8] |= (0b10000000 >> (index % 8));
     }
 }
 

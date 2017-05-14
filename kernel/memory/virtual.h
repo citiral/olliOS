@@ -15,18 +15,27 @@
 // if set the page is 4MB, otherwise it is 4kb
 #define PFLAG_LARGEPAGE 0x80
 #define PFLAG_GLOBAL 0x100
+// if this flag is set, the entry will be deallocated by the pagedirectory on destruction
+#define PFLAG_OWNED 0x200
 
 #define PAGE_SIZE 0x1000
 
 #define CR0_PAGING = 0x80000000
 #define CR4_PSE = 0x00000010
 
-// a single entry into the page directory
-class PageDirectoryEntry {
+class PageTableItem {
 public:
-	PageDirectoryEntry();
+	PageTableItem();
+
+    // Allocates a page for the entry
+    void allocate();
+
+	// Deallocates a page for the entry
+    void deallocate();
 
 	void setAddress(void* address);
+	void* getAddress();
+
 	// enables and disables flags of the entry
 	void enableFlag(u32 flag);
 	void disableFlag(u32 flag);
@@ -36,31 +45,29 @@ public:
 };
 
 // a single entry into the page table
-class PageTableEntry {
-public:
-	PageTableEntry();
+class PageTableEntry : public PageTableItem {};
 
-	void setAddress(void* address);
-	// enables and disables flags of the entry
-	void enableFlag(u32 flag);
-	void disableFlag(u32 flag);
-	bool getFlag(u32 flag);
-
-    u32 value;
-};
+// a single entry into the page directory
+class PageDirectoryEntry : public PageTableItem {};
 
 // a page table. instances of this struct should always be page aligned (0x1000)
 class PageTable {
 public:
-	// clears the table, setting everything to 0
-	void clear();
+	// Allocates a new page table, on a page aligned address
+	static PageTable* create();
+
+	// Destroys this page table
+	void destroy();
+
 	// maps all pages in the directory starting from the given page aligned address
 	void mapAll(void* start);
+
 	// adds an entry to the table
 	void set(PageTableEntry entry, int index);
+
     // gets an entry from the table
-    PageTableEntry get(int index);
-private:
+    PageTableEntry& get(int index);
+	
     // the entries in the table
     PageTableEntry entries[1024];
 };
@@ -68,20 +75,22 @@ private:
 // a page directory. This is the thing that the cr3 will point to to use these pages
 class PageDirectory {
 public:
-    // Allocates the pagetable 
-    void allocate();
-    void deallocate();
+	// Allocates a new page directory, on a page aligned address
+	static PageDirectory* create();
 
-	// clears the directory, setting everything to 0
-	void clear();
+	// Destroys this page directory
+	void destroy();
+
 	// sets the pagetable at the given index
 	void set(PageDirectoryEntry entry, int index);
+
 	// gets the page directory entry at the given virtual address
 	PageDirectoryEntry& get(int index);
+
 	// uses the page directory
 	void use();
+	static PageDirectory* current();
 
-private:
     // the entries in the directory
     PageDirectoryEntry entries[1024];
 };
@@ -94,5 +103,3 @@ void pagingDisablePSE();
 
 // the pagetable used in the kernel. Because we just memory map the last gigabyte a 4mb page directory is used
 extern PageDirectory kernelPageDirectory __PAGE_ALIGNED;
-
-#endif

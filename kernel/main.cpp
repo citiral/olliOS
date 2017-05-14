@@ -6,7 +6,7 @@
 #include "string.h"
 #include "streams/keyboard.h"
 #include "stdio.h"
-#include "paging.h"
+#include "memory/virtual.h"
 #include "alloc.h"
 #include "linker.h"
 #include "fs/iso9660.h"
@@ -43,6 +43,7 @@ void initCpu() {
 }
 
 void initMemory(multiboot_info* multiboot) {
+    // We initialise the state of the physical memory allocator
     physicalMemoryManager.init();
 
     // use the multiboot header to discover valid memory regions
@@ -87,16 +88,18 @@ void initMemory(multiboot_info* multiboot) {
         }
     }
 
-    // and finally initialize paging from C since it's about time.
+    // Now that we can allocate physical memory, initialize the paging. This should set up a valid not 4MB pagetable, with only the KERNEL_BEGIN_PHYSICAL to KERNEL_END_PHYSICAL mapped to the higher half, and nothing more.
     PageInit();
+    
     LOG_STARTUP("Paging initialized.");
 }
 
 extern "C" void main(multiboot_info* multiboot) {
     // init lowlevel CPU related stuff
+    // None of these should be allowed to touch the memory allocator, etc
 	initCpu();
 
-    // init the memory management
+    // init the memory management, so we have proper paging and can allocate memoryy
     initMemory(multiboot);
 
     // initialize the ATA driveer
@@ -104,15 +107,28 @@ extern "C" void main(multiboot_info* multiboot) {
     LOG_STARTUP("ATA driver initialized.");
 
     // and register the default vga and and keyboard driver
-    deviceManager.addDevice(&vgaDriver);
+    //deviceManager.addDevice(&vgaDriver);
     LOG_STARTUP("VGA driver initialized.");
-    deviceManager.addDevice(new KeyboardDriver());
+    //deviceManager.addDevice(new KeyboardDriver());
     LOG_STARTUP("Keyboard driver initialized.");
 
     LOG_STARTUP("Welcome to OlliOS!");
 
-    Iso9660FileSystem fs(deviceManager.getDevice(DeviceType::Storage, 0));
+    //KeyboardDriver driver;
     
+    while (true) {
+        //VirtualKeyEvent input[10];
+        //int read = driver.read(input, 10);
+
+        // send them to the input formatter
+        /*for (size_t i = 0 ; i < read ; i += sizeof(VirtualKeyEvent))
+        {
+            putchar((u8)input[i].vkey);
+        }*/
+    }
+
+    //Iso9660FileSystem fs(deviceManager.getDevice(DeviceType::Storage, 0));
+    //fs.openDir("root/usr/include/io.h");
     /*char* data = new char[2048];
 
     if (deviceManager.getDevice(DeviceType::Storage, 0)->seek(0x10 * SIZEOF_KB * 2, SEEK_SET) != 0)
@@ -146,6 +162,6 @@ extern "C" void main(multiboot_info* multiboot) {
         depth++;
     }*/
 
-    KernelShell shell;
-    shell.enter();
+    //KernelShell shell;
+    //shell.enter();
 }

@@ -16,6 +16,7 @@ enum DirEntryType {
 class DirEntry : Stream {
 public:
     virtual ~DirEntry();
+    virtual void advance() = 0;
 
     DirEntryType type;
 };
