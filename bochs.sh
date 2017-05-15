@@ -1,3 +1,3 @@
 #!/bin/bash
 
-bochsdbg -q
+bochs -q

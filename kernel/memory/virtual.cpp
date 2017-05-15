@@ -2,15 +2,6 @@
 #include "memory/physical.h"
 #include "linker.h"
 
-/*	mov %cr4, %eax
-	or $0x00000010, %eax
-	mov %eax, %cr4
-
-	# enable paging
-	mov %cr0, %eax
-	or $0x80000000, %eax
-	mov %eax, %cr0*/
-
 PageDirectory kernelPageDirectory __PAGE_ALIGNED;
 
 void PageInit()
@@ -33,12 +24,12 @@ void PageInit()
 
 	// the first MB is mapped to itself
 	kernelPageDirectory.entries[0].setAddress(currentFree);
-	kernelPageDirectory.entries[0].enableFlag(PFLAG_RW | PFLAG_PRESENT);
+	kernelPageDirectory.entries[0].enableFlag(PFLAG_RW | PFLAG_PRESENT | PFLAG_OWNED);
 
 	// we do this by giving it 4kb pages until we reach the first megabyte
 	for (u32 i = 0 ; i < 1024 ; i += 1) {
 		firstPage->entries[i].setAddress((void*)(i * 0x1000));
-		firstPage->entries[i].enableFlag(PFLAG_RW | PFLAG_PRESENT);
+		firstPage->entries[i].enableFlag(PFLAG_RW | PFLAG_PRESENT | PFLAG_OWNED);
 	}
 
 	// Then we have to allocate kernel pagetables, one for each 4MB of the kernel	
@@ -56,33 +47,24 @@ void PageInit()
 
 		// and putting it in the directory. since we want this to map to the 4th gigabyte, we start at 768 (0xC0000000)
 		kernelPageDirectory.entries[768+i].setAddress(currentFree);
-		kernelPageDirectory.entries[768+i].enableFlag(PFLAG_RW | PFLAG_PRESENT);
+		kernelPageDirectory.entries[768+i].enableFlag(PFLAG_RW | PFLAG_PRESENT | PFLAG_OWNED);
 
 		// then we have to fill in the pagetable itself
 		for (u32 j = 0 ; j < 1024 ; j += 1) {
 			page->entries[j].setAddress((void*)(i*0x400000 + j*0x1000));
-			page->entries[j].enableFlag(PFLAG_RW | PFLAG_PRESENT);
+			page->entries[j].enableFlag(PFLAG_RW | PFLAG_PRESENT | PFLAG_OWNED);
 		}
-		printf("made page");
-
 	}
-    BOCHS_BREAKPOINT
 
-	// Then finally, we can use the kernel page
-	// set the actualy control register determining which page is used
-	asm volatile (
-		"mov %%eax, %%cr3\n"
-		:: "a" ((u32)&kernelPageDirectory - 0xC0000000)
-	);
+	// we set up one more page.. we bind the very last directory entry to the directory itself. This allows us to always write to the directory, since its physical memory might not be in our virtual address space
+	kernelPageDirectory.entries[1023].setAddress(((char*)&kernelPageDirectory) - 0xC0000000);
 
+	// we don't give him an OWNED flag, because we don't want to accidentally deallocate our directory.
+	kernelPageDirectory.entries[1023].enableFlag(PFLAG_RW | PFLAG_PRESENT);
 
-    // do an absolute jump to force the cpu to recognize the new directory
-    asm volatile (
-        "movl $1f, %%eax\n\
-        jmp *%%eax\n\
-        1: nop"
-        ::: "eax"
-    );
+	// and finally we can use the directory
+	((PageDirectory*)(((char*)&kernelPageDirectory) - 0xC0000000))->use();
+	BOCHS_BREAKPOINT;
 }
 
 void pagingEnablePaging()
@@ -126,16 +108,6 @@ PageTableItem::PageTableItem()
 	value = 0;
 }
 
-void PageTableItem::allocate() {
-	setAddress(PageTable::create());
-	enableFlag(PFLAG_PRESENT);
-}
-
-void PageTableItem::deallocate() {
-	physicalMemoryManager.freePhysicalMemory(getAddress());
-	disableFlag(PFLAG_PRESENT);
-}
-
 void PageTableItem::setAddress(void* address) {
 	// mask out the old adress and add the new one
 	value &= 0xFFFFF000;
@@ -161,21 +133,10 @@ bool PageTableItem::getFlag(u32 flag)
 	return (value & flag) == flag;
 }
 
-void PageDirectory::set(PageDirectoryEntry entry, int index)
-{
-	entries[index] = entry;
-}
-
-PageDirectoryEntry& PageDirectory::get(int index)
-{
-	//size_t index = (size_t)vaddress / 0x1000;
-	return entries[index];
-}
-
 void PageDirectory::use()
 {
     // convert the entries from virtual to physical (kernel is virtually at 0xc0000000 but physically at 0x0)
-	u32 pos = (u32)&entries - 0xC0000000;
+	u32 pos = (u32)&entries;
 
     // set the actualy control register determining which page is used
 	asm volatile (
@@ -183,9 +144,17 @@ void PageDirectory::use()
 		:: "a" (pos)
 	);
 
-    BOCHS_BREAKPOINT
-
     // do an absolute jump to force the cpu to recognize the new directory
+    asm volatile (
+        "movl $1f, %%eax\n\
+        jmp *%%eax\n\
+        1: nop"
+        ::: "eax"
+    );
+}
+
+void PageDirectory::forceUpdate() {
+	// do an absolute jump to force the cpu to recognize the new directory
     asm volatile (
         "movl $1f, %%eax\n\
         jmp *%%eax\n\
@@ -206,54 +175,57 @@ PageDirectory* PageDirectory::current() {
 	return page;
 }
 
-PageDirectory* PageDirectory::create() {
-	PageDirectory* directory = (PageDirectory*)physicalMemoryManager.allocatePhysicalMemory();
+void PageDirectory::bindVirtualPage(void* page) {
 
-	// then we map the pointer to the directory into the top of its own adress space
-	/*directory->entries[1023].allocate();
-	directory->entries[1023].setFlag(PFLAG_OWNED);
-	directory->entries[1023].getAddress().entries[1023].setAddress(directory);
-	directory->entries[1023].getAddress().entries[1023].setFlag(PFLAG_PRESENT);*/
+}
+
+void PageDirectory::bindFirstFreeVirtualPage(void* page) {
+
+}
+
+void PageDirectory::unbindVirtualPage(void* page) {
+
+}
+
+void PageDirectory::mapMemory(void* page, void* physical) {
+
+}
+
+void PageDirectory::allocateEntry(int index) {
+	// if the entry is already allocated, we don't have to do anything
+	if (getReadableEntryPointer(index)->getFlag(PFLAG_PRESENT))
+		return;
+
+	// then we fetch some physical memory
+	void* phys = physicalMemoryManager.allocatePhysicalMemory();
+
+	// put it in the entry
+	getReadableEntryPointer(index)->setAddress(phys);
 	
-	return directory;
+	// and set up the flags
+	getReadableEntryPointer(index)->enableFlag(PFLAG_RW | PFLAG_PRESENT | PFLAG_OWNED);
+
+	// now that it is bound we can clear the memory
+	memset((((PageTableEntry*)0xFFC00000) + (index * 1024)), 0, 0x1000);
 }
 
-void PageDirectory::destroy() {
-	physicalMemoryManager.freePhysicalMemory(this);
+void PageDirectory::freeEntry(int index) {
+	// if the entry doesn't exist, don't do anything
+	if (!getReadableEntryPointer(index)->getFlag(PFLAG_PRESENT))
+		return;
 
-	/*for (int i = 0 ; i < 1024 ; i++) {
-		if (entries[i].getFlag(PFLAG_OWNED)) {
-			entries[i].getAddress().destroy();
-			entries[i].deallocate();
-		}
-	}*/
+	// deallocate the memory if this page is owned
+	if (getReadableEntryPointer(index)->getFlag(PFLAG_OWNED))
+		physicalMemoryManager.freePhysicalMemory(getReadableEntryPointer(index)->getAddress());
+
+	// and then clear the entry
+	getReadableEntryPointer(index)->value = 0;
 }
 
-PageTable* PageTable::create() {
-	PageTable* table = (PageTable*)physicalMemoryManager.allocatePhysicalMemory();
-	return table;
+PageDirectoryEntry* PageDirectory::getReadableEntryPointer(int index) {
+	return ((PageDirectoryEntry*)0xFFFFF000) + index;
 }
 
-void PageTable::destroy() {
-	physicalMemoryManager.freePhysicalMemory(this);
-}
-
-void PageTable::set(PageTableEntry entry, int index)
-{
-    entries[index] = entry;
-}
-
-PageTableEntry& PageTable::get(int index)
-{
-    return entries[index];
-}
-
-void PageTable::mapAll(void* start)
-{
-	for (size_t i = 0 ; i < 1024 ; i++)
-	{
-		entries[i].value = 0;
-		entries[i].setAddress((char*)start + (i * 0x1000));
-		entries[i].enableFlag(PFLAG_PRESENT | PFLAG_RW);
-	}
+PageTableEntry* PageDirectory::getReadableTablePointer(int index, int tableindex) {
+	return ((PageTableEntry*)0xFFC00000) + (index * 1024 + tableindex);
 }

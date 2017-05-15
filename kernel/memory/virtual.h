@@ -27,12 +27,7 @@ class PageTableItem {
 public:
 	PageTableItem();
 
-    // Allocates a page for the entry
-    void allocate();
-
-	// Deallocates a page for the entry
-    void deallocate();
-
+	// gets and sets the address of the item, properly masked
 	void setAddress(void* address);
 	void* getAddress();
 
@@ -52,22 +47,7 @@ class PageDirectoryEntry : public PageTableItem {};
 
 // a page table. instances of this struct should always be page aligned (0x1000)
 class PageTable {
-public:
-	// Allocates a new page table, on a page aligned address
-	static PageTable* create();
-
-	// Destroys this page table
-	void destroy();
-
-	// maps all pages in the directory starting from the given page aligned address
-	void mapAll(void* start);
-
-	// adds an entry to the table
-	void set(PageTableEntry entry, int index);
-
-    // gets an entry from the table
-    PageTableEntry& get(int index);
-	
+public:	
     // the entries in the table
     PageTableEntry entries[1024];
 };
@@ -75,24 +55,41 @@ public:
 // a page directory. This is the thing that the cr3 will point to to use these pages
 class PageDirectory {
 public:
-	// Allocates a new page directory, on a page aligned address
-	static PageDirectory* create();
-
-	// Destroys this page directory
-	void destroy();
-
-	// sets the pagetable at the given index
-	void set(PageDirectoryEntry entry, int index);
-
-	// gets the page directory entry at the given virtual address
-	PageDirectoryEntry& get(int index);
-
 	// uses the page directory
 	void use();
+
+	// forces reloading the pagetable by a longjump. This just forces the update, an update can be triggered automatically regardless of this function
+	void forceUpdate();
+
+	// makes sure the given virtual 4kb space is bound to some random physical memory
+	void bindVirtualPage(void* page);
+
+	// binds the first free virtual 4kb space starting from the given virtual address
+	void bindFirstFreeVirtualPage(void* page);
+
+	// releases the given virtual 4kb space, deallocating the physical memory if it was allocated by bindVirtualPage or bindFirstFreeVirtualPage
+	void unbindVirtualPage(void* page);
+
+	// maps the given 4kb space to the given physical address
+	void mapMemory(void* page, void* physical);
+	
+	// Gets the current page directory
 	static PageDirectory* current();
 
     // the entries in the directory
     PageDirectoryEntry entries[1024];
+
+	// sets up the entry at the given address by allocating physical memory and setting up the right flags
+	void allocateEntry(int index);
+
+	// releases the entry at the given address, releasing its physical memory. This frees all memory referenced by this entry allocated by bindVirtualPage or bindFirstFreeVirtualPage
+	void freeEntry(int index);
+
+	// returns a virtual pointer to the entry at the index that can be referenced
+	PageDirectoryEntry* getReadableEntryPointer(int index);
+
+	// returns a virtual pointer to a table in the entry at the index that can be referenced
+	PageTableEntry* getReadableTablePointer(int index, int tableindex);
 };
 
 void PageInit();
