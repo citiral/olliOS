@@ -64,8 +64,11 @@ public:
 	// makes sure the given virtual 4kb space is bound to some random physical memory
 	void bindVirtualPage(void* page);
 
-	// binds the first free virtual 4kb space starting from the given virtual address
-	void bindFirstFreeVirtualPage(void* page);
+	// binds the first free virtual 4kb page starting from the given virtual address
+	void* bindFirstFreeVirtualPage(void* page);
+
+	// binds the first free count consecutive virtual 4kb pages starting from the given virtual address
+	void* bindFirstFreeVirtualPages(void* page, int count);
 
 	// releases the given virtual 4kb space, deallocating the physical memory if it was allocated by bindVirtualPage or bindFirstFreeVirtualPage
 	void unbindVirtualPage(void* page);

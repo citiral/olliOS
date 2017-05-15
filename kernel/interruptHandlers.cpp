@@ -24,9 +24,7 @@ void intHandlerKeyboard(u32 interrupt) {
 	u8 data = inb(0x60);
 
     // send it to the keyboarddriver
-    //TODO this is a debug test
-    putchar(data);
-    //deviceManager.getDevice(DeviceType::Keyboard, 0)->write(data);
+    deviceManager.getDevice(DeviceType::Keyboard, 0)->write(data);
 
     // and end the interrupt
 	endInterrupt(interrupt - 0x20);

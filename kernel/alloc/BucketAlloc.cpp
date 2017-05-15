@@ -3,7 +3,9 @@
 //
 
 #include "alloc/BucketAlloc.h"
+#include "memory/virtual.h"
 #include "cdefs.h"
+#include "linker.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -38,27 +40,38 @@ void BucketAlloc::init(void* start, size_t length) {
 }
 
 void* BucketAlloc::malloc(size_t size) {
-
-    for (int i = 31 ; i >= 0; i--) {
-        if (buckets[i] != 0) {
-            break;
-        }
-    }
-
     // try to allocate the memory
     void* mem = mallocOneTry(size);
 
-    for (int i = 31 ; i >= 0; i--) {
-        if (buckets[i] != 0) {
-            break;
-        }
-    }
-
     // if it is null, lets do a merge step and try again
     if (mem == nullptr) {
-        printStatistics();
         merge();
         mem = mallocOneTry(size);
+    }
+
+    // if it is still null, allocate new virtual pages to use.
+    if (mem == nullptr) {
+
+        // this is the bucket malloc will start looking in
+        int bucket = nextHighestPowerOfTwo(size);
+        u32 bucketmemsize = 1 << bucket;
+
+        // we want to allocate pages that will fit that bucket or higher
+        // so first we round up the bucketmemsize
+	    u32 allocsize = bucketmemsize + (bucketmemsize % 0x1000 == 0 ? 0 : (0x1000 - (bucketmemsize % 0x1000)));
+        
+        // if allocsize without header is in the same bucket, add a page
+        if (nextHighestPowerOfTwo(allocsize - 16) == bucket)
+            allocsize += 0x1000;
+
+        // then we allocate the virtual memory
+        void* page = kernelPageDirectory.bindFirstFreeVirtualPages(KERNEL_END_VIRTUAL, allocsize / 0x1000);
+        
+        // give it the the allocator, and try to allocate some memory
+        if (page != nullptr) {
+            init(page, allocsize);
+            mem = mallocOneTry(size);
+        }
     }
 
     // and return the allocated memory, this might be null if nothing was found
@@ -247,7 +260,6 @@ void BucketAlloc::printStatistics() {
         } else {
             printf("[%d]: %X:(%d) ", i, buckets[i], *((size_t*)buckets[i]));
         }
-
-        //printf("%d: %X, %d: %X, %d: %X, %d: %X\n", i*4, buckets[i*4], i*4 + 1, buckets[i*4 + 1], i*4 + 2, buckets[i*4 + 2], i*4 + 3, buckets[i*4 + 3]);
     }
+    printf("\n");
 }

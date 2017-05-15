@@ -81,8 +81,7 @@ void initMemory(multiboot_info* multiboot) {
 
                 length -= diff;
             }
-            kernelAllocator.init(addr + 0xC0000000, length);
-
+            
             // and let the physical memory manager know that memory is free.
             // we have to round it up the the nearest page though
             u32 offset = (0x1000 - (u32)addr % 0x1000);
@@ -92,24 +91,6 @@ void initMemory(multiboot_info* multiboot) {
 
     // Now that we can allocate physical memory, initialize the paging. This should set up a valid not 4MB pagetable, with only the KERNEL_BEGIN_PHYSICAL to KERNEL_END_PHYSICAL mapped to the higher half, and nothing more.
     PageInit();
-
-    /*BOCHS_BREAKPOINT
-    
-    kernelPageDirectory.bindVirtualPage((void*)0x50000000);
-
-    *(char*)0x50000001 = 10;
-    *(char*)0x50000001 = *(char*)0x50000100;
-
-    BOCHS_BREAKPOINT
-
-    kernelPageDirectory.unbindVirtualPage((void*)0x50000000);
-    kernelPageDirectory.bindVirtualPage((void*)0x50000000);
-
-    *(char*)0x50000001 = 10;
-    *(char*)0x50000001 = *(char*)0x50000100;
-
-    BOCHS_BREAKPOINT*/
-
     LOG_STARTUP("Paging initialized.");
 }
 
@@ -126,16 +107,16 @@ extern "C" void main(multiboot_info* multiboot) {
     LOG_STARTUP("ATA driver initialized.");
 
     // and register the default vga and and keyboard driver
-    //deviceManager.addDevice(&vgaDriver);
+    deviceManager.addDevice(&vgaDriver);
     LOG_STARTUP("VGA driver initialized.");
-    //deviceManager.addDevice(new KeyboardDriver());
+    deviceManager.addDevice(new KeyboardDriver());
     LOG_STARTUP("Keyboard driver initialized.");
 
     LOG_STARTUP("Welcome to OlliOS!");
 
     //KeyboardDriver driver;
     
-    while (true) {
+    //while (true) {
         //VirtualKeyEvent input[10];
         //int read = driver.read(input, 10);
 
@@ -144,7 +125,7 @@ extern "C" void main(multiboot_info* multiboot) {
         {
             putchar((u8)input[i].vkey);
         }*/
-    }
+    //}
 
     //Iso9660FileSystem fs(deviceManager.getDevice(DeviceType::Storage, 0));
     //fs.openDir("root/usr/include/io.h");
@@ -181,6 +162,6 @@ extern "C" void main(multiboot_info* multiboot) {
         depth++;
     }*/
 
-    //KernelShell shell;
-    //shell.enter();
+    KernelShell shell;
+    shell.enter();
 }

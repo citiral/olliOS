@@ -193,7 +193,74 @@ void PageDirectory::bindVirtualPage(void* page) {
 	memset(page, 0, 0x1000);
 }
 
-void PageDirectory::bindFirstFreeVirtualPage(void* page) {
+void* PageDirectory::bindFirstFreeVirtualPage(void* page) {
+	// first we round this up to the nearest page
+	page = (void*)((u32)page + ((u32)page % 0x1000 == 0 ? 0 : (0x1000 - ((u32)page % 0x1000))));
+	
+	// we keep looping from this page until we find one that is free, or until we reach the end of the address space. We also don't want to allocate the last 4MB.
+	int dirindex;
+	do {
+		// we get the indexes related to that page
+		dirindex = ((u32)page) / 0x400000;
+		int pageindex = (((u32)page) % 0x400000) / 0x1000;
+
+		// if the entry doesnt exist, lets allocate one. Its content should be empty so the following checks should pass
+		if (!getReadableEntryPointer(dirindex)->getFlag(PFLAG_PRESENT))
+			allocateEntry(dirindex);
+
+		// check if the table is used. if not, we allocate and return that one
+		if (!getReadableTablePointer(dirindex, pageindex)->getFlag(PFLAG_PRESENT)) {
+			bindVirtualPage(page);
+			return page;
+		}
+
+		// and otherwise we advance by one page
+		page = (void*)((u32)page + 0x1000);
+	} while (dirindex < 1023);
+
+	// if we find nothing, we return the nullptr
+	return nullptr;
+}
+
+void* PageDirectory::bindFirstFreeVirtualPages(void* page, int count) {
+	// first we round this up to the nearest page
+	page = (void*)((u32)page + ((u32)page % 0x1000 == 0 ? 0 : (0x1000 - ((u32)page % 0x1000))));
+
+	// this is the index of the start address
+	int index = ((u32)page) / 0x1000;
+
+	// we check from the index until the end of the memory, taking into acount the count of pages we want to allocate
+	for (int i = index ; i < 1024*1024 - count + 1 ; i++) {
+		bool spacefree = true;
+
+		// then we check if count pages are free
+		for (int c = i ; c < i + count ; c++) {
+			int dirindex = i / 1024;
+			int pageindex = i % 1024;
+			if (!getReadableEntryPointer(dirindex)->getFlag(PFLAG_PRESENT))
+				continue;
+
+			// check if the table is used. if not, we allocate and return that one
+			if (!getReadableTablePointer(dirindex, pageindex)->getFlag(PFLAG_PRESENT))
+				continue;
+
+			spacefree = false;
+			break;
+		}
+
+		// if the pages were free, we allocate them all
+		if (spacefree) {
+			for (int c = i ; c < i + count ; c++) {
+				bindVirtualPage((void*)(c * 0x1000));
+			}
+
+			// and then we return the start
+			return (void*)(i*0x1000);
+		}
+	}
+
+	// if we find nothing, we return the nullptr
+	return nullptr;
 }
 
 void PageDirectory::unbindVirtualPage(void* page) {
