@@ -234,15 +234,15 @@ VirtualKeycode scanset2_map1[255] = {
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
-	VirtualKeycode::A,
+	VirtualKeycode::Q,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,// 19
-	VirtualKeycode::W,
-	VirtualKeycode::S,
-	VirtualKeycode::Q,		// 1C
 	VirtualKeycode::Z,
+	VirtualKeycode::S,
+	VirtualKeycode::A,		// 1C
+	VirtualKeycode::W,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,// 1F
 	VirtualKeycode::INVALID,// 20
