@@ -13,7 +13,6 @@ void PageInit()
 	// The current whole first GB is mapped to the 4th GB, so we can start allocating pages from KERNEL_END_PHYSICAL (making sure we are rounded to 4kbs)
 	char* currentFree = (char*)KERNEL_END_PHYSICAL;
 	currentFree += 0x1000 - (((u32)currentFree) % 0x1000);
-	printf("currentfree: %X", (u32)currentFree);
 	
 	// firstpage is the virtual address to reach the physical page we just allocated
 	PageTable* firstPage = (PageTable*) (currentFree + 0xC0000000);
@@ -64,7 +63,6 @@ void PageInit()
 
 	// and finally we can use the directory
 	((PageDirectory*)(((char*)&kernelPageDirectory) - 0xC0000000))->use();
-	BOCHS_BREAKPOINT;
 }
 
 void pagingEnablePaging()
@@ -176,19 +174,65 @@ PageDirectory* PageDirectory::current() {
 }
 
 void PageDirectory::bindVirtualPage(void* page) {
+	// we get the indexes related to that page
+	int dirindex = ((u32)page) / 0x400000;
+	int pageindex = (((u32)page) % 0x400000) / 0x1000;
+	
+	// if the directory does not exist, allocate one
+	if (!getReadableEntryPointer(dirindex)->getFlag(PFLAG_PRESENT))
+		allocateEntry(dirindex);
+	
+	// then we get us a physical page to use
+	void* physpage = physicalMemoryManager.allocatePhysicalMemory();
 
+	// put it in the page
+	getReadableTablePointer(dirindex, pageindex)->setAddress(physpage);
+	getReadableTablePointer(dirindex, pageindex)->enableFlag(PFLAG_RW | PFLAG_PRESENT | PFLAG_OWNED);
+
+	// and then clear the memory
+	memset(page, 0, 0x1000);
 }
 
 void PageDirectory::bindFirstFreeVirtualPage(void* page) {
-
 }
 
 void PageDirectory::unbindVirtualPage(void* page) {
+	// we get the indexes related to that page
+	int dirindex = ((u32)page) / 0x400000;
+	int pageindex = (((u32)page) % 0x400000) / 0x1000;
 
+	// if there is no directory on this index, just move on
+	if (!getReadableEntryPointer(dirindex)->getFlag(PFLAG_PRESENT))
+		return;
+
+	// and if the table is not present, move on
+	if (!getReadableTablePointer(dirindex, pageindex)->getFlag(PFLAG_PRESENT))
+		return;
+
+
+	// deallocate the page if it is owned
+	if (getReadableTablePointer(dirindex, pageindex)->getFlag(PFLAG_OWNED))
+		physicalMemoryManager.freePhysicalMemory(getReadableTablePointer(dirindex, pageindex)->getAddress());
+
+	// and the clear the entry
+	getReadableTablePointer(dirindex, pageindex)->value = 0;
+
+	// finally we invalidate the page so the CPU knows it's invalidate
+    invalidatePage(page);
 }
 
 void PageDirectory::mapMemory(void* page, void* physical) {
+	// we get the indexes related to that page
+	int dirindex = (u32)page / 0x100000;
+	int pageindex = ((u32)page % 0x100000) / 0x1000;
 
+	// if the directory does not exist, allocate one
+	if (!getReadableEntryPointer(dirindex)->getFlag(PFLAG_PRESENT))
+		allocateEntry(dirindex);
+
+	// put it in the page
+	getReadableTablePointer(dirindex, pageindex)->setAddress(physical);
+	getReadableTablePointer(dirindex, pageindex)->enableFlag(PFLAG_RW | PFLAG_PRESENT);
 }
 
 void PageDirectory::allocateEntry(int index) {
@@ -218,6 +262,13 @@ void PageDirectory::freeEntry(int index) {
 	if (getReadableEntryPointer(index)->getFlag(PFLAG_OWNED))
 		physicalMemoryManager.freePhysicalMemory(getReadableEntryPointer(index)->getAddress());
 
+	// then we loop over all tables in the entry
+	for (int i = 0 ; i < 1024 ; i++) {
+		// if the page is owned, free it
+		if (getReadableTablePointer(index, i)->getFlag(PFLAG_OWNED))
+			physicalMemoryManager.freePhysicalMemory(getReadableTablePointer(index, i)->getAddress());
+	}
+
 	// and then clear the entry
 	getReadableEntryPointer(index)->value = 0;
 }
@@ -229,3 +280,12 @@ PageDirectoryEntry* PageDirectory::getReadableEntryPointer(int index) {
 PageTableEntry* PageDirectory::getReadableTablePointer(int index, int tableindex) {
 	return ((PageTableEntry*)0xFFC00000) + (index * 1024 + tableindex);
 }
+
+void PageDirectory::invalidatePage(int index, int tableindex) {
+	invalidatePage((void*)(0x400000 * index + 0x1000 * tableindex));
+}
+
+void PageDirectory::invalidatePage(void* address) {
+	asm volatile("invlpg (%0)" ::"r" (address) : "memory");
+}
+

@@ -11,6 +11,7 @@
 //#define PRINT_UNIMPLEMENTED (printf("[UNIMPLEMENTED] %s:%s", __FILE__, __LINE__))
 
 #define LOG_INFO(X, ...) (printf("[info] " X "\n", ##__VA_ARGS__))
+#define LOG_DEBUG(X, ...) (printf("[debug] " X "\n", ##__VA_ARGS__))
 #define LOG_ERROR(X, ...) (printf("[error] %s:%s:" X "\n", __FILE__, __LINE__, ##__VA_ARGS__))
 #define LOG_STARTUP(X, ...) (printf("[startup] " X "\n", ##__VA_ARGS__))
 #define LOG_UNIMPLEMENTED() (printf("[unimplemented] %s:%s", __FILE__, __LINE__))

@@ -93,22 +93,22 @@ void initMemory(multiboot_info* multiboot) {
     // Now that we can allocate physical memory, initialize the paging. This should set up a valid not 4MB pagetable, with only the KERNEL_BEGIN_PHYSICAL to KERNEL_END_PHYSICAL mapped to the higher half, and nothing more.
     PageInit();
 
-
-    for (int i = 0 ; i < 200 ; i++) {
-        kernelPageDirectory.allocateEntry(250+i);
-    }
-    kernelPageDirectory.forceUpdate();
-
-    printf("\nend: 0x%X\n", 0x239000);
-    printf("test: 0x%X\n", kernelPageDirectory.getReadableTablePointer(0, 0));
-    printf("test: 0x%X\n", kernelPageDirectory.getReadableTablePointer(768, 0));
-    printf("test: 0x%X\n", kernelPageDirectory.getReadableTablePointer(768, 1));
-    BOCHS_BREAKPOINT
+    /*BOCHS_BREAKPOINT
     
-    for (int i = 0 ; i < 200 ; i++) {
-        kernelPageDirectory.freeEntry(250+i);
-    }
+    kernelPageDirectory.bindVirtualPage((void*)0x50000000);
+
+    *(char*)0x50000001 = 10;
+    *(char*)0x50000001 = *(char*)0x50000100;
+
     BOCHS_BREAKPOINT
+
+    kernelPageDirectory.unbindVirtualPage((void*)0x50000000);
+    kernelPageDirectory.bindVirtualPage((void*)0x50000000);
+
+    *(char*)0x50000001 = 10;
+    *(char*)0x50000001 = *(char*)0x50000100;
+
+    BOCHS_BREAKPOINT*/
 
     LOG_STARTUP("Paging initialized.");
 }

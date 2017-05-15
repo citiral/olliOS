@@ -90,6 +90,10 @@ public:
 
 	// returns a virtual pointer to a table in the entry at the index that can be referenced
 	PageTableEntry* getReadableTablePointer(int index, int tableindex);
+
+	// uses teh INVLPG to invalidate a cached TLB entry. This makes sure that page changes are recognized.
+	void invalidatePage(int index, int tableindex);
+	void invalidatePage(void* address);
 };
 
 void PageInit();
