@@ -102,7 +102,7 @@ extern "C" void main(multiboot_info* multiboot) {
     // init the memory management, so we have proper paging and can allocate memoryy
     initMemory(multiboot);
 
-    // initialize the ATA driveer
+    // initialize the ATA driver
     ataDriver.initialize();
     LOG_STARTUP("ATA driver initialized.");
 
@@ -127,8 +127,9 @@ extern "C" void main(multiboot_info* multiboot) {
         }*/
     //}
 
-    //Iso9660FileSystem fs(deviceManager.getDevice(DeviceType::Storage, 0));
-    //fs.openDir("root/usr/include/io.h");
+    Iso9660FileSystem fs(deviceManager.getDevice(DeviceType::Storage, 0));
+    fs.openDir("root/usr/include/io.h");
+    
     /*char* data = new char[2048];
 
     if (deviceManager.getDevice(DeviceType::Storage, 0)->seek(0x10 * SIZEOF_KB * 2, SEEK_SET) != 0)

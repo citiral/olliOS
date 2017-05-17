@@ -4,11 +4,6 @@
 #include "kstd/cstddef.h"
 #include "types.h"
 #include <stdio.h>
-/*
-* The stream will be the base of a lot of classes in the operating system.
-* Much like many other operating systems all device drivers, files,.. will
-* be represented as simple data streams.
-*/
 
 #define STREAM_SIZE_UNDEFINED -1
 

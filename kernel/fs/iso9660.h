@@ -6,9 +6,18 @@
 #include "kstd/vector.h"
 
 class Iso9660DirEntry : public DirEntry {
-    virtual void advance() {
+public:
+    Iso9660DirEntry();
+    ~Iso9660DirEntry();
+    virtual void advance();
+    virtual void open();
 
-    }  
+private:
+    // the record is the header containing file/dir information
+    u8* record;
+
+    // The extend is the actual data of the file
+    u8* extend;
 };
 
 class Iso9660FileSystem : public FileSystem {
@@ -19,12 +28,12 @@ public:
 
 private:
     void loadVolumeDescriptors();
-    unsigned char* loadPathTable(unsigned char* descriptor);
+    u8* loadPathTable(u8* descriptor);
 
     Device* _device;
-    std::vector<unsigned char*> _descriptors;
-    unsigned char* _primarydescriptor;
-    unsigned char* _primarypathtable;
+    std::vector<u8*> _descriptors;
+    u8* _primarydescriptor;
+    u8* _primarypathtable;
 };
 
 #endif

@@ -9,6 +9,19 @@
 #include "kstd/algorithm.h"
 
 namespace std {
+
+    template<class T>
+    T roundup(T val, T size) noexcept
+    {
+        return val + (val % size == 0 ? 0 : (size - (val % 0x1000)));
+    }
+
+    template<class T>
+    T rounddown(T val, T size) noexcept
+    {
+        return val - val % size;
+    }
+
     template<class T>
     typename remove_reference<T>::type&& move(T&& a) noexcept
     {

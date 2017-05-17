@@ -1,10 +1,11 @@
 #include "fs/iso9660.h"
 #include "streams/device.h"
 #include "cdefs.h"
+#include "kstd/utility.h"
 
 template <class T>
-T readType(unsigned char* descriptor, size_t offset) {
-    return *((T*)descriptor[offset]);
+T readType(u8* descriptor, size_t offset) {
+    return *(T*)(descriptor + offset);
 }
 
 Iso9660FileSystem::Iso9660FileSystem(Device* device): _device(device) {
@@ -25,7 +26,7 @@ void Iso9660FileSystem::loadVolumeDescriptors() {
 
     // keep reading new descriptors
     while (true) {
-        unsigned char* descriptor = new unsigned char[2048];
+        u8* descriptor = new u8[2048];
         _device->read(descriptor, 2048);
         
         // untill we encounted the descriptor set terminator
@@ -34,7 +35,7 @@ void Iso9660FileSystem::loadVolumeDescriptors() {
             break;
         }
 
-        if (descriptor[0] == 255) {
+        if (descriptor[0] == 1) {
             _primarydescriptor = descriptor;
         }
 
@@ -43,28 +44,34 @@ void Iso9660FileSystem::loadVolumeDescriptors() {
     }
 }
 
-unsigned char* Iso9660FileSystem::loadPathTable(unsigned char* descriptor) {
-    size_t pathtablesize = readType<size_t>(descriptor, 132);
-    unsigned char* pathtablepos = readType<unsigned char*>(descriptor, 140);
-    LOG_INFO("path table at 0x%X, size is %d", pathtablepos, pathtablesize);
-    _device->seek((i32)pathtablepos, SEEK_SET);
+u8* Iso9660FileSystem::loadPathTable(u8* descriptor) {
+    u32 pathtablesize = readType<u32>(descriptor, 132);
+    u8* pathtablepos = readType<u8*>(descriptor, 140);
+    
+    LOG_INFO("path table at 0x%X, size is %u", pathtablepos, pathtablesize);
+    _device->seek((i32)pathtablepos * SIZEOF_KB * 2, SEEK_SET);
 
-    unsigned char* pathtable = new unsigned char[pathtablesize + pathtablesize%2048];
-    _device->read(pathtable, pathtablesize + pathtablesize%2048);
+    u8* pathtable = new u8[std::roundup(pathtablesize, 2048u)];
+    _device->read(pathtable, std::roundup(pathtablesize, 2048u));
 
     return pathtable;
 }
 
 DirEntry* Iso9660FileSystem::openDir(const char* path) {
     size_t pathtablesize = readType<size_t>(_primarydescriptor, 132);
+    LOG_DEBUG("size is %d", pathtablesize);
 
     int i = 0;
     while (i < pathtablesize) {
-        unsigned char namelength = _primarypathtable[i];
-
-        //LOG_INFO("Found dir: %s", _primarypathtable[8]);
-        i += 9 + namelength;
+        u8 namelength = _primarypathtable[i];
+        printf("%s\n", _primarypathtable+i+8);
+        i += 8 + namelength + (namelength%2 == 0 ? 0 : 1);
     }
+    /*while (i < pathtablesize) {
+        u8 namelength = _primarypathtable[i];
+        LOG_DEBUG(" Entry length is %d", namelength);
+        i += 9 + namelength;
+    }*/
     
     return nullptr;
 }

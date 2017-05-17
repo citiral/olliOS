@@ -3,7 +3,3 @@
 //
 
 #include "fs/filesystem.h"
-
-DirEntry::~DirEntry() {
-
-}

@@ -15,15 +15,16 @@ enum DirEntryType {
 
 class DirEntry : Stream {
 public:
-    virtual ~DirEntry();
+    virtual ~DirEntry() {};
     virtual void advance() = 0;
+    virtual void open() = 0;
 
     DirEntryType type;
 };
 
 class FileSystem {
 public:
-    virtual DirEntry* openDir(const char* path) = 0;
+    virtual DirEntry* getRootDir() = 0;
 };
 
 extern FileSystem* rootFileSystem;
