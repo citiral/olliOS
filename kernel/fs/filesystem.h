@@ -12,19 +12,19 @@ enum DirEntryType {
     File,
 };
 
-
-class DirEntry : Stream {
+class DirEntry {
 public:
     virtual ~DirEntry() {};
-    virtual void advance() = 0;
-    virtual void open() = 0;
-
-    DirEntryType type;
+    virtual bool valid() = 0;
+    virtual bool advance() = 0;
+    virtual const char* name() = 0;
+    virtual DirEntryType type() = 0;
 };
 
 class FileSystem {
 public:
-    virtual DirEntry* getRootDir() = 0;
+    virtual DirEntry* openDir(const char* path) = 0;
+    virtual Stream* openFile(const char* path) = 0;
 };
 
 extern FileSystem* rootFileSystem;

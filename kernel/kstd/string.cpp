@@ -1,0 +1,99 @@
+#include "kstd/string.h"
+#include <string.h>
+
+// Empty strings are allocated as real "\0" strings... I could implement it with nullptr being used as the empty string. but that'd be more work and more error prone
+namespace std {
+
+string::string() {
+    // we allocate an empty string.
+    _data = new char[1];
+    _data[0] = 0;
+}
+
+string::string(const string& str) {
+    _data = new char[str.length() + 1];
+    strcpy(_data, str._data);
+}
+
+string::string(const char* s) {
+    _data = new char[strlen(s) + 1];
+    strcpy(_data, s);
+}
+
+string::string(size_t n, char c) {
+    _data = new char[n+1];
+    for (size_t i = 0 ; i < n ; i++) {
+        _data[i] = c;
+    }
+    _data[n] = 0;
+}
+
+string::string(string&& str) {
+    _data = str._data;
+    str._data = nullptr;
+}
+
+string::~string() {
+    if (_data != nullptr) {
+        delete[] _data;
+    } 
+}
+
+string& string::operator=(const string& str) {
+    if (_data != nullptr) {
+        delete _data;
+    }
+
+    _data = new char[str.size() + 1];
+    strcpy(_data, str._data);
+
+    return *this;
+}
+
+string& string::operator=(const char* s) {
+    if (_data != nullptr) {
+        delete _data;
+    }
+
+    _data = new char[strlen(s) + 1];
+    strcpy(_data, s);
+
+    return *this;
+}
+
+string& string::operator=(char c) {
+    if (_data != nullptr) {
+        delete _data;
+    }
+
+    _data = new char[2];
+    _data[0] = c;
+    _data[1] = 0;
+
+    return *this;
+}
+
+string& string::operator=(string&& str) {
+    char* temp = _data;
+    _data = str._data;
+    str._data = temp;
+    return *this;
+}
+
+size_t string::length() const {
+    return strlen(_data);
+}
+
+size_t string::size() const {
+    return strlen(_data);
+}
+
+const char* string::c_str() const {
+    return _data;
+}
+
+const char* string::data() const {
+    return _data;
+}
+
+}

@@ -1,3 +1,4 @@
+#include "kstd/string.h"
 #include "types.h"
 #include "gdt.h"
 #include "interrupt.h"
@@ -128,7 +129,11 @@ extern "C" void main(multiboot_info* multiboot) {
     //}
 
     Iso9660FileSystem fs(deviceManager.getDevice(DeviceType::Storage, 0));
-    fs.openDir("root/usr/include/io.h");
+    DirEntry* dir = fs.openDir("/usr/include");
+
+    while (dir->valid()) {
+        LOG_DEBUG("file: %s, %d", dir->name(), dir->type());
+    }
     
     /*char* data = new char[2048];
 

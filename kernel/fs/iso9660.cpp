@@ -10,7 +10,7 @@ T readType(u8* descriptor, size_t offset) {
 
 Iso9660FileSystem::Iso9660FileSystem(Device* device): _device(device) {
     loadVolumeDescriptors();
-    _primarypathtable = loadPathTable(_primarydescriptor);
+    //_primarypathtable = loadPathTable(_primarydescriptor);
 }
 
 Iso9660FileSystem::~Iso9660FileSystem() {
@@ -44,7 +44,7 @@ void Iso9660FileSystem::loadVolumeDescriptors() {
     }
 }
 
-u8* Iso9660FileSystem::loadPathTable(u8* descriptor) {
+/*u8* Iso9660FileSystem::loadPathTable(u8* descriptor) {
     u32 pathtablesize = readType<u32>(descriptor, 132);
     u8* pathtablepos = readType<u8*>(descriptor, 140);
     
@@ -55,9 +55,17 @@ u8* Iso9660FileSystem::loadPathTable(u8* descriptor) {
     _device->read(pathtable, std::roundup(pathtablesize, 2048u));
 
     return pathtable;
-}
+}*/
 
 DirEntry* Iso9660FileSystem::openDir(const char* path) {
+    return new Iso9660DirEntry();
+}
+
+Stream* Iso9660FileSystem::openFile(const char* path) {
+    return nullptr;
+}
+
+/*DirEntry* Iso9660FileSystem::openDir(const char* path) {
     size_t pathtablesize = readType<size_t>(_primarydescriptor, 132);
     LOG_DEBUG("size is %d", pathtablesize);
 
@@ -71,7 +79,38 @@ DirEntry* Iso9660FileSystem::openDir(const char* path) {
         u8 namelength = _primarypathtable[i];
         LOG_DEBUG(" Entry length is %d", namelength);
         i += 9 + namelength;
-    }*/
+    }
     
     return nullptr;
+}*/
+
+u8* Iso9660FileSystem::readExtend(u32 lba, u32 length) {
+    _device->seek(lba * SIZEOF_KB  * 2, SEEK_SET);
+    u8* extend = new u8[std::roundup(length, 2048u)];
+    _device->read(extend, std::roundup(length, 2048u));
+    return extend;
+}
+
+Iso9660DirEntry::Iso9660DirEntry() {
+    
+}
+
+Iso9660DirEntry::~Iso9660DirEntry() {
+    
+}
+
+bool Iso9660DirEntry::valid() {
+    return false;
+}
+
+bool Iso9660DirEntry::advance() {
+    return false;
+}
+
+const char* Iso9660DirEntry::name() {
+    return "nope";
+}
+
+DirEntryType Iso9660DirEntry::type() {
+    return DirEntryType::File;
 }
