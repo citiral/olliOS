@@ -129,11 +129,14 @@ extern "C" void main(multiboot_info* multiboot) {
     //}
 
     Iso9660FileSystem fs(deviceManager.getDevice(DeviceType::Storage, 0));
-    DirEntry* dir = fs.openDir("/usr/include");
-
+    DirEntry* dir = fs.getRoot();
+    
     while (dir->valid()) {
-        LOG_DEBUG("file: %s, %d", dir->name(), dir->type());
+        LOG_DEBUG("file: %s, %d", dir->name().c_str(), dir->type());
+        dir->advance();
     }
+
+    delete dir;
     
     /*char* data = new char[2048];
 

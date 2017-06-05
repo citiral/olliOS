@@ -20,6 +20,12 @@ string::string(const char* s) {
     strcpy(_data, s);
 }
 
+string::string(const char* s, size_t n) {
+    _data = new char[n + 1];
+    memcpy(_data, s, n);
+    _data[n] = 0;
+}
+
 string::string(size_t n, char c) {
     _data = new char[n+1];
     for (size_t i = 0 ; i < n ; i++) {
@@ -78,6 +84,14 @@ string& string::operator=(string&& str) {
     _data = str._data;
     str._data = temp;
     return *this;
+}
+
+char& string::operator[](size_t pos) {
+    return _data[pos];
+}
+
+const char& string::operator[](size_t pos) const {
+    return _data[pos];
 }
 
 size_t string::length() const {

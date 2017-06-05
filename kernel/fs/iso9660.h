@@ -5,27 +5,37 @@
 #include "streams/device.h"
 #include "kstd/vector.h"
 
+class Iso9660FileSystem;
+
 class Iso9660DirEntry : public DirEntry {
 public:
-    Iso9660DirEntry();
+    Iso9660DirEntry(Stream* fs, u8* record, u32 length, u32 offset);
     ~Iso9660DirEntry();
+
     virtual bool valid();
     virtual bool advance();
-    virtual const char* name();
+    virtual std::string name();
     virtual DirEntryType type();
 
+    virtual DirEntry* openDir();
+    virtual Stream* openFile();
+
+    u8* getSystemUseField(u8 b1, u8 b2);
+
 private:
-    u8* recordlist;
-    u8* recordoffset;
+    u8* _record;
+    u32 _offset;
+    u32 _length;
+    Stream* _fs;
 };
 
 class Iso9660FileSystem : public FileSystem {
+    friend Iso9660DirEntry;
 public:
     Iso9660FileSystem(Device* device);
     ~Iso9660FileSystem();
     
-    virtual DirEntry* openDir(const char* path);
-    virtual Stream* openFile(const char* path);
+    DirEntry* getRoot();
 
 private:
     void loadVolumeDescriptors();
