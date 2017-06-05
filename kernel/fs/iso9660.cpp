@@ -47,7 +47,6 @@ void Iso9660FileSystem::loadVolumeDescriptors() {
 DirEntry* Iso9660FileSystem::getRoot() {
     u32 lba = readType<u32>(_primarydescriptor, 156 + 2);
     u32 length = readType<u32>(_primarydescriptor, 156 + 10);
-    LOG_DEBUG("lba %u, length %u, other %u", lba, length, readType<u16>(_primarydescriptor, 128));
     u8* rootextend = readExtend(lba, length);
 
     return new Iso9660DirEntry(_device, rootextend, length, 0);
@@ -69,11 +68,18 @@ Iso9660DirEntry::~Iso9660DirEntry() {
 }
 
 bool Iso9660DirEntry::valid() {
-    return (_offset < _length) && _record[_offset] > 0;
+    return (_offset < _length);
 }
 
 bool Iso9660DirEntry::advance() {
+    // first, move over this file
     _offset += readType<u8>(_record, _offset);
+
+    // then, because there can be 0 padding after files, keep skipping 0's, until we find something or reach the end of the directory
+    // this is ugly, but i'm not sure there is another way.
+    while (_offset < _length && _record[_offset] == 0)
+        _offset++;
+    
     return valid();
 }
 
@@ -99,7 +105,11 @@ std::string Iso9660DirEntry::name() {
 }
 
 DirEntryType Iso9660DirEntry::type() {
-    return (DirEntryType)(readType<u8>(_record, _offset + 25));
+    u8 flag = readType<u8>(_record, _offset + 25);
+    if ((flag&2) == 0)
+        return DirEntryType::File;
+    else 
+        return DirEntryType::Folder;
 }
 
 u8* Iso9660DirEntry::getSystemUseField(u8 b1, u8 b2) {
@@ -125,7 +135,7 @@ DirEntry* Iso9660DirEntry::openDir() {
 
     _fs->seek(lba * SIZEOF_KB  * 2, SEEK_SET);
     u8* extend = new u8[std::roundup(length, 2048u)];
-    _fs->read(extend, std::roundup(length, 2048u));
+    u32 read = _fs->read(extend, std::roundup(length, 2048u));
 
     return new Iso9660DirEntry(_fs, extend, length, 0);
 }

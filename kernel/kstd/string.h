@@ -19,9 +19,13 @@ namespace std {
         string& operator=(const char* s);
         string& operator=(char c);
         string& operator=(string&& str);
+
         friend bool operator==(const string& lhs, const string& rhs);
         friend bool operator==(const string& lhs, const char* rhs);
         friend bool operator==(const char* lhs, const string& rhs);
+        friend bool operator!=(const string& lhs, const string& rhs);
+        friend bool operator!=(const string& lhs, const char* rhs);
+        friend bool operator!=(const char* lhs, const string& rhs);
 
         char& operator[](size_t pos);
         const char& operator[](size_t pos) const;

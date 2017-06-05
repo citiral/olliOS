@@ -107,6 +107,18 @@ bool operator==(const char* lhs, const string& rhs) {
     return rhs.compare(lhs) == 0;
 }
 
+bool operator!=(const string& lhs, const string& rhs) {
+    return lhs.compare(rhs) != 0;
+}
+
+bool operator!=(const string& lhs, const char* rhs) {
+    return lhs.compare(rhs) != 0;
+}
+
+bool operator!=(const char* lhs, const string& rhs) {
+    return rhs.compare(lhs) != 0;
+}
+
 int string::compare(const string& str) const {
     return compare(str.c_str());
 }

@@ -95,6 +95,20 @@ void initMemory(multiboot_info* multiboot) {
     LOG_STARTUP("Paging initialized.");
 }
 
+void printrec(DirEntry* root) {
+    while (root->valid()) {
+        if (root->name() != "." && root->name() != "..") {
+            printf("%s ", root->name().c_str());
+            if (root->type() == DirEntryType::Folder) {
+                DirEntry* next = root->openDir();
+                printrec(next);
+                delete next;
+            }
+        }
+        root->advance();
+    }
+}
+
 extern "C" void main(multiboot_info* multiboot) {
     // init lowlevel CPU related stuff
     // None of these should be allowed to touch the memory allocator, etc
@@ -130,21 +144,7 @@ extern "C" void main(multiboot_info* multiboot) {
 
     Iso9660FileSystem fs(deviceManager.getDevice(DeviceType::Storage, 0));
     DirEntry* dir = fs.getRoot();
-    
-    while (dir->valid()) {
-        LOG_DEBUG("file: %s, %d", dir->name().c_str(), dir->type());
-
-        if (dir->name() == "boot") {
-            DirEntry* two = dir->openDir();
-            while (two->valid()) {
-                LOG_DEBUG("file: %s, %d", two->name().c_str(), two->type());
-                two->advance();
-            }
-            delete two;
-        }
-        dir->advance();
-    }
-
+    printrec(dir);
     delete dir;
     
     /*char* data = new char[2048];

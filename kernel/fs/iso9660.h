@@ -16,7 +16,6 @@ public:
     virtual bool advance();
     virtual std::string name();
     virtual DirEntryType type();
-
     virtual DirEntry* openDir();
     virtual Stream* openFile();
 
@@ -30,7 +29,6 @@ private:
 };
 
 class Iso9660FileSystem : public FileSystem {
-    friend Iso9660DirEntry;
 public:
     Iso9660FileSystem(Device* device);
     ~Iso9660FileSystem();

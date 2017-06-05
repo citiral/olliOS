@@ -27,7 +27,6 @@ public:
     virtual bool advance() = 0;
     virtual std::string name() = 0;
     virtual DirEntryType type() = 0;
-
     virtual DirEntry* openDir() = 0;
     virtual Stream* openFile() = 0;
 };
