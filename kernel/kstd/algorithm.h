@@ -12,6 +12,11 @@ namespace std {
         t1 = move(t2);
         t2 = move(temp);
     }
+
+    template< class T > 
+    const T& min( const T& a, const T& b ) {
+        return (b < a) ? b : a;
+    }
 }
 
 #endif //OLLIOS_GIT_ALGORITHM_H
