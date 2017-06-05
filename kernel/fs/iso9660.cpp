@@ -95,7 +95,6 @@ std::string Iso9660DirEntry::name() {
     }
 
     // otherwise, return the alternate name
-
     return std::string((const char*)nm + 5, nm[2] - 5);
 }
 
@@ -121,7 +120,14 @@ u8* Iso9660DirEntry::getSystemUseField(u8 b1, u8 b2) {
 }
 
 DirEntry* Iso9660DirEntry::openDir() {
-    return nullptr;
+    u32 lba = readType<u32>(_record, _offset + 2);
+    u32 length = readType<u32>(_record, _offset + 10);
+
+    _fs->seek(lba * SIZEOF_KB  * 2, SEEK_SET);
+    u8* extend = new u8[std::roundup(length, 2048u)];
+    _fs->read(extend, std::roundup(length, 2048u));
+
+    return new Iso9660DirEntry(_fs, extend, length, 0);
 }
 
 Stream* Iso9660DirEntry::openFile() {

@@ -10,3 +10,8 @@
 
 bochsout.txt
 ollios.iso
+
+# ide files
+.idea
+.vscode
+.directory

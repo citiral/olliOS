@@ -133,6 +133,15 @@ extern "C" void main(multiboot_info* multiboot) {
     
     while (dir->valid()) {
         LOG_DEBUG("file: %s, %d", dir->name().c_str(), dir->type());
+
+        if (dir->name() == "boot") {
+            DirEntry* two = dir->openDir();
+            while (two->valid()) {
+                LOG_DEBUG("file: %s, %d", two->name().c_str(), two->type());
+                two->advance();
+            }
+            delete two;
+        }
         dir->advance();
     }
 
