@@ -15,6 +15,8 @@ DeviceType AtaPioDevice::getDeviceType() const {
     return DeviceType::Storage;
 }
 
-const char* AtaPioDevice::getDeviceName() const {
-    return (char*)(_data + 27);
+void AtaPioDevice::getDeviceInfo(void* deviceinfo) const
+{
+	DeviceStorageInfo* info = (DeviceStorageInfo*)deviceinfo;
+	info->deviceInfo.name = (char*)(_data + 27);
 }

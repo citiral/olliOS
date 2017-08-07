@@ -11,6 +11,7 @@
 #include "alloc.h"
 #include "linker.h"
 #include "fs/iso9660.h"
+#include "fs/virtualfilesystem.h"
 #include "alloc.h"
 #include "ata/ata.h"
 #include "devicemanager.h"
@@ -124,10 +125,24 @@ extern "C" void main(multiboot_info* multiboot) {
     // and register the default vga and and keyboard driver
     deviceManager.addDevice(&vgaDriver);
     LOG_STARTUP("VGA driver initialized.");
+    
     deviceManager.addDevice(new KeyboardDriver());
     LOG_STARTUP("Keyboard driver initialized.");
 
+    vfs = new VirtualFileSystem();
+    LOG_STARTUP("Virtual filesystem created.");
+
+    auto storagedevices = deviceManager.getDevices(DeviceType::Storage);
+    for (int i =  0; i < storagedevices.size() ; i++) {
+        DeviceStorageInfo info;
+        storagedevices[i]->getDeviceInfo(&info);
+        vfs->BindFilesystem(info.deviceInfo.name, new Iso9660FileSystem(storagedevices[i]));
+    }
+    LOG_STARTUP("Bound filesystems.");
+
     LOG_STARTUP("Welcome to OlliOS!");
+
+    printrec(vfs->getRoot());
 
     //KeyboardDriver driver;
     
@@ -142,10 +157,10 @@ extern "C" void main(multiboot_info* multiboot) {
         }*/
     //}
 
-    Iso9660FileSystem fs(deviceManager.getDevice(DeviceType::Storage, 0));
+    /*Iso9660FileSystem fs(deviceManager.getDevice(DeviceType::Storage, 0));
     DirEntry* dir = fs.getRoot();
     printrec(dir);
-    delete dir;
+    delete dir;*/
     
     /*char* data = new char[2048];
 

@@ -35,7 +35,7 @@ public:
 	//gets the type of the vga driver
 	virtual DeviceType getDeviceType() const;
 	//gets the name of the vga driver
-	virtual const char* getDeviceName() const;
+	virtual void getDeviceInfo(void* deviceinfo) const;
 	//prints amount bytes to the screen
 	virtual size_t write(const void* data, size_t amount);
 	//prints bytes to the screen

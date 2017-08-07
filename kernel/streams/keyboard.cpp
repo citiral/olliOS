@@ -38,9 +38,10 @@ DeviceType KeyboardDriver::getDeviceType() const
 	return DeviceType::Keyboard;
 }
 
-const char* KeyboardDriver::getDeviceName() const
+void KeyboardDriver::getDeviceInfo(void* deviceinfo) const
 {
-	return KEYBOARD_DRIVER_DEVICE_NAME;
+	DeviceKeyboardInfo* info = (DeviceKeyboardInfo*)deviceinfo;
+	info->deviceInfo.name = KEYBOARD_DRIVER_DEVICE_NAME;
 }
 
 size_t KeyboardDriver::write(const void* data, size_t amount)

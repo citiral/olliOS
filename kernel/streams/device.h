@@ -22,8 +22,26 @@ public:
 
     //returns the type of the device
     virtual DeviceType getDeviceType() const = 0;
-    //returns the name of the device, this need not be unique.
-    virtual const char* getDeviceName() const = 0;
+
+    // returns the info of the device, in a Device[deviceType]Info struct
+    virtual void getDeviceInfo(void* deviceinfo) const = 0;
+};
+
+struct DeviceInfo {
+    const char* name;
+};
+
+struct DeviceStorageInfo {
+    DeviceInfo deviceInfo;
+    //FileSystem* (fileSystemAllocator);
+};
+
+struct DeviceKeyboardInfo {
+    DeviceInfo deviceInfo;
+};
+
+struct DeviceScreenInfo {
+    DeviceInfo deviceInfo;
 };
 
 #endif /* end of include guard: __DEVICE_H */

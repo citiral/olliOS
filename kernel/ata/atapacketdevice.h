@@ -17,7 +17,7 @@ public:
     ~AtaPacketDevice();
 
     virtual DeviceType getDeviceType() const;
-    virtual const char* getDeviceName() const;
+    virtual void getDeviceInfo(void* deviceinfo) const;
 
     UNIMPLEMENTED(size_t write(const void* data, size_t amount), 0);
     UNIMPLEMENTED(size_t write(const void* data), 0);

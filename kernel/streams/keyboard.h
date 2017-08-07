@@ -83,7 +83,7 @@ public:
 	//gets the type of the keyboard driver
 	virtual DeviceType getDeviceType() const;
 	//gets the name of the keyboard driver
-	virtual const char* getDeviceName() const;
+	virtual void getDeviceInfo(void* info) const;
 	//makes the driver process amount scancodes from data
 	virtual size_t write(const void* data, size_t amount);
 	//makes the driver process scancodes from data until a nullpointer is occured

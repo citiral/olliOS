@@ -30,9 +30,10 @@ DeviceType VgaDriver::getDeviceType() const
 	return DeviceType::Screen;
 }
 
-const char* VgaDriver::getDeviceName() const
+void VgaDriver::getDeviceInfo(void* deviceinfo) const
 {
-	return VGA_DRIVER_DEVICE_NAME;
+	DeviceScreenInfo* info = (DeviceScreenInfo*)deviceinfo;
+	info->deviceInfo.name = VGA_DRIVER_DEVICE_NAME;
 }
 
 size_t VgaDriver::write(const void* data, size_t amount)

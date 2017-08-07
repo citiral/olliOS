@@ -28,7 +28,7 @@ void KernelShell::allocmerge() {
 #endif
 
 void KernelShell::devicesinfo() {
-    const char* names[] = {"Keyboard", "Screen", "Storage"};
+    /*const char* names[] = {"Keyboard", "Screen", "Storage"};
 
     for (u8 i = 0 ; i < 3 ; i++) {
         DeviceType type = (DeviceType)i;
@@ -40,7 +40,7 @@ void KernelShell::devicesinfo() {
         if (deviceManager.getDevices(type).size() > 0)
             printf("%s", deviceManager.getDevices(type).back()->getDeviceName());
         printf("\n");
-    }
+    }*/
 }
 
 void KernelShell::help() {

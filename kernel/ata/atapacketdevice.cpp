@@ -18,14 +18,16 @@ DeviceType AtaPacketDevice::getDeviceType() const {
     return DeviceType::Storage;
 }
 
-const char* AtaPacketDevice::getDeviceName() const {
-    return (char*)(_data + 27);
+void AtaPacketDevice::getDeviceInfo(void* deviceinfo) const
+{
+	DeviceStorageInfo* info = (DeviceStorageInfo*)deviceinfo;
+	info->deviceInfo.name = (char*)(_data + 27);
 }
 
 size_t AtaPacketDevice::read(void* data, size_t amount) {
     // select ourselves as drive
     ataDriver.selectDevice(_drive);
-
+    
     // round amount to the lowest block (2k boundary)
     amount -= amount % 2048;
 
