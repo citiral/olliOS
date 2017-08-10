@@ -136,7 +136,7 @@ extern "C" void main(multiboot_info* multiboot) {
     for (int i =  0; i < storagedevices.size() ; i++) {
         DeviceStorageInfo info;
         storagedevices[i]->getDeviceInfo(&info);
-        vfs->BindFilesystem(info.deviceInfo.name, new Iso9660FileSystem(storagedevices[i]));
+        vfs->BindFilesystem("hdd", new Iso9660FileSystem(storagedevices[i]));
     }
     LOG_STARTUP("Bound filesystems.");
 
@@ -174,7 +174,7 @@ extern "C" void main(multiboot_info* multiboot) {
     printf("id is: %d", data[0]);
 
     delete[] data;
-
+    */
     const char* string = "/test/help/bvb";
     int depth = 0;
     while (true) {
@@ -193,7 +193,7 @@ extern "C" void main(multiboot_info* multiboot) {
             string++;
 
         depth++;
-    }*/
+    }
 
     KernelShell shell;
     shell.enter();

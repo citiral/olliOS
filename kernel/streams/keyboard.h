@@ -56,11 +56,13 @@ enum class VirtualKeycode : u8 {
 	RCTRL,
 	LALT,
 	RALT,
+	N_SLASH,
+	N_MINUS,
 };
 
 //a single event in the world of virtual keys.
 //the status register is as follows:
-// [0-6: UNUSED | 7: presed]
+// [0-5: UNUSED | 6: shift | 7: pressed]
 // make: 1 if the key is pressed, 0 if the key is released
 
 typedef struct __attribute__ ((__packed__))  VirtualKeyEvent {
@@ -112,6 +114,8 @@ private:
 	// returns a virtual keycode from the current codes, interpretd as break codes, if possible. otherwise,
 	// it returns an invalid key.
 	VirtualKeycode convertBreakScancodeToKeycode();
+	// Update the internal status with the given virtualkeycode (eg. shift release, press)
+	void updateStatus(VirtualKeyEvent code);
 
 	u8 _code1;
 	u8 _code2;
@@ -119,6 +123,7 @@ private:
 	VirtualKeyEvent _buffer[INPUT_BUFFER_SIZE];
 	u8 _bufferPos;
 	u8 _bufferLength;
+	u8 _status;
 };
 
 #endif

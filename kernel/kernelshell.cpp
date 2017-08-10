@@ -5,6 +5,7 @@
 #include "kernelshell.h"
 #include "alloc.h"
 #include "devicemanager.h"
+#include "fs/virtualfilesystem.h"
 #include <string.h>
 
 KernelShell::KernelShell() {
@@ -14,20 +15,21 @@ KernelShell::KernelShell() {
 #endif
     _commands.push_back(std::pair<const char*, CommandFunction>("devicesinfo", &KernelShell::devicesinfo));
     _commands.push_back(std::pair<const char*, CommandFunction>("help", &KernelShell::help));
+    _commands.push_back(std::pair<const char*, CommandFunction>("ls", &KernelShell::ls));
 }
 
 #if __KERNEL_ALLOCATOR == __KERNEL_ALLOCATOR_BUCKET
-void KernelShell::allocinfo() {
+void KernelShell::allocinfo(const char* cmd) {
     kernelAllocator.printStatistics();
     printf("\n");
 }
 
-void KernelShell::allocmerge() {
+void KernelShell::allocmerge(const char* cmd) {
     kernelAllocator.merge();
 }
 #endif
 
-void KernelShell::devicesinfo() {
+void KernelShell::devicesinfo(const char* cmd) {
     /*const char* names[] = {"Keyboard", "Screen", "Storage"};
 
     for (u8 i = 0 ; i < 3 ; i++) {
@@ -43,7 +45,23 @@ void KernelShell::devicesinfo() {
     }*/
 }
 
-void KernelShell::help() {
+void KernelShell::ls(const char* cmd) {
+    DirEntry* dir = vfs->fromPath(cmd+3);
+
+    if (!dir) {
+        printf("Invalid directory %s\n", cmd+3);
+        return;
+    }
+
+    while (dir->valid()) {
+        printf("%s\n", dir->name().c_str());
+        dir->advance();
+    }
+
+    delete dir;
+}
+
+void KernelShell::help(const char* cmd) {
     printf("Possible commands: ");
 
     for (int i = 0 ; i + 1 < _commands.size() ; i++) {
@@ -78,11 +96,19 @@ void KernelShell::enter() {
 
             // find the first matching command and call it
             bool notFound = true;
+
             for (int i = 0 ; i < _commands.size() ; i++) {
-                if (strcmp(line.data(), _commands[i].first) == 0) {
-                    (this->*_commands[i].second)();
-                    notFound = false;
-                    break;
+                if (strlen(_commands[i].first) <= strlen(line.data())) {
+                    int len = strlen(_commands[i].first);
+                    bool matches = true;
+                    for (int k = 0 ; k < len ; k++) {
+                        matches &= (_commands[i].first[k] == line[k]);
+                    }
+                
+                    if (matches) {
+                        (this->*_commands[i].second)(line.data());
+                        notFound = false;
+                    }
                 }
             }
 

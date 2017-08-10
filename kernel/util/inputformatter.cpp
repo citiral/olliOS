@@ -28,10 +28,19 @@ void InputFormatter::handleVirtualKeyEvent(VirtualKeyEvent event)
             _input.front().pop_back();
         }
     } else if (event.vkey >= VirtualKeycode::A && event.vkey <= VirtualKeycode::Z) {
-        char key = (u8)event.vkey - (u8)VirtualKeycode::A;
-        addChar('a' + key);
+        if (event.status & 0b00000010) {
+            char key = (u8)event.vkey - (u8)VirtualKeycode::A;
+            addChar('A' + key);
+        } else {
+            char key = (u8)event.vkey - (u8)VirtualKeycode::A;
+            addChar('a' + key);
+        }
     } else if (event.vkey == VirtualKeycode::SPACE) {
         addChar(' ');
+    } else if (event.vkey == VirtualKeycode::N_SLASH) {
+        addChar('/');
+    } else if (event.vkey == VirtualKeycode::N_MINUS) {
+        addChar('-');
     }
 }
 

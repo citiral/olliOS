@@ -1,5 +1,6 @@
 #include "fs/virtualfilesystem.h"
 #include "cdefs.h"
+#include <string.h>
 
 VirtualFileSystem* vfs;
 
@@ -19,6 +20,52 @@ DirEntry* VirtualFileSystem::getRoot() {
     return new VirtualDirEntry(&_root);
 }
 
+DirEntry* VirtualFileSystem::fromPath(const char* path) {
+    DirEntry* root = getRoot();
+
+    // we loop over each subfolder in the path
+    while (true) {
+        // first we skip as many slashes as we can
+        while (*path == '/')
+            path++;
+
+        // then we get the length of the current folder, this is the length until the next / or the end
+        int length = 0;
+        while (path[length] != '/' && path[length] != '\0')
+            length++;
+
+        // if the length is zero, this was a trailing slash and we can stop here
+        if (length == 0)
+            break;
+
+        // we get the folder name
+        std::string cur(path, length);
+
+        // and then try to find the directory that matches
+        bool matched = false;
+        while (root->valid()) {
+            if (cur == root->name()) {
+                auto next = root->openDir();
+                delete root;
+                root = next;
+                matched = true;
+                break;
+            }
+            root->advance();
+        }
+
+        if (!matched) {
+            delete root;
+            return nullptr;
+        }
+
+        path += length;
+        if (*path == '\0')
+            break;
+    }
+
+    return root;
+}
 
 
 VirtualDirEntry::VirtualDirEntry(VirtualDirectory* dir): _vdir(dir), _index(0)  {

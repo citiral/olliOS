@@ -16,13 +16,14 @@ public:
 
 private:
 #if __KERNEL_ALLOCATOR == __KERNEL_ALLOCATOR_BUCKET
-    void allocinfo();
-    void allocmerge();
-    void devicesinfo();
+    void allocinfo(const char* cmd);
+    void allocmerge(const char* cmd);
+    void devicesinfo(const char* cmd);
+    void ls(const char* cmd);
 #endif
-    void help();
+    void help(const char* cmd);
 
-    using CommandFunction = void (KernelShell::*)();
+    using CommandFunction = void (KernelShell::*)(const char* cmd);
     InputFormatter _input;
     std::vector<std::pair<const char*, CommandFunction>> _commands;
 };

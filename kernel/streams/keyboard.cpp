@@ -57,14 +57,16 @@ size_t KeyboardDriver::write(const void* data, size_t amount)
 		//check if the current sequence exists
 		VirtualKeycode make = convertMakeScancodeToKeycode();
 		if (make != VirtualKeycode::INVALID) {
-			pushBuffer(VirtualKeyEvent(make, 0b00000001));
+			pushBuffer(VirtualKeyEvent(make, _status | 0b00000001));
 			clearCodes();
+			updateStatus(VirtualKeyEvent(make, _status | 0b00000001));
 		} else
 		{
 			VirtualKeycode breakcode = convertBreakScancodeToKeycode();
 			if (breakcode != VirtualKeycode::INVALID) {
-				pushBuffer(VirtualKeyEvent(breakcode, 0b00000000));
+				pushBuffer(VirtualKeyEvent(breakcode, _status | 0b00000000));
 				clearCodes();
+				updateStatus(VirtualKeyEvent(breakcode, _status | 0b00000000));
 			}
 		}
 		i++;
@@ -85,14 +87,16 @@ size_t KeyboardDriver::write(const void* data)
 		//check if the current sequence exists
 		VirtualKeycode make = convertMakeScancodeToKeycode();
 		if (make != VirtualKeycode::INVALID) {
-			pushBuffer(VirtualKeyEvent(make, 0b00000001));
+			pushBuffer(VirtualKeyEvent(make, _status | 0b00000001));
 			clearCodes();
+				updateStatus(VirtualKeyEvent(make, _status | 0b00000001));
 		} else
 		{
 			VirtualKeycode breakcode = convertBreakScancodeToKeycode();
 			if (breakcode != VirtualKeycode::INVALID) {
-				pushBuffer(VirtualKeyEvent(breakcode, 0b00000000));
+				pushBuffer(VirtualKeyEvent(breakcode, _status | 0b00000000));
 				clearCodes();
+				updateStatus(VirtualKeyEvent(breakcode, _status | 0b00000000));
 			}
 		}
 		i++;
@@ -107,14 +111,16 @@ size_t KeyboardDriver::write(char data) {
 	//check if the current sequence exists
 	VirtualKeycode make = convertMakeScancodeToKeycode();
 	if (make != VirtualKeycode::INVALID) {
-		pushBuffer(VirtualKeyEvent(make, 0b00000001));
+		pushBuffer(VirtualKeyEvent(make, _status | 0b00000001));
 		clearCodes();
+		updateStatus(VirtualKeyEvent(make, _status | 0b00000001));
 	} else
 	{
 		VirtualKeycode breakcode = convertBreakScancodeToKeycode();
 		if (breakcode != VirtualKeycode::INVALID) {
-			pushBuffer(VirtualKeyEvent(breakcode, 0b00000000));
+			pushBuffer(VirtualKeyEvent(breakcode, _status | 0b00000000));
 			clearCodes();
+			updateStatus(VirtualKeyEvent(breakcode, _status | 0b00000000));
 		}
 	}
 
@@ -141,6 +147,14 @@ size_t KeyboardDriver::seek(i32 offset, int position)
 {
 	//you can't seek in a keyboard, dummy
 	return 1;
+}
+
+void KeyboardDriver::updateStatus(VirtualKeyEvent code) {
+	// if shift is down, replace the shift bit with the make bit of the current code
+	if (code.vkey == VirtualKeycode::LSHIFT || code.vkey == VirtualKeycode::RSHIFT) {
+		_status &= 0b11111101;
+		_status |= ((code.status & 0b00000001) << 1);
+	}
 }
 
 void KeyboardDriver::handleScanCode(unsigned char code)
@@ -196,8 +210,12 @@ void KeyboardDriver::pushBuffer(VirtualKeyEvent key)
 }
 
 VirtualKeycode KeyboardDriver::convertMakeScancodeToKeycode() {
-	VirtualKeycode code = scanset2_map1[_code1];
-	return code;
+	VirtualKeycode k1 = scanset2_map1[_code1];
+	if (k1 == VirtualKeycode::INVALID && _code2 != 0) {
+		return scanset2_map2[_code2];
+	} else {
+		return k1;
+	}
 }
 
 VirtualKeycode KeyboardDriver::convertBreakScancodeToKeycode() {
@@ -232,7 +250,7 @@ VirtualKeycode scanset2_map1[255] = {
 	VirtualKeycode::INVALID,// 0F
 	VirtualKeycode::INVALID,// 10
 	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
+	VirtualKeycode::LSHIFT,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::Q,
@@ -303,7 +321,7 @@ VirtualKeycode scanset2_map1[255] = {
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
+	VirtualKeycode::RSHIFT,
 	VirtualKeycode::ENTER,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
@@ -337,7 +355,7 @@ VirtualKeycode scanset2_map1[255] = {
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
+	VirtualKeycode::N_MINUS,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
@@ -419,7 +437,7 @@ VirtualKeycode scanset2_map2[255] = {
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
+	VirtualKeycode::N_SLASH,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
