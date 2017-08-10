@@ -58,6 +58,7 @@ enum class VirtualKeycode : u8 {
 	RALT,
 	N_SLASH,
 	N_MINUS,
+	N_DOT,
 };
 
 //a single event in the world of virtual keys.
@@ -106,8 +107,6 @@ private:
 	VirtualKeyEvent popBuffer();
 	// pops a keyevent from the buffer of the keyboard driver
 	void pushBuffer(VirtualKeyEvent key);
-	// handles a single scancode from the keyboard
-	void handleScanCode(unsigned char code);
 	// returns a virtual keycode from the current codes interpreted as make codes, if possible. otherwise,
 	// it returns an invalid key.
 	VirtualKeycode convertMakeScancodeToKeycode();

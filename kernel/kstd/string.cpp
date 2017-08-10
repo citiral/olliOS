@@ -45,10 +45,9 @@ string::~string() {
         delete[] _data;
     } 
 }
-
 string& string::operator=(const string& str) {
     if (_data != nullptr) {
-        delete _data;
+        delete[] _data;
     }
 
     _data = new char[str.size() + 1];
@@ -59,7 +58,7 @@ string& string::operator=(const string& str) {
 
 string& string::operator=(const char* s) {
     if (_data != nullptr) {
-        delete _data;
+        delete[] _data;
     }
 
     _data = new char[strlen(s) + 1];
@@ -70,7 +69,7 @@ string& string::operator=(const char* s) {
 
 string& string::operator=(char c) {
     if (_data != nullptr) {
-        delete _data;
+        delete[] _data;
     }
 
     _data = new char[2];

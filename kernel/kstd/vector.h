@@ -26,15 +26,17 @@ namespace std {
             _data = nullptr;
         }
 
-        vector(vector<T>& ref) {
+        vector(const vector<T>& ref) {
             _length = ref._length;
             _maxLength = ref._maxLength;
 
             if (_maxLength > 0) {
                 _data = static_cast<T*>(malloc(_maxLength * sizeof(T)));
-
-                for (int i = 0; i < _length; i++) {
-                    _data[i] = ref._data[i];
+            
+                if (ref._data != nullptr) {
+                    for (int i = 0; i < _length; i++) {
+                        new (&_data[i]) T(ref._data[i]);
+                    }
                 }
             } else {
                 _data = nullptr;
@@ -59,6 +61,7 @@ namespace std {
                 }
 
                 free(_data);
+                _data = nullptr;
             }
         }
 
@@ -70,6 +73,7 @@ namespace std {
                 }
 
                 free(_data);
+                _data = nullptr;
             }
 
             _length = ref._length;
@@ -77,8 +81,10 @@ namespace std {
             if (_maxLength > 0) {
                 _data = static_cast<T*>(malloc(_maxLength * sizeof(T)));
 
-                for (int i = 0; i < _length; i++) {
-                    _data[i] = ref._data[i];
+                if (ref._data != nullptr) {
+                    for (int i = 0; i < _length; i++) {
+                        new (&_data[i]) T(ref._data[i]);
+                    }
                 }
             } else {
                 _data = nullptr;
@@ -87,7 +93,7 @@ namespace std {
             return *this;
         }
 
-        vector<T>& operator==(const vector<T>&& ref) {
+        vector<T>& operator=(vector<T>&& ref) {
             // clean up all remaining elements
             if (_data != nullptr) {
                 for (int i = 0; i < _length; i++) {

@@ -44,7 +44,7 @@ DirEntry* VirtualFileSystem::fromPath(const char* path) {
         // and then try to find the directory that matches
         bool matched = false;
         while (root->valid()) {
-            if (cur == root->name()) {
+            if (root->name() == cur) {
                 auto next = root->openDir();
                 delete root;
                 root = next;

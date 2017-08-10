@@ -8,6 +8,7 @@
 #include "util/inputformatter.h"
 #include "kstd/vector.h"
 #include "kstd/utility.h"
+#include "kstd/string.h"
 
 class KernelShell {
 public:
@@ -16,14 +17,15 @@ public:
 
 private:
 #if __KERNEL_ALLOCATOR == __KERNEL_ALLOCATOR_BUCKET
-    void allocinfo(const char* cmd);
-    void allocmerge(const char* cmd);
-    void devicesinfo(const char* cmd);
-    void ls(const char* cmd);
+    void allocinfo(std::vector<std::string> args);
+    void allocmerge(std::vector<std::string> args);
+    void devicesinfo(std::vector<std::string> args);
+    void ls(std::vector<std::string> args);
 #endif
-    void help(const char* cmd);
+    void help(std::vector<std::string> args);
+    std::vector<std::string> splitCommand(const char* cmd);
 
-    using CommandFunction = void (KernelShell::*)(const char* cmd);
+    using CommandFunction = void (KernelShell::*)(std::vector<std::string> args);
     InputFormatter _input;
     std::vector<std::pair<const char*, CommandFunction>> _commands;
 };

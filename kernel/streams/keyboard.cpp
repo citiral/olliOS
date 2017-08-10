@@ -157,16 +157,6 @@ void KeyboardDriver::updateStatus(VirtualKeyEvent code) {
 	}
 }
 
-void KeyboardDriver::handleScanCode(unsigned char code)
-{
-	if (_code1 == 0)
-		_code1 = code;
-	else if (_code2 == 0)
-		_code2 = code;
-	else if (_code3 == 0)
-		_code3 = code;
-}
-
 VirtualKeyEvent KeyboardDriver::popBuffer()
 {
 	if (_bufferLength <= 0)
@@ -345,7 +335,7 @@ VirtualKeycode scanset2_map1[255] = {
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,// 70
-	VirtualKeycode::INVALID,
+	VirtualKeycode::N_DOT,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,

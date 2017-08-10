@@ -19,17 +19,17 @@ KernelShell::KernelShell() {
 }
 
 #if __KERNEL_ALLOCATOR == __KERNEL_ALLOCATOR_BUCKET
-void KernelShell::allocinfo(const char* cmd) {
+void KernelShell::allocinfo(std::vector<std::string> args) {
     kernelAllocator.printStatistics();
     printf("\n");
 }
 
-void KernelShell::allocmerge(const char* cmd) {
+void KernelShell::allocmerge(std::vector<std::string> args) {
     kernelAllocator.merge();
 }
 #endif
 
-void KernelShell::devicesinfo(const char* cmd) {
+void KernelShell::devicesinfo(std::vector<std::string> args) {
     /*const char* names[] = {"Keyboard", "Screen", "Storage"};
 
     for (u8 i = 0 ; i < 3 ; i++) {
@@ -45,23 +45,29 @@ void KernelShell::devicesinfo(const char* cmd) {
     }*/
 }
 
-void KernelShell::ls(const char* cmd) {
-    DirEntry* dir = vfs->fromPath(cmd+3);
+void KernelShell::ls(std::vector<std::string> args) {
+    DirEntry* dir;
+    if (args.size() > 1)
+        dir = vfs->fromPath(args[1].c_str());
+    else
+        dir = vfs->getRoot();
 
-    if (!dir) {
-        printf("Invalid directory %s\n", cmd+3);
+    if (!dir && args.size() == 2) {
+        printf("Invalid directory: %s\n", args[1].c_str());
         return;
     }
 
-    while (dir->valid()) {
-        printf("%s\n", dir->name().c_str());
-        dir->advance();
-    }
+    if (dir) {
+        while (dir->valid()) {
+            printf("%s\n", dir->name().c_str());
+            dir->advance();
+        }
 
-    delete dir;
+        delete dir;
+    }
 }
 
-void KernelShell::help(const char* cmd) {
+void KernelShell::help(std::vector<std::string> args) {
     printf("Possible commands: ");
 
     for (int i = 0 ; i + 1 < _commands.size() ; i++) {
@@ -97,29 +103,49 @@ void KernelShell::enter() {
             // find the first matching command and call it
             bool notFound = true;
 
-            for (int i = 0 ; i < _commands.size() ; i++) {
-                if (strlen(_commands[i].first) <= strlen(line.data())) {
-                    int len = strlen(_commands[i].first);
-                    bool matches = true;
-                    for (int k = 0 ; k < len ; k++) {
-                        matches &= (_commands[i].first[k] == line[k]);
-                    }
-                
-                    if (matches) {
-                        (this->*_commands[i].second)(line.data());
+            std::vector<std::string> split = splitCommand(line.data());
+            
+            if (split.size() > 0) {
+                for (int i = 0 ; i < _commands.size() ; i++) {
+                    if (split[0] == _commands[i].first) {
                         notFound = false;
+                        (this->*_commands[i].second)(split);
+                        break;
                     }
                 }
-            }
-
-            // otherwise print a command not found
-            if (notFound) {
-                printf("unknown command: %s\n", line.data());
-            }
-
+                // otherwise print a command not found
+                if (notFound) {
+                    printf("unknown command: %s\n", line.data());
+                }
+            }                
             printf("> ");
         }
 
         __asm__ volatile("hlt");
     }
+}
+std::vector<std::string> KernelShell::splitCommand(const char* cmd) {
+    std::vector<std::string> out;
+
+    // keep looping until the cmd is exhausted
+    while (*cmd != '\0') {
+        // first we skip as much whitespace as possible
+        while (*cmd == ' ' || *cmd == '\t')
+            cmd++;
+
+        // and then we gobble as many characters into the current command as possible
+        int length = 0;
+        while (cmd[length] != ' ' && cmd[length] != '\t' && cmd[length] != '\0')
+            length++;
+
+        if (length == 0)
+            break;
+            
+        out.push_back(std::string(cmd, length));
+
+        cmd += length;
+        //TODO "
+    }
+    
+    return out;
 }

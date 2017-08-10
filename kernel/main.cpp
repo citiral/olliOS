@@ -194,7 +194,7 @@ extern "C" void main(multiboot_info* multiboot) {
 
         depth++;
     }
-
+    
     KernelShell shell;
     shell.enter();
 }
