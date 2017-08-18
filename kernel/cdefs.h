@@ -17,6 +17,7 @@
 #define LOG_UNIMPLEMENTED() (printf("[unimplemented] %s:%s", __FILE__, __LINE__))
 
 #define UNIMPLEMENTED(FUNC, R) FUNC { LOG_UNIMPLEMENTED(); return R; }
+#define UNUSED(X) ((void) X)
 
 #define SIZEOF_GB 0x40000000
 #define SIZEOF_MB 0x100000
