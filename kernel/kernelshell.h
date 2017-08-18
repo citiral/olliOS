@@ -23,11 +23,11 @@ private:
     void ls(std::vector<std::string> args);
 #endif
     void help(std::vector<std::string> args);
-    std::vector<std::string> splitCommand(const char* cmd);
+    std::vector<std::string> splitCommand(std::string cmd);
 
     using CommandFunction = void (KernelShell::*)(std::vector<std::string> args);
     InputFormatter _input;
-    std::vector<std::pair<const char*, CommandFunction>> _commands;
+	std::vector<std::pair<const char*, CommandFunction>> _commands;
 };
 
 #endif //OLLIOS_GIT_KERNELSHELL_H
