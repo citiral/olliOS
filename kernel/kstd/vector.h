@@ -171,7 +171,28 @@ namespace std {
 
         const T& operator[] (size_type n) const {
             return _data[n];
-        }
+		}
+		
+		// DEVIATES FROM SPECIFICATION
+		// position is a size_t instead of an iterator
+		void insert(size_t position, const value_type& val)
+		{
+			if (size() > 0)
+			{
+				push_back(back());
+				for (int i = size()-2; i > position; i--)
+					_data[i] = _data[i-1];
+				_data[position] = val;
+			}
+			else if (position == 0)
+			{
+				push_back(val);
+			}
+			else
+			{
+				// Um, we shouldn't be able to reach this unless position was invalid
+			}
+		}
 
         void push_back(const value_type& val) {
             // optionally expand the array
