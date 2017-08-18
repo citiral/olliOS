@@ -145,6 +145,8 @@ void VgaDriver::writeChar(char c) {
 			setChar(' ');
 			advanceCharacter();
 		}
+	} else if (c == '\r') {
+		
 	} else {
 		setChar(c);
 		advanceCharacter();
