@@ -215,7 +215,7 @@ VirtualKeycode KeyboardDriver::convertBreakScancodeToKeycode() {
 		return scanset2_map1[_code2];
 	} else if (_code1 == 0xE0 && _code2 == 0xF0)
 	{
-		return scanset2_map1[_code3];
+		return scanset2_map2[_code3];
 	}
 
 	return VirtualKeycode::INVALID;
@@ -350,6 +350,8 @@ VirtualKeycode scanset2_map1[255] = {
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
+	// Not long enough for certain keys, such as F7
+	// Add entries as necessary
 };
 
 VirtualKeycode scanset2_map2[255] = {
@@ -427,58 +429,58 @@ VirtualKeycode scanset2_map2[255] = {
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
-	VirtualKeycode::N_SLASH,
+	VirtualKeycode::N_SLASH,// 4A
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,// 50
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
+	VirtualKeycode::INVALID,// 51
+	VirtualKeycode::INVALID,// 52
+	VirtualKeycode::INVALID,// 53
+	VirtualKeycode::INVALID,// 54
+	VirtualKeycode::INVALID,// 55
+	VirtualKeycode::INVALID,// 56
+	VirtualKeycode::INVALID,// 57
+	VirtualKeycode::INVALID,// 58
+	VirtualKeycode::INVALID,// 59
+	VirtualKeycode::INVALID,// 5A
+	VirtualKeycode::INVALID,// 5B
+	VirtualKeycode::INVALID,// 5C
+	VirtualKeycode::INVALID,// 5D
+	VirtualKeycode::INVALID,// 5E
+	VirtualKeycode::INVALID,// 5F
+	VirtualKeycode::INVALID,// 60
+	VirtualKeycode::INVALID,// 61
+	VirtualKeycode::INVALID,// 62
+	VirtualKeycode::INVALID,// 63
+	VirtualKeycode::INVALID,// 64
+	VirtualKeycode::INVALID,// 65
+	VirtualKeycode::INVALID,// 66
+	VirtualKeycode::INVALID,// 67
+	VirtualKeycode::INVALID,// 68
+	VirtualKeycode::INVALID,// 69
+	VirtualKeycode::INVALID,// 6A
+	VirtualKeycode::L_ARROW,// 6B
+	VirtualKeycode::INVALID,// 6C
+	VirtualKeycode::INVALID,// 6D
+	VirtualKeycode::INVALID,// 6E
+	VirtualKeycode::INVALID,// 6F
+	VirtualKeycode::INVALID,// 70
+	VirtualKeycode::INVALID,// 71
+	VirtualKeycode::D_ARROW,// 72
+	VirtualKeycode::INVALID,// 73
+	VirtualKeycode::R_ARROW,// 74
+	VirtualKeycode::U_ARROW,// 75
+	VirtualKeycode::INVALID,// 76
+	VirtualKeycode::INVALID,// 78
+	VirtualKeycode::INVALID,// 79
+	VirtualKeycode::INVALID,// 7A
+	VirtualKeycode::INVALID,// 7B
+	VirtualKeycode::INVALID,// 7C
+	VirtualKeycode::INVALID,// 7D
+	VirtualKeycode::INVALID,// 7E
+	VirtualKeycode::INVALID,// 7F
+	VirtualKeycode::INVALID,// 80
 };

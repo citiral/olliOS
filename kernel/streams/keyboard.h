@@ -59,6 +59,10 @@ enum class VirtualKeycode : u8 {
 	N_SLASH,
 	N_MINUS,
 	N_DOT,
+	U_ARROW,
+	L_ARROW,
+	D_ARROW,
+	R_ARROW
 };
 
 //a single event in the world of virtual keys.
