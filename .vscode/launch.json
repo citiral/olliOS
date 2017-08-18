@@ -1,0 +1,15 @@
+{
+    "version": "0.2.0",
+    "configurations": [{
+        "name": "(gdb) Attach",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceRoot}/root/boot/ollios.bin",
+        "setupCommands": [
+            { "text": "set arch i386" }
+        ],
+        "cwd": "${workspaceRoot}",
+        "miDebuggerServerAddress": "localhost:1234",
+        "MIMode": "gdb"
+    }]
+}
