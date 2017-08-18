@@ -9,6 +9,8 @@
 #define INT_KEYBOARD 0x21
 #define INT_ATA_BUS1 46
 #define INT_ATA_BUS2 47
+#define INT_GENERAL_PROTECTION_VIOLATION 0x0D
+#define INT_PAGE_FAULT 0x0E
 
 
 typedef void (*InterruptCallback)(u32);
