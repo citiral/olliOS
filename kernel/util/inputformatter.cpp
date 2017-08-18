@@ -115,6 +115,7 @@ void InputFormatter::removeChars(int num)
 		for (int i = 0; i < num; i++)
 			vgaDriver.write(" ", 1);
 		fseek(stdout, -num, SEEK_CUR);
+		_lineIndex -= num;
 		_input.back().pop_back();
 	}
 }
