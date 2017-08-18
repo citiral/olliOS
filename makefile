@@ -77,3 +77,9 @@ install-headers:
 
 install-kernel: libk compile-kernel
 	cp -RTv build/$(OUTPUT) $(ROOT)boot/$(OUTPUT)
+
+qemu: all
+	./qemu.sh
+
+bochs: all
+	./bochs.sh
