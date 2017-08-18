@@ -21,7 +21,8 @@ void InputFormatter::handleVirtualKeyEvent(VirtualKeyEvent event)
 		_input.back().push_back('\0');
 		_input.push_back(std::vector<char>());
 		_lineReady = true;
-		logIndex = _input.size()-1;
+		_logIndex = _input.size()-1;
+		_lineIndex = 0;
     } else if (event.vkey == VirtualKeycode::BACKSPACE) {
         removeChars(1);
     } else if (event.vkey >= VirtualKeycode::A && event.vkey <= VirtualKeycode::Z) {
@@ -41,15 +42,23 @@ void InputFormatter::handleVirtualKeyEvent(VirtualKeyEvent event)
     } else if (event.vkey == VirtualKeycode::N_DOT) {
         addChar('.');
     } else if (event.vkey == VirtualKeycode::U_ARROW) {
-		if (logIndex > 0)
+		if (_logIndex > 0)
 		{
-			gotoLine(logIndex-1);
+			gotoLine(_logIndex-1);
 		}
 	} else if (event.vkey == VirtualKeycode::D_ARROW) {
-		if (logIndex < _input.size()-2)
+		if (_logIndex < _input.size()-2)
 		{
-			gotoLine(logIndex+1);
+			gotoLine(_logIndex+1);
 		}
+	} else if (event.vkey == VirtualKeycode::L_ARROW) {
+		moveCursorBy(-1);
+	} else if (event.vkey == VirtualKeycode::R_ARROW) {
+		moveCursorBy(1);
+	} else if (event.vkey == VirtualKeycode::HOME) {
+		moveCursorTo(0);
+	} else if (event.vkey == VirtualKeycode::END) {
+		moveCursorTo(_input.back().size());
 	}
 }
 
@@ -60,11 +69,13 @@ bool InputFormatter::isLineReady() const
 
 void InputFormatter::addChar(u8 character)
 {
-    _input.back().push_back(character);
-    deviceManager.getDevice(DeviceType::Screen, 0)->write(character);
+	_input.back().insert(_lineIndex++, character);
+	for (int i = _lineIndex-1; i < _input.back().size(); i++)
+		deviceManager.getDevice(DeviceType::Screen, 0)->write(_input.back()[i]);
+	fseek(stdout, _lineIndex-_input.back().size(), SEEK_CUR);
 }
 
-void InputFormatter::gotoLine(size_t linenum)
+void InputFormatter::gotoLine(int linenum)
 {
 	removeChars(_input.back().size());
 	_input.back().clear();
@@ -76,10 +87,27 @@ void InputFormatter::gotoLine(size_t linenum)
 
 	VgaDriver* vga = (VgaDriver*) deviceManager.getDevice(DeviceType::Screen, 0);
 	vga->write(_input[linenum].data());
-	logIndex = linenum;
+	_logIndex = linenum;
+	_lineIndex = _input.back().size();
 }
 
-void InputFormatter::removeChars(size_t num)
+void InputFormatter::moveCursorBy(int amount)
+{
+	if (_lineIndex + amount < 0)
+		amount = -_lineIndex;
+	else if (_lineIndex + amount >= _input.back().size())
+		amount = _input.back().size()-_lineIndex;
+
+	fseek(stdout, amount, SEEK_CUR);
+	_lineIndex += amount;
+}
+
+void InputFormatter::moveCursorTo(int position)
+{
+	moveCursorBy(position - _lineIndex);
+}
+
+void InputFormatter::removeChars(int num)
 {
 	if (_input.back().size() >= num)
 	{

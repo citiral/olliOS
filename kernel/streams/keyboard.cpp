@@ -460,10 +460,10 @@ VirtualKeycode scanset2_map2[255] = {
 	VirtualKeycode::INVALID,// 66
 	VirtualKeycode::INVALID,// 67
 	VirtualKeycode::INVALID,// 68
-	VirtualKeycode::INVALID,// 69
+	VirtualKeycode::END,// 69
 	VirtualKeycode::INVALID,// 6A
 	VirtualKeycode::L_ARROW,// 6B
-	VirtualKeycode::INVALID,// 6C
+	VirtualKeycode::HOME,// 6C
 	VirtualKeycode::INVALID,// 6D
 	VirtualKeycode::INVALID,// 6E
 	VirtualKeycode::INVALID,// 6F

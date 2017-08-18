@@ -17,17 +17,22 @@ public:
     // adds a char to the buffer and renders it
 	void addChar(u8 character);
 	// Remove a certain amount of characters from the current line.
-	void removeChars(size_t amount);
+	void removeChars(int amount);
     // gets the current line, null terminated
     std::string getNextLine();
 
 private:
 	// Go to a certain line in the log
-	void gotoLine(size_t linenum);
+	void gotoLine(int linenum);
+	// Move the cursor with amount to right
+	void moveCursorBy(int amount);
+	// Move the cursor to a certain position
+	void moveCursorTo(int position);
 
     std::vector<std::vector<char>> _input;
 	bool _lineReady;
-	int logIndex = 0;
+	int _logIndex = 0;
+	int _lineIndex = 0;
 };
 
 #endif /* end of include guard: __INPUT_FORMATTER */

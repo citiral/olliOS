@@ -62,7 +62,9 @@ enum class VirtualKeycode : u8 {
 	U_ARROW,
 	L_ARROW,
 	D_ARROW,
-	R_ARROW
+	R_ARROW,
+	HOME,
+	END
 };
 
 //a single event in the world of virtual keys.
