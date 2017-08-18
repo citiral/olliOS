@@ -30,7 +30,7 @@ int printHexLower(unsigned int num)
 
     //get the characters
     do {
-        if ((num % 0x10) < 0x9)
+        if ((num % 0x10) <= 0x9)
             c[i] = '0' + (num % 0x10);
         else
             c[i] = 'a' + (num % 0x10) - 0xA;
@@ -60,7 +60,7 @@ int printHexUpper(unsigned int num)
         else
             c[i] = 'A' + (num % 0x10) - 0xA;
         i++;
-        num /= 0x10;
+		num /= 0x10;
     } while(num > 0);
     size_t k = i;
 
