@@ -139,6 +139,12 @@ void VgaDriver::writeChar(char c) {
 		} else {
 			updateCursor();
 		}
+	} else if (c == '\t') {
+		int left = 4 - (_column % 4);
+		for (int i = 0 ; i < left ; i++) {
+			setChar(' ');
+			advanceCharacter();
+		}
 	} else {
 		setChar(c);
 		advanceCharacter();
