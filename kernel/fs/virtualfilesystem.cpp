@@ -20,6 +20,62 @@ DirEntry* VirtualFileSystem::getRoot() {
     return new VirtualDirEntry(&_root);
 }
 
+Stream* VirtualFileSystem::openFile(const char* path) {
+    DirEntry* root = getRoot();
+
+    // we loop over each subfolder in the path
+    while (true) {
+        // first we skip as many slashes as we can
+        while (*path == '/')
+            path++;
+
+        // then we get the length of the current folder, this is the length until the next / or the end
+        int length = 0;
+        while (path[length] != '/' && path[length] != '\0')
+            length++;
+
+        // if the length is zero, this was a trailing slash and we can stop here
+        if (length == 0)
+            break;
+
+        // we get the folder name
+        std::string cur(path, length);
+
+        // and then try to find the directory that matches
+        bool matched = false;
+        while (root->valid()) {
+            if (root->name() == cur) {
+                // if we are at the end of the path, open the file as a stream
+                if (path[length] == '\0') {
+                    Stream* file = root->openFile();
+                    delete root;
+                    return file;
+                } else {
+                    //otherwise, it's a directory on the way to the file
+                    auto next = root->openDir();
+                    delete root;
+                    root = next;
+                    matched = true;
+                    break;
+                }
+                
+            }
+            root->advance();
+        }
+
+        if (!matched) {
+            delete root;
+            return nullptr;
+        }
+
+        path += length;
+        if (*path == '\0')
+            break;
+    }
+
+    return nullptr;
+}
+
 DirEntry* VirtualFileSystem::fromPath(const char* path) {
     DirEntry* root = getRoot();
 

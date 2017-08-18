@@ -7,6 +7,7 @@
 #include "devicemanager.h"
 #include "fs/virtualfilesystem.h"
 #include <string.h>
+#include "stdio.h"
 
 KernelShell::KernelShell() {
 #if __KERNEL_ALLOCATOR == __KERNEL_ALLOCATOR_BUCKET
@@ -16,6 +17,7 @@ KernelShell::KernelShell() {
     _commands.push_back(std::pair<const char*, CommandFunction>("devicesinfo", &KernelShell::devicesinfo));
     _commands.push_back(std::pair<const char*, CommandFunction>("help", &KernelShell::help));
     _commands.push_back(std::pair<const char*, CommandFunction>("ls", &KernelShell::ls));
+    _commands.push_back(std::pair<const char*, CommandFunction>("cat", &KernelShell::cat));
 }
 
 #if __KERNEL_ALLOCATOR == __KERNEL_ALLOCATOR_BUCKET
@@ -43,6 +45,33 @@ void KernelShell::devicesinfo(std::vector<std::string> args) {
             printf("%s", deviceManager.getDevices(type).back()->getDeviceName());
         printf("\n");
     }*/
+}
+
+void KernelShell::cat(std::vector<std::string> args) {
+    if (args.size() < 2) {
+        printf("Please specify a directory.");
+        return;
+    }
+
+    Stream* file = vfs->openFile(args[1].c_str());
+
+    if (!file) {
+        printf("Invalid file: %s\n", args[1].c_str());
+        return;
+    }
+
+    while (true) {
+        char data;
+        bool read = file->read(&data, 1);
+
+        if (read) {
+            printf("%c", data);
+        } else {
+            break;
+        }
+    }
+
+    delete file;
 }
 
 void KernelShell::ls(std::vector<std::string> args) {

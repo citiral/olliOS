@@ -1,5 +1,6 @@
 #include "streams/vga.h"
 #include "io.h"
+#include "stdio.h"
 
 static i16* VGA_POINTER = (i16*)0x000B8000;
 

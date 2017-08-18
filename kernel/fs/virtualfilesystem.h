@@ -28,7 +28,7 @@ public:
     virtual DirEntryType type();
     virtual DirEntry* openDir();
     virtual Stream* openFile();
-
+    
 private:
     // The directory this is iterating over
     VirtualDirectory* _vdir;
@@ -44,6 +44,7 @@ public:
 
     void BindFilesystem(std::string name, FileSystem* fs);
     DirEntry* fromPath(const char* path);
+    Stream* openFile(const char* path);
     DirEntry* getRoot();
 
 private:

@@ -215,7 +215,7 @@ VirtualKeycode KeyboardDriver::convertBreakScancodeToKeycode() {
 		return scanset2_map1[_code2];
 	} else if (_code1 == 0xE0 && _code2 == 0xF0)
 	{
-		return scanset2_map1[_code3];
+		return scanset2_map2[_code3];
 	}
 
 	return VirtualKeycode::INVALID;
