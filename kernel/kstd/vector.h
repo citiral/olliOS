@@ -141,7 +141,21 @@ namespace std {
                 _data[_length - 1].~T();
                 _length--;
             }
-        }
+		}
+		
+		void clear() {
+			if (_data != nullptr) {
+                for (int i = 0; i < _length; i++) {
+                    _data[i].~T();
+                }
+
+                free(_data);
+			}
+			
+			_length = 0;
+			_maxLength = 0;
+			_data = nullptr;
+		}
 
         T& at(size_type n) {
             return _data[n];
