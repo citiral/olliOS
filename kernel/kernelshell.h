@@ -21,6 +21,7 @@ private:
     void allocmerge(std::vector<std::string> args);
     void devicesinfo(std::vector<std::string> args);
     void ls(std::vector<std::string> args);
+    void cat(std::vector<std::string> args);
 #endif
     void help(std::vector<std::string> args);
     std::vector<std::string> splitCommand(std::string cmd);

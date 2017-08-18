@@ -136,13 +136,14 @@ extern "C" void main(multiboot_info* multiboot) {
     for (int i =  0; i < storagedevices.size() ; i++) {
         DeviceStorageInfo info;
         storagedevices[i]->getDeviceInfo(&info);
-        vfs->BindFilesystem("hdd", new Iso9660FileSystem(storagedevices[i]));
+        char* name = "hdda";
+        name[3] += i;
+        LOG_STARTUP("BINDING %s to %s", info.deviceInfo.name, "hdd");
+        vfs->BindFilesystem(name, new Iso9660FileSystem(storagedevices[i]));
     }
     LOG_STARTUP("Bound filesystems.");
 
     LOG_STARTUP("Welcome to OlliOS!");
-
-    printrec(vfs->getRoot());
 
     //KeyboardDriver driver;
     

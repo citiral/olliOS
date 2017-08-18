@@ -2,7 +2,7 @@
 #include "streams/device.h"
 #include "cdefs.h"
 #include "kstd/utility.h"
-
+#include "streams/memorystream.h"
 template <class T>
 T readType(u8* descriptor, size_t offset) {
     return *(T*)(descriptor + offset);
@@ -141,5 +141,12 @@ DirEntry* Iso9660DirEntry::openDir() {
 }
 
 Stream* Iso9660DirEntry::openFile() {
-    return nullptr;
+    u32 lba = readType<u32>(_record, _offset + 2);
+    u32 length = readType<u32>(_record, _offset + 10);
+
+    _fs->seek(lba * SIZEOF_KB  * 2, SEEK_SET);
+    u8* data = new u8[std::roundup(length, 2048u)];
+    u32 read = _fs->read(data, std::roundup(length, 2048u));
+
+    return new MemoryStream(data, length);
 }

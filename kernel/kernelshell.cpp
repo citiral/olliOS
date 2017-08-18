@@ -7,6 +7,7 @@
 #include "devicemanager.h"
 #include "fs/virtualfilesystem.h"
 #include <string.h>
+#include "stdio.h"
 
 KernelShell::KernelShell()
 {
@@ -14,9 +15,10 @@ KernelShell::KernelShell()
 	_commands.push_back(std::pair<const char *, CommandFunction>("allocinfo", &KernelShell::allocinfo));
 	_commands.push_back(std::pair<const char *, CommandFunction>("allocmerge", &KernelShell::allocmerge));
 #endif
-	_commands.push_back(std::pair<const char *, CommandFunction>("devicesinfo", &KernelShell::devicesinfo));
-	_commands.push_back(std::pair<const char *, CommandFunction>("help", &KernelShell::help));
-	_commands.push_back(std::pair<const char *, CommandFunction>("ls", &KernelShell::ls));
+    _commands.push_back(std::pair<const char*, CommandFunction>("devicesinfo", &KernelShell::devicesinfo));
+    _commands.push_back(std::pair<const char*, CommandFunction>("help", &KernelShell::help));
+    _commands.push_back(std::pair<const char*, CommandFunction>("ls", &KernelShell::ls));
+    _commands.push_back(std::pair<const char*, CommandFunction>("cat", &KernelShell::cat));
 }
 
 #if __KERNEL_ALLOCATOR == __KERNEL_ALLOCATOR_BUCKET
@@ -49,30 +51,53 @@ void KernelShell::devicesinfo(std::vector<std::string> args)
     }*/
 }
 
-void KernelShell::ls(std::vector<std::string> args)
-{
-	DirEntry *dir;
-	if (args.size() > 1)
-		dir = vfs->fromPath(args[1].c_str());
-	else
-		dir = vfs->getRoot();
+void KernelShell::cat(std::vector<std::string> args) {
+    if (args.size() < 2) {
+        printf("Please specify a directory.");
+        return;
+    }
 
-	if (!dir && args.size() == 2)
-	{
-		printf("Invalid directory: %s\n", args[1].c_str());
-		return;
-	}
+    Stream* file = vfs->openFile(args[1].c_str());
 
-	if (dir)
-	{
-		while (dir->valid())
-		{
-			printf("%s\n", dir->name().c_str());
-			dir->advance();
-		}
+    if (!file) {
+        printf("Invalid file: %s\n", args[1].c_str());
+        return;
+    }
 
-		delete dir;
-	}
+    while (true) {
+        char data;
+        bool read = file->read(&data, 1);
+
+        if (read) {
+            printf("%c", data);
+        } else {
+            break;
+        }
+    }
+
+    delete file;
+}
+
+void KernelShell::ls(std::vector<std::string> args) {
+    DirEntry* dir;
+    if (args.size() > 1)
+        dir = vfs->fromPath(args[1].c_str());
+    else
+        dir = vfs->getRoot();
+
+    if (!dir && args.size() == 2) {
+        printf("Invalid directory: %s\n", args[1].c_str());
+        return;
+    }
+
+    if (dir) {
+        while (dir->valid()) {
+            printf("%s\n", dir->name().c_str());
+            dir->advance();
+        }
+
+        delete dir;
+    }
 }
 
 void KernelShell::help(std::vector<std::string> args)

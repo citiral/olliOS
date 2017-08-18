@@ -3,7 +3,6 @@
 
 #include "kstd/cstddef.h"
 #include "types.h"
-#include <stdio.h>
 
 #define STREAM_SIZE_UNDEFINED -1
 

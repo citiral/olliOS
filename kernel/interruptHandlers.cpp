@@ -4,6 +4,7 @@
 #include "io.h"
 #include "pic.h"
 #include "ata/ata.h"
+#include "stdio.h"
 
 void intHandlerUndefined(u32 interrupt) {
 	printf("Undefined interrupt has been thrown: %d\n", interrupt);
@@ -12,10 +13,10 @@ void intHandlerUndefined(u32 interrupt) {
     if (interrupt >= 0x20 && interrupt <= 0x2F)
         endInterrupt(interrupt - 0x20);
 
-    while (true) {
+    /*while (true) {
         __asm volatile("cli");
         __asm volatile("hlt");
-    }
+    }*/
 
 }
 

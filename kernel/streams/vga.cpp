@@ -1,5 +1,6 @@
 #include "streams/vga.h"
 #include "io.h"
+#include "stdio.h"
 
 static i16* VGA_POINTER = (i16*)0x000B8000;
 
@@ -137,6 +138,12 @@ void VgaDriver::writeChar(char c) {
 			scrollDown();
 		} else {
 			updateCursor();
+		}
+	} else if (c == '\t') {
+		int left = 4 - (_column % 4);
+		for (int i = 0 ; i < left ; i++) {
+			setChar(' ');
+			advanceCharacter();
 		}
 	} else {
 		setChar(c);
