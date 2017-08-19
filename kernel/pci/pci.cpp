@@ -19,7 +19,7 @@ pci_device_name pci_device_names[] = {
 	{0x8086, 0x1237, "Intel 82440LX/EX"},
 	{0x8086, 0x7000, "Intel 82371SB PIIX3 PCI-to-ISA Bridge"},
 	{0x8086, 0x7010, "Intel 82371SB PIIX3 IDE Interface"},
-	{0x8086, 0x7020n "Intel 82371SB PIIX3 USB Host"},
+	{0x8086, 0x7020, "Intel 82371SB PIIX3 USB Host"},
 	{0x8086, 0x7113, "Intel 82371?B PIIX4 Power Management"}
 };
 
