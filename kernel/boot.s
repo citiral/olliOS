@@ -111,8 +111,8 @@ _start:
 	# continues execution, just to be safe. We will create a local label rather
 	# than real symbol and jump to there endlessly.
 	cli
-	hlt
 .Lhang:
+	hlt
 	jmp .Lhang
 
 # Set the size of the _start symbol to the current location '.' minus its start.
