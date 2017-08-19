@@ -24,7 +24,10 @@ void InputFormatter::handleVirtualKeyEvent(VirtualKeyEvent event)
 		_logIndex = _input.size()-1;
 		_lineIndex = 0;
     } else if (event.vkey == VirtualKeycode::BACKSPACE) {
-        removeChars(1);
+		removeChars(1);
+		/*for (int i = _lineIndex-1; i < _input.back().size(); i++)
+			deviceManager.getDevice(DeviceType::Screen, 0)->write(_input.back()[i]);
+		fseek(stdout, _lineIndex-_input.back().size(), SEEK_CUR);*/
     } else if (event.vkey >= VirtualKeycode::A && event.vkey <= VirtualKeycode::Z) {
         if (event.status & 0b00000010) {
             char key = (u8)event.vkey - (u8)VirtualKeycode::A;
@@ -95,7 +98,7 @@ void InputFormatter::moveCursorBy(int amount)
 {
 	if (_lineIndex + amount < 0)
 		amount = -_lineIndex;
-	else if (_lineIndex + amount >= _input.back().size())
+	else if (_lineIndex + amount > _input.back().size())
 		amount = _input.back().size()-_lineIndex;
 
 	fseek(stdout, amount, SEEK_CUR);
@@ -111,12 +114,24 @@ void InputFormatter::removeChars(int num)
 {
 	if (_input.back().size() >= num)
 	{
-		fseek(stdout, -num, SEEK_CUR);
+		if (_lineIndex == 0)
+			return;
+		moveCursorBy(-num);
+		
 		for (int i = 0; i < num; i++)
-			vgaDriver.write(" ", 1);
-		fseek(stdout, -num, SEEK_CUR);
-		_lineIndex -= num;
-		_input.back().pop_back();
+			_input.back().erase(_lineIndex);
+
+		int t = 0;
+		for (int i = _lineIndex; i < _input.back().size()+num; i++)
+		{
+			if (i < _input.back().size())
+				vgaDriver.write(&_input.back()[i], 1);
+			else
+				vgaDriver.write(" ", 1);
+			_lineIndex++;
+			t++;
+		}
+		moveCursorBy(-t);
 	}
 }
 

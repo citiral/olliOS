@@ -32,9 +32,15 @@ namespace std {
         char& operator[](size_t pos);
 		const char& operator[](size_t pos) const;
 		
+		friend string operator+(const string& lstr, const char* rstr);
+		friend string operator+(const char* lstr, const string& rstr);
 		friend string operator+(const string& lstr, const string& rstr);
 		friend string operator+(const string& lstr, char rchar);
 		friend string operator+(char lchar, const string& rstr);
+
+		string& operator+=(const char* str);
+		string& operator+=(const string& str);
+		string& operator+=(char c);
 
         int compare(const string& str) const;
         int compare(const char* str) const;

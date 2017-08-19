@@ -25,6 +25,7 @@ private:
     void ls(Environment& env, std::vector<std::string> args);
     void cat(Environment& env, std::vector<std::string> args);
 	void help(Environment& env, std::vector<std::string> args);
+	void cd(Environment& env, std::vector<std::string> args);
 	void set(Environment& env, std::vector<std::string> args);
 	void unset(Environment& env, std::vector<std::string> args);
     std::vector<std::string> splitCommand(std::string cmd);

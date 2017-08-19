@@ -21,6 +21,7 @@
 #include "multiboot.h"
 #include "kernelshell.h"
 #include "kstd/new.h"
+#include "fs/filesystem.h"
 #include <stdlib.h>
 
 void initCpu() {

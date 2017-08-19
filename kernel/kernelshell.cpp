@@ -20,10 +20,12 @@ KernelShell::KernelShell()
     _commands.push_back(std::pair<const char*, CommandFunction>("help", &KernelShell::help));
     _commands.push_back(std::pair<const char*, CommandFunction>("ls", &KernelShell::ls));
 	_commands.push_back(std::pair<const char*, CommandFunction>("cat", &KernelShell::cat));
+	_commands.push_back(std::pair<const char*, CommandFunction>("cd", &KernelShell::cd));
 	_commands.push_back(std::pair<const char*, CommandFunction>("set", &KernelShell::set));
 	_commands.push_back(std::pair<const char*, CommandFunction>("unset", &KernelShell::unset));
 
 	_env.set("pwd", "/");
+	_env.set("home", "/");
 }
 
 #if __KERNEL_ALLOCATOR == __KERNEL_ALLOCATOR_BUCKET
@@ -62,7 +64,7 @@ void KernelShell::cat(Environment& env, std::vector<std::string> args) {
         return;
     }
 
-    Stream* file = vfs->openFile(args[1].c_str());
+    Stream* file = vfs->openFile(Files::getPath(env, args[1]).c_str());
 
     if (!file) {
         printf("Invalid file: %s\n", args[1].c_str());
@@ -87,12 +89,12 @@ void KernelShell::ls(Environment& env, std::vector<std::string> args) {
 	DirEntry* dir;
 	if (args.size() > 1)
 	{
-		std::string path = Files::getPath(env, args[1].c_str());
-		printf("Reading path %s\n", path.c_str());
-		dir = vfs->fromPath(path);
+		dir = vfs->fromPath(Files::getPath(env, args[1].c_str()).c_str());
 	}
-    else
-        dir = vfs->getRoot();
+	else
+	{
+		dir = vfs->fromPath(env.get("pwd").c_str());
+	}
 
     if (!dir && args.size() == 2) {
         printf("Invalid directory: %s\n", args[1].c_str());
@@ -107,6 +109,13 @@ void KernelShell::ls(Environment& env, std::vector<std::string> args) {
 
         delete dir;
     }
+}
+
+void KernelShell::cd(Environment& env, std::vector<std::string> args) {
+	if (args.size() <= 1)
+		env.set("pwd", Files::normalize(env.get("home")));
+	else
+		env.set("pwd", Files::getPath(env, args[1].c_str()));
 }
 
 void KernelShell::help(Environment& env, std::vector<std::string> args)

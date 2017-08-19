@@ -6,6 +6,7 @@
 #define OLLIOS_GIT_FILESYSTEM_H
 
 #include "streams/stream.h"
+#include "kstd/vector.h"
 #include "kstd/string.h"
 #include "environment.h"
 
@@ -40,7 +41,14 @@ public:
 // This namespace contains utility functions to handle file names more easily
 namespace Files
 {
+	// Normalizes a path.
+	// It will remove unnecessary / and . symbols and will move up when a .. is encountered.
+	// Note that the first .. will not be removed.
+	std::string normalize(const char* path);
+	std::string normalize(const std::string& path);
+	std::string getPath(Environment& env, const char* path);
 	std::string getPath(Environment& env, const std::string& path);
+	std::vector<std::string> split(const char* path);
 }
 
 extern FileSystem* rootFileSystem;

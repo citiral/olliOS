@@ -118,16 +118,33 @@ bool operator!=(const char* lhs, const string& rhs) {
     return rhs.compare(lhs) != 0;
 }
 
-string operator+(const string& lstr, const string& rstr) {
+string operator+(const string& lstr, const char* rstr) {
 	string str;
 	delete[] str._data;
 	size_t llen = lstr.length();
-	size_t rlen = rstr.length();
+	size_t rlen = strlen(rstr);
 	str._data = new char[llen + rlen + 1];
-	memcpy(str._data, lstr._data, lstr.length());
-	memcpy(str._data + llen, rstr._data, rlen);
+	memcpy(str._data, lstr._data, llen);
+	memcpy(str._data + llen, rstr, rlen);
 	str._data[llen + rlen] = 0;
 	return str;
+}
+
+string operator+(const char* lstr, const string& rstr) {
+	string str;
+	delete[] str._data;
+	size_t llen = strlen(lstr);
+	size_t rlen = rstr.length();
+	str._data = new char[llen + rlen + 1];
+	memcpy(str._data, lstr, llen);
+	memcpy(str._data + llen, rstr.data(), rlen);
+	str._data[llen + rlen] = 0;
+	return str;
+}
+
+string operator+(const string& lstr, const string& rstr) {
+	const char* rstrdata = rstr.c_str();
+	return lstr + rstrdata;
 }
 
 string operator+(const string& lstr, char rchar) {
@@ -150,6 +167,30 @@ string operator+(char lchar, const string& rstr) {
 	str._data[0] = lchar;
 	str._data[rlen + 1] = 0;
 	return str;
+}
+
+string& string::operator+=(const char* str) {
+	string s = *this + str;
+	size_t len = s.length()+1;
+	delete[] this->_data;
+	this->_data = new char[len];
+	memcpy(this->_data, s._data, len);
+	return *this;
+}
+
+string& string::operator+=(const string& str) {
+	return (*this += str.c_str());
+}
+
+string& string::operator+=(const char c) {
+	size_t len = length();
+	char* newData = new char[len + 2];
+	memcpy(newData, _data, len);
+	newData[len] = c;
+	newData[len+1] = 0;
+	delete[] _data;
+	_data = newData;
+	return *this;
 }
 
 int string::compare(const string& str) const {
