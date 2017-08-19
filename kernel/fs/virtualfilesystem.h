@@ -43,7 +43,7 @@ public:
     ~VirtualFileSystem();
 
     void BindFilesystem(std::string name, FileSystem* fs);
-    DirEntry* fromPath(const char* path);
+    DirEntry* fromPath(std::string& path);
     Stream* openFile(const char* path);
     DirEntry* getRoot();
 

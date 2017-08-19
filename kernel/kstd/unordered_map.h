@@ -2,6 +2,7 @@
 #define OLLIOS_GIT_UNORDERED_MAP
 
 #include "functional.h"
+#include "new.h"
 
 namespace std {
 	template<class K, class V>
@@ -19,37 +20,22 @@ namespace std {
 			allocateBuckets();
 		}
 
-		unordered_map(const unordered_map& map)
+		unordered_map(const unordered_map<K,V>& map)
 		{
-			_numBuckets = map._numBuckets;
-			_bucketSize = map._bucketSize;
-			allocateBuckets();
-
-			for (size_t bucket = 0; bucket < _numBuckets; bucket++)
-			{
-				for (size_t i = 0; i < _used[bucket]; i++)
-				{
-					new (&_values[bucket][i]) V(map._values[bucket][i]);
-					new (&_keys[bucket][i]) K(map._keys[bucket][i]);
-				}
-			}
+			copyFrom(map);
 		}
 
-		unordered_map& operator= (const unordered_map& map)
+		unordered_map& operator= (const unordered_map<K,V>& map)
 		{
-			return new unordered_map(map);
+			clear();
+			copyFrom(map);
+			return *this;
+			//return new unordered_map(map);
 		}
 
 		~unordered_map()
 		{
-			for (size_t bucket = 0; bucket < _numBuckets; bucket++)
-			{
-				delete _values[bucket];
-				delete _keys[bucket];
-			}
-			delete _values;
-			delete _keys;
-			delete _used;
+			clear();
 		}
 
 		/*V& at(const K& k)
@@ -75,11 +61,13 @@ namespace std {
 			for (size_t i = 0; i < _used[bucket]; i++)
 			{
 				if (k == _keys[bucket][i])
+				{
 					return _values[bucket][i];
+				}
 			}
 
 			// None found, so we need to create it.
-			int used = _used[bucket];
+			size_t used = _used[bucket];
 			if (used >= _bucketSize)
 			{
 				increaseSize();
@@ -88,12 +76,73 @@ namespace std {
 			else
 			{
 				new (&_keys[bucket][used]) K(k);
+				new (&_values[bucket][used]) V();
 				_used[bucket]++;
 				return _values[bucket][used];
 			}
 		}
 
+		size_t erase(const K& k)
+		{
+			size_t hash = std::hash<K>()(k);
+			size_t bucket = hash % _numBuckets;
+
+			for (size_t i = 0; i < _used[bucket]; i++)
+			{
+				if (k == _keys[bucket][i])
+				{
+					_values[bucket][i].~V();
+					_keys[bucket][i].~K();
+					for (size_t l = i; l < _used[bucket]-1; l++)
+					{
+						_keys[bucket][l] = _keys[bucket][l+1];
+						_values[bucket][l] = _values[bucket][l+1];
+					}
+					_used[bucket]--;
+					return 1;
+				}
+			}
+
+			return 0;
+		}
+
+		size_t count(const K& k)
+		{
+			size_t hash = std::hash<K>()(k);
+			size_t bucket = hash % _numBuckets;
+
+			for (size_t i = 0; i < _used[bucket]; i++)
+			{
+				if (k == _keys[bucket][i])
+				{
+					return 1;
+				}
+			}
+			return 0;
+		}
+
 	private:
+		void clear()
+		{
+			for (size_t bucket = 0; bucket < _numBuckets; bucket++)
+			{
+				for (size_t i = 0; i < _used[bucket]; i++)
+				{
+					_values[bucket][i].~V();
+					_keys[bucket][i].~K();
+				}
+
+				delete[] _values[bucket];
+				delete[] _keys[bucket];
+			}
+			delete[] _values;
+			delete[] _keys;
+			delete[] _used;
+
+			_numBuckets = 16;
+			_bucketSize = 8;
+		}
+
 		void allocateBuckets()
 		{
 			_values = new V*[_numBuckets];
@@ -154,12 +203,34 @@ namespace std {
 			// Delete old map
 			for (size_t bucket = 0; bucket < oldNumBuckets; bucket++)
 			{
-				delete oldValues[bucket];
-				delete oldKeys[bucket];
+				for (size_t i = 0; i < oldUsed[bucket]; i++)
+				{
+					oldValues[bucket][i].~V();
+					oldKeys[bucket][i].~K();
+				}
+
+				delete[] oldValues[bucket];
+				delete[] oldKeys[bucket];
 			}
-			delete oldValues;
-			delete oldKeys;
-			delete oldUsed;
+			delete[] oldValues;
+			delete[] oldKeys;
+			delete[] oldUsed;
+		}
+
+		void copyFrom(const unordered_map<K,V>& map)
+		{
+			_numBuckets = map._numBuckets;
+			_bucketSize = map._bucketSize;
+			allocateBuckets();
+
+			for (size_t bucket = 0; bucket < _numBuckets; bucket++)
+			{
+				for (size_t i = 0; i < _used[bucket]; i++)
+				{
+					new (&_values[bucket][i]) V(map._values[bucket][i]);
+					new (&_keys[bucket][i]) K(map._keys[bucket][i]);
+				}
+			}
 		}
 	};
 }

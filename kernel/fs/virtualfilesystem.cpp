@@ -76,8 +76,10 @@ Stream* VirtualFileSystem::openFile(const char* path) {
     return nullptr;
 }
 
-DirEntry* VirtualFileSystem::fromPath(const char* path) {
-    DirEntry* root = getRoot();
+DirEntry* VirtualFileSystem::fromPath(std::string& pathStr) {
+	DirEntry* root = getRoot();
+	
+	const char* path = pathStr.c_str();
 
     // we loop over each subfolder in the path
     while (true) {

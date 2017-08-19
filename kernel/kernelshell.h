@@ -9,6 +9,7 @@
 #include "kstd/vector.h"
 #include "kstd/utility.h"
 #include "kstd/string.h"
+#include "environment.h"
 
 class KernelShell {
 public:
@@ -17,18 +18,21 @@ public:
 
 private:
 #if __KERNEL_ALLOCATOR == __KERNEL_ALLOCATOR_BUCKET
-    void allocinfo(std::vector<std::string> args);
-    void allocmerge(std::vector<std::string> args);
-    void devicesinfo(std::vector<std::string> args);
-    void ls(std::vector<std::string> args);
-    void cat(std::vector<std::string> args);
+    void allocinfo(Environment& env, std::vector<std::string> args);
+	void allocmerge(Environment& env, std::vector<std::string> args);
 #endif
-    void help(std::vector<std::string> args);
+    void devicesinfo(Environment& env, std::vector<std::string> args);
+    void ls(Environment& env, std::vector<std::string> args);
+    void cat(Environment& env, std::vector<std::string> args);
+	void help(Environment& env, std::vector<std::string> args);
+	void set(Environment& env, std::vector<std::string> args);
+	void unset(Environment& env, std::vector<std::string> args);
     std::vector<std::string> splitCommand(std::string cmd);
 
-    using CommandFunction = void (KernelShell::*)(std::vector<std::string> args);
+    using CommandFunction = void (KernelShell::*)(Environment& env, std::vector<std::string> args);
     InputFormatter _input;
 	std::vector<std::pair<const char*, CommandFunction>> _commands;
+	Environment _env;
 };
 
 #endif //OLLIOS_GIT_KERNELSHELL_H

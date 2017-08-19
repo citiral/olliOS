@@ -7,6 +7,7 @@
 
 #include "streams/stream.h"
 #include "kstd/string.h"
+#include "environment.h"
 
 enum DirEntryType {
     Folder,
@@ -35,6 +36,12 @@ class FileSystem {
 public:
     virtual DirEntry* getRoot() = 0;
 };
+
+// This namespace contains utility functions to handle file names more easily
+namespace Files
+{
+	std::string getPath(Environment& env, const std::string& path);
+}
 
 extern FileSystem* rootFileSystem;
 

@@ -175,7 +175,8 @@ extern "C" void main(multiboot_info* multiboot) {
     printf("id is: %d", data[0]);
 
     delete[] data;
-    */
+	*/
+
     const char* string = "/test/help/bvb";
     int depth = 0;
     while (true) {

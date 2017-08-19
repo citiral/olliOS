@@ -5,6 +5,7 @@
 #include "kernelshell.h"
 #include "alloc.h"
 #include "devicemanager.h"
+#include "fs/filesystem.h"
 #include "fs/virtualfilesystem.h"
 #include <string.h>
 #include "stdio.h"
@@ -18,23 +19,27 @@ KernelShell::KernelShell()
     _commands.push_back(std::pair<const char*, CommandFunction>("devicesinfo", &KernelShell::devicesinfo));
     _commands.push_back(std::pair<const char*, CommandFunction>("help", &KernelShell::help));
     _commands.push_back(std::pair<const char*, CommandFunction>("ls", &KernelShell::ls));
-    _commands.push_back(std::pair<const char*, CommandFunction>("cat", &KernelShell::cat));
+	_commands.push_back(std::pair<const char*, CommandFunction>("cat", &KernelShell::cat));
+	_commands.push_back(std::pair<const char*, CommandFunction>("set", &KernelShell::set));
+	_commands.push_back(std::pair<const char*, CommandFunction>("unset", &KernelShell::unset));
+
+	_env.set("pwd", "/");
 }
 
 #if __KERNEL_ALLOCATOR == __KERNEL_ALLOCATOR_BUCKET
-void KernelShell::allocinfo(std::vector<std::string> args)
+void KernelShell::allocinfo(Environment& env, std::vector<std::string> args)
 {
 	kernelAllocator.printStatistics();
 	printf("\n");
 }
 
-void KernelShell::allocmerge(std::vector<std::string> args)
+void KernelShell::allocmerge(Environment& env, std::vector<std::string> args)
 {
 	kernelAllocator.merge();
 }
 #endif
 
-void KernelShell::devicesinfo(std::vector<std::string> args)
+void KernelShell::devicesinfo(Environment& env, std::vector<std::string> args)
 {
 	/*const char* names[] = {"Keyboard", "Screen", "Storage"};
 
@@ -51,7 +56,7 @@ void KernelShell::devicesinfo(std::vector<std::string> args)
     }*/
 }
 
-void KernelShell::cat(std::vector<std::string> args) {
+void KernelShell::cat(Environment& env, std::vector<std::string> args) {
     if (args.size() < 2) {
         printf("Please specify a directory.");
         return;
@@ -78,10 +83,14 @@ void KernelShell::cat(std::vector<std::string> args) {
     delete file;
 }
 
-void KernelShell::ls(std::vector<std::string> args) {
-    DirEntry* dir;
-    if (args.size() > 1)
-        dir = vfs->fromPath(args[1].c_str());
+void KernelShell::ls(Environment& env, std::vector<std::string> args) {
+	DirEntry* dir;
+	if (args.size() > 1)
+	{
+		std::string path = Files::getPath(env, args[1].c_str());
+		printf("Reading path %s\n", path.c_str());
+		dir = vfs->fromPath(path);
+	}
     else
         dir = vfs->getRoot();
 
@@ -100,7 +109,7 @@ void KernelShell::ls(std::vector<std::string> args) {
     }
 }
 
-void KernelShell::help(std::vector<std::string> args)
+void KernelShell::help(Environment& env, std::vector<std::string> args)
 {
 	printf("Possible commands: ");
 
@@ -116,9 +125,39 @@ void KernelShell::help(std::vector<std::string> args)
 	printf("\n");
 }
 
+void KernelShell::set(Environment& env, std::vector<std::string> args)
+{
+	if (args.size() == 2)
+	{
+		const std::string var = args[1];
+		if (env.isset(var))
+			printf("%s=%s\n", var.data(), env.get(var).data());
+		else
+			printf("%s is not set\n", var.data());
+	}
+	else if (args.size() == 3)
+	{
+		const std::string var = args[1];
+		const std::string val = args[2];
+		env.set(var, val);
+	}
+}
+
+void KernelShell::unset(Environment& env, std::vector<std::string> args)
+{
+	if (args.size() == 2)
+	{
+		const std::string var = args[1];
+		if (env.isset(var))
+			env.unset(var);
+		else
+			printf("%s was not set\n", var.data());
+	}
+}
+
 void KernelShell::enter()
 {
-	printf("> ");
+	printf("%s$ ", _env.get("pwd").data());
 
 	// keep in the shell forever (unless we tell it to exit)
 	while (true)
@@ -150,7 +189,7 @@ void KernelShell::enter()
 					if (split[0] == _commands[i].first)
 					{
 						notFound = false;
-						(this->*_commands[i].second)(split);
+						(this->*_commands[i].second)(_env, split);
 						break;
 					}
 				}
@@ -160,7 +199,7 @@ void KernelShell::enter()
 					printf("Unknown command: %s\n", line.data());
 				}
 			}
-			printf("> ");
+			printf("%s$ ", _env.get("pwd").data());
 		}
 
 		__asm__ volatile("hlt");
