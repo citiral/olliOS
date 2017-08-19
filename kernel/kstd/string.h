@@ -30,7 +30,11 @@ namespace std {
         friend bool operator!=(const char* lhs, const string& rhs);
 
         char& operator[](size_t pos);
-        const char& operator[](size_t pos) const;
+		const char& operator[](size_t pos) const;
+		
+		friend string operator+(const string& lstr, const string& rstr);
+		friend string operator+(const string& lstr, char rchar);
+		friend string operator+(char lchar, const string& rstr);
 
         int compare(const string& str) const;
         int compare(const char* str) const;

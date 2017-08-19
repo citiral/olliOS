@@ -118,6 +118,40 @@ bool operator!=(const char* lhs, const string& rhs) {
     return rhs.compare(lhs) != 0;
 }
 
+string operator+(const string& lstr, const string& rstr) {
+	string str;
+	delete[] str._data;
+	size_t llen = lstr.length();
+	size_t rlen = rstr.length();
+	str._data = new char[llen + rlen + 1];
+	memcpy(str._data, lstr._data, lstr.length());
+	memcpy(str._data + llen, rstr._data, rlen);
+	str._data[llen + rlen] = 0;
+	return str;
+}
+
+string operator+(const string& lstr, char rchar) {
+	string str;
+	size_t llen = lstr.length();
+	delete[] str._data;
+	str._data = new char[llen + 2];
+	memcpy(str._data, lstr._data, llen);
+	str._data[llen] = rchar;
+	str._data[llen + 1] = 0;
+	return str;
+}
+
+string operator+(char lchar, const string& rstr) {
+	string str;
+	size_t rlen = rstr.length();
+	delete[] str._data;
+	str._data = new char[rlen + 2];
+	memcpy(str._data + 1, rstr._data, rlen);
+	str._data[0] = lchar;
+	str._data[rlen + 1] = 0;
+	return str;
+}
+
 int string::compare(const string& str) const {
     return compare(str.c_str());
 }
