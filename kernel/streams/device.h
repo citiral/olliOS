@@ -6,7 +6,8 @@
 enum class DeviceType: u8 {
     Keyboard = 0,
     Screen = 1,
-    Storage = 2,
+	Storage = 2,
+	PCI = 3
 };
 
 /**
@@ -41,6 +42,10 @@ struct DeviceKeyboardInfo {
 };
 
 struct DeviceScreenInfo {
+    DeviceInfo deviceInfo;
+};
+
+struct DevicePCIInfo {
     DeviceInfo deviceInfo;
 };
 

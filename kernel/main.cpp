@@ -1,3 +1,4 @@
+#include "cpu.h"
 #include "kstd/string.h"
 #include "types.h"
 #include "gdt.h"
@@ -22,6 +23,7 @@
 #include "kernelshell.h"
 #include "kstd/new.h"
 #include "fs/filesystem.h"
+#include "pci/pci.h"
 #include <stdlib.h>
 
 void initCpu() {
@@ -116,7 +118,7 @@ extern "C" void main(multiboot_info* multiboot) {
     // None of these should be allowed to touch the memory allocator, etc
 	initCpu();
 
-    // init the memory management, so we have proper paging and can allocate memoryy
+    // init the memory management, so we have proper paging and can allocate memory
     initMemory(multiboot);
 
     // initialize the ATA driver
@@ -125,7 +127,10 @@ extern "C" void main(multiboot_info* multiboot) {
 
     // and register the default vga and and keyboard driver
     deviceManager.addDevice(&vgaDriver);
-    LOG_STARTUP("VGA driver initialized.");
+	LOG_STARTUP("VGA driver initialized.");
+	
+	PCI::init();
+	LOG_STARTUP("PCI driver initialized.");
     
     deviceManager.addDevice(new KeyboardDriver());
     LOG_STARTUP("Keyboard driver initialized.");

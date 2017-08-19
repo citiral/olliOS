@@ -1,4 +1,5 @@
 #include "devicemanager.h"
+#include "cpu.h"
 
 DeviceManager deviceManager;
 
@@ -46,7 +47,8 @@ std::vector<Device*>& DeviceManager::getDevices(DeviceType type) {
             return storageDevices;
             break;
         default:
-            // TODO: panic since this could never really happen
+			// TODO: panic since this could never really happen
+			CPU::panic();
             return keyboardDevices;
             break;
     }

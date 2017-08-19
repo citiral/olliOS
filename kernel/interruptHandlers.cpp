@@ -6,35 +6,7 @@
 #include "pic.h"
 #include "ata/ata.h"
 #include "stdio.h"
-
-void dumpStack(unsigned int MaxFrames)
-{
-	unsigned int * ebp = &MaxFrames - 2;
-	printf("Stack trace:\n");
-	for(unsigned int frame = 0; frame < MaxFrames; ++frame)
-	{
-		unsigned int eip = ebp[1];
-		if(eip == 0)
-			// No caller on stack
-			break;
-		// Unwind to previous stack frame
-		ebp = reinterpret_cast<unsigned int *>(ebp[0]);
-		unsigned int * arguments = &ebp[2];
-		printf("  0x%X     \n", eip);
-	}
-}
-
-void halt()
-{
-	dumpStack(10);
-	printf("Halting\n");
-	
-	while (true)
-	{
-		__asm__ volatile("cli");
-		__asm__ volatile("hlt");
-	}
-}
+#include "cpu.h"
 
 void intHandlerUndefined(u32 interrupt) {
 	printf("Undefined interrupt has been thrown: 0x%x\n", interrupt);
@@ -69,11 +41,11 @@ void intHandlerAta(u32 interrupt) {
 void intHandlerGeneralProtectionViolation(u32 interrupt)
 {
 	printf("General Protection Violation occured\n");
-	halt();
+	CPU::panic();
 }
 
 void intHandlerPageFault(u32 interrupt)
 {
 	printf("Page Fault occured\n");
-	halt();
+	CPU::panic();
 }
