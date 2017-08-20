@@ -1,6 +1,7 @@
 #include "util/inputformatter.h"
 #include "devicemanager.h"
 #include "streams/vga.h"
+#include "streams/keyboard.h"
 #include "stdio.h"
 
 InputFormatter::InputFormatter():
@@ -17,7 +18,7 @@ void InputFormatter::handleVirtualKeyEvent(VirtualKeyEvent event)
 
     //first lets test the special characters
     if (event.vkey == VirtualKeycode::ENTER) {
-		deviceManager.getDevice(DeviceType::Screen, 0)->write('\n');
+		((VgaDriver*) deviceManager.getDevice(DeviceType::Screen, 0))->write('\n');
 		_input.back().push_back('\0');
 		_input.push_back(std::vector<char>());
 		_lineReady = true;
@@ -73,8 +74,8 @@ bool InputFormatter::isLineReady() const
 void InputFormatter::addChar(u8 character)
 {
 	_input.back().insert(_lineIndex++, character);
-	for (int i = _lineIndex-1; i < _input.back().size(); i++)
-		deviceManager.getDevice(DeviceType::Screen, 0)->write(_input.back()[i]);
+	for (size_t i = _lineIndex-1; i < _input.back().size(); i++)
+		((VgaDriver*) deviceManager.getDevice(DeviceType::Screen, 0))->write(_input.back()[i]);
 	fseek(stdout, _lineIndex-_input.back().size(), SEEK_CUR);
 }
 
@@ -82,7 +83,7 @@ void InputFormatter::gotoLine(int linenum)
 {
 	removeChars(_input.back().size());
 	_input.back().clear();
-	for (int i = 0; i < _input[linenum].size(); i++)
+	for (size_t i = 0; i < _input[linenum].size(); i++)
 		_input.back().push_back(_input[linenum][i]);
 
 	if (_input.back().back() == '\0')
@@ -96,7 +97,7 @@ void InputFormatter::gotoLine(int linenum)
 
 void InputFormatter::moveCursorBy(int amount)
 {
-	if (_lineIndex + amount < 0)
+	if (amount < 0 && (unsigned int) -amount >= _lineIndex)
 		amount = -_lineIndex;
 	else if (_lineIndex + amount > _input.back().size())
 		amount = _input.back().size()-_lineIndex;
@@ -110,7 +111,7 @@ void InputFormatter::moveCursorTo(int position)
 	moveCursorBy(position - _lineIndex);
 }
 
-void InputFormatter::removeChars(int num)
+void InputFormatter::removeChars(size_t num)
 {
 	if (_input.back().size() >= num)
 	{
@@ -118,11 +119,11 @@ void InputFormatter::removeChars(int num)
 			return;
 		moveCursorBy(-num);
 		
-		for (int i = 0; i < num; i++)
+		for (size_t i = 0; i < num; i++)
 			_input.back().erase(_lineIndex);
 
-		int t = 0;
-		for (int i = _lineIndex; i < _input.back().size()+num; i++)
+		size_t t = 0;
+		for (size_t i = _lineIndex; i < _input.back().size()+num; i++)
 		{
 			if (i < _input.back().size())
 				vgaDriver.write(&_input.back()[i], 1);

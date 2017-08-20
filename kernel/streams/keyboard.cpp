@@ -1,6 +1,7 @@
 #include "streams/vga.h"
 #include "streams/keyboard.h"
 #include "io.h"
+#include "cdefs.h"
 
 #define COMMAND_PORT 0x64
 #define IO_PORT 0x60
@@ -145,6 +146,8 @@ size_t KeyboardDriver::read(void* data, size_t amount)
 
 size_t KeyboardDriver::seek(i32 offset, int position)
 {
+	UNUSED(offset);
+	UNUSED(position);
 	//you can't seek in a keyboard, dummy
 	return 1;
 }

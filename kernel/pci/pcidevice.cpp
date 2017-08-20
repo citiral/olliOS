@@ -46,6 +46,21 @@ u8 PCIDevice::configReadByte(u8 reg)
 	return PCI::configReadByte(_bus, _device, _func, reg);
 }
 
+void PCIDevice::configWriteLong(u8 reg, u32 value)
+{
+	PCI::configWriteLong(_bus, _device, _func, reg, value);
+}
+
+void PCIDevice::configWriteWord(u8 reg, u16 value)
+{
+	PCI::configWriteWord(_bus, _device, _func, reg, value);
+}
+
+void PCIDevice::configWriteByte(u8 reg, u8 value)
+{
+	PCI::configWriteByte(_bus, _device, _func, reg, value);
+}
+
 DeviceType PCIDevice::getDeviceType() const
 {
 	return DeviceType::PCI;
@@ -60,26 +75,38 @@ void PCIDevice::getDeviceInfo(void* deviceinfo) const
 }
 
 size_t PCIDevice::write(const void* data, size_t amount) {
-	CPU::panic();
+	CPU::panic("Call to unimplemented function write in PCIDevice.cpp");
+	UNUSED(data);
+	UNUSED(amount);
 	return 0;
 };
 
 size_t PCIDevice::write(const void* data)  {
+	CPU::panic("Call to unimplemented function write in PCIDevice.cpp");
 	CPU::panic();
+	UNUSED(data);
 	return 0;
 };
 
 size_t PCIDevice::write(char data) {
+	CPU::panic("Call to unimplemented function write in PCIDevice.cpp");
 	CPU::panic();
+	UNUSED(data);
 	return 0;
 };
 
 size_t PCIDevice::read(void* data, size_t amount) {
+	CPU::panic("Call to unimplemented function read in PCIDevice.cpp");
 	CPU::panic();
+	UNUSED(data);
+	UNUSED(amount);
 	return 0;
 };
 
 size_t PCIDevice::seek(i32 offset, int position) {
+	CPU::panic("Call to unimplemented function seek in PCIDevice.cpp");
 	CPU::panic();
+	UNUSED(offset);
+	UNUSED(position);
 	return 0;
 };

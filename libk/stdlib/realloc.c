@@ -6,5 +6,5 @@
 #include "alloc.h"
 
 void* realloc(void* ptr, size_t size) {
-    kernelAllocator.realloc(ptr, size);
+	return kernelAllocator.realloc(ptr, size);
 }

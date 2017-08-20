@@ -1,6 +1,7 @@
 #include "streams/vga.h"
 #include "io.h"
 #include "stdio.h"
+#include "cdefs.h"
 
 static i16* VGA_POINTER = (i16*)0x000B8000;
 
@@ -12,7 +13,7 @@ VgaDriver::VgaDriver():
 	_foregroundColor(VgaColor::LightGrey),
 	_backgroundColor(VgaColor::Black),
 	_blinking(false),
-	_vgapointer((i16*)0x000B8000)
+	_vgapointer(VGA_POINTER)
 {
 	//to please the user, the driver is started with a clear screen
 	for (int i = 0 ; i < 500 ; i++)
@@ -61,13 +62,15 @@ size_t VgaDriver::write(const void* data)
 
 size_t VgaDriver::write(char data)
 {
+	UNUSED(data);
 	writeChar(data);
 	return 1;
 }
 
 size_t VgaDriver::read(void* data, size_t amount)
 {
-	//TODO: read maybe? perhaps do nothing
+	UNUSED(data);
+	UNUSED(amount);
 	return 0;
 }
 

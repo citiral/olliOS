@@ -1,5 +1,5 @@
 #include "fs/iso9660.h"
-#include "streams/device.h"
+#include "streams/blockdevice.h"
 #include "cdefs.h"
 #include "kstd/utility.h"
 #include "streams/memorystream.h"
@@ -8,13 +8,13 @@ T readType(u8* descriptor, size_t offset) {
     return *(T*)(descriptor + offset);
 }
 
-Iso9660FileSystem::Iso9660FileSystem(Device* device): _device(device) {
+Iso9660FileSystem::Iso9660FileSystem(BlockDevice* device): _device(device) {
     loadVolumeDescriptors();
     //_primarypathtable = loadPathTable(_primarydescriptor);
 }
 
 Iso9660FileSystem::~Iso9660FileSystem() {
-    for(int i = 0 ; i < _descriptors.size() ; i++) {
+    for(size_t i = 0 ; i < _descriptors.size() ; i++) {
         delete[] _descriptors[i];
     }
 }
@@ -59,7 +59,7 @@ u8* Iso9660FileSystem::readExtend(u32 lba, u32 length) {
     return extend;
 }
 
-Iso9660DirEntry::Iso9660DirEntry(Stream* fs, u8* record, u32 length, u32 offset): _fs(fs), _record(record), _length(length), _offset(offset) {
+Iso9660DirEntry::Iso9660DirEntry(BlockDevice* fs, u8* record, u32 length, u32 offset): _fs(fs), _record(record), _length(length), _offset(offset) {
 
 }
 
@@ -135,18 +135,18 @@ DirEntry* Iso9660DirEntry::openDir() {
 
     _fs->seek(lba * SIZEOF_KB  * 2, SEEK_SET);
     u8* extend = new u8[std::roundup(length, 2048u)];
-    u32 read = _fs->read(extend, std::roundup(length, 2048u));
+    _fs->read(extend, std::roundup(length, 2048u));
 
     return new Iso9660DirEntry(_fs, extend, length, 0);
 }
 
-Stream* Iso9660DirEntry::openFile() {
+BlockDevice* Iso9660DirEntry::openFile() {
     u32 lba = readType<u32>(_record, _offset + 2);
     u32 length = readType<u32>(_record, _offset + 10);
 
     _fs->seek(lba * SIZEOF_KB  * 2, SEEK_SET);
     u8* data = new u8[std::roundup(length, 2048u)];
-    u32 read = _fs->read(data, std::roundup(length, 2048u));
+    _fs->read(data, std::roundup(length, 2048u));
 
     return new MemoryStream(data, length);
 }

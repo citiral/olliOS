@@ -6,5 +6,5 @@
 #include "alloc.h"
 
 void* calloc(size_t num, size_t size) {
-    kernelAllocator.calloc(num, size);
+	return kernelAllocator.calloc(num, size);
 }

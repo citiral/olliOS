@@ -9,12 +9,16 @@ DeviceManager::DeviceManager() {
 
 DeviceManager::~DeviceManager() {
     // delete all remaining devices
-    for (int i = 0 ; i < keyboardDevices.size(); i++)
+    for (size_t i = 0 ; i < keyboardDevices.size(); i++)
         delete keyboardDevices[i];
-    for (int i = 0 ; i < screenDevices.size(); i++)
+    for (size_t i = 0 ; i < screenDevices.size(); i++)
         delete screenDevices[i];
-    for (int i = 0 ; i < storageDevices.size(); i++)
-        delete storageDevices[i];
+    for (size_t i = 0 ; i < storageDevices.size(); i++)
+		delete storageDevices[i];
+	for (size_t i = 0 ; i < pciDevices.size(); i++)
+		delete pciDevices[i];
+	for (size_t i = 0 ; i < pciDevices.size(); i++)
+        delete serialDevices[i];
 }
 
 void DeviceManager::addDevice(Device* device) {
@@ -22,9 +26,9 @@ void DeviceManager::addDevice(Device* device) {
 }
 
 void DeviceManager::destroyDevice(Device* device) {
-    int index = getDevices(device->getDeviceType()).find(device);
+    size_t index = getDevices(device->getDeviceType()).find(device);
 
-    if (index != -1)
+    if (index != (size_t) -1)
         getDevices(device->getDeviceType()).erase(index);
 }
 
@@ -45,10 +49,16 @@ std::vector<Device*>& DeviceManager::getDevices(DeviceType type) {
             break;
         case DeviceType::Storage:
             return storageDevices;
-            break;
+			break;
+		case DeviceType::PCI:
+			return pciDevices;
+			break;
+		case DeviceType::Serial:
+			return serialDevices;
+			break;
         default:
 			// TODO: panic since this could never really happen
-			CPU::panic();
+			CPU::panic("Attempt to get unknown device type");
             return keyboardDevices;
             break;
     }

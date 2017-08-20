@@ -34,7 +34,7 @@ namespace std {
                 _data = static_cast<T*>(malloc(_maxLength * sizeof(T)));
             
                 if (ref._data != nullptr) {
-                    for (int i = 0; i < _length; i++) {
+                    for (size_t i = 0; i < _length; i++) {
                         new (&_data[i]) T(ref._data[i]);
                     }
                 }
@@ -56,7 +56,7 @@ namespace std {
         ~vector() {
             // clean up all remaining elements
             if (_data != nullptr) {
-                for (int i = 0; i < _length; i++) {
+                for (size_t i = 0; i < _length; i++) {
                     _data[i].~T();
                 }
 
@@ -68,7 +68,7 @@ namespace std {
         vector<T>& operator=(const vector<T>& ref) {
             // clean up all remaining elements
             if (_data != nullptr) {
-                for (int i = 0; i < _length; i++) {
+                for (size_t i = 0; i < _length; i++) {
                     _data[i].~T();
                 }
 
@@ -82,7 +82,7 @@ namespace std {
                 _data = static_cast<T*>(malloc(_maxLength * sizeof(T)));
 
                 if (ref._data != nullptr) {
-                    for (int i = 0; i < _length; i++) {
+                    for (size_t i = 0; i < _length; i++) {
                         new (&_data[i]) T(ref._data[i]);
                     }
                 }
@@ -96,7 +96,7 @@ namespace std {
         vector<T>& operator=(vector<T>&& ref) {
             // clean up all remaining elements
             if (_data != nullptr) {
-                for (int i = 0; i < _length; i++) {
+                for (size_t i = 0; i < _length; i++) {
                     _data[i].~T();
                 }
 
@@ -123,16 +123,16 @@ namespace std {
         }
 
         size_t find(const T& value) const {
-            for (int i = 0 ; i < _length ; i++) {
+            for (size_t i = 0 ; i < _length ; i++) {
                 if (_data[i] == value)
                     return i;
             }
-            return -1;
+            return (size_t) -1;
         }
 
         void erase(size_t position) {
             // bubble all elements folowing the position one down
-            for (int i = position ; i + 1 < _length ; i++) {
+            for (size_t i = position ; i + 1 < _length ; i++) {
                 _data[i] = std::move(_data[i+1]);
             }
 
@@ -145,7 +145,7 @@ namespace std {
 		
 		void clear() {
 			if (_data != nullptr) {
-                for (int i = 0; i < _length; i++) {
+                for (size_t i = 0; i < _length; i++) {
                     _data[i].~T();
                 }
 
@@ -180,7 +180,7 @@ namespace std {
 			if (size() > 0)
 			{
 				push_back(back());
-				for (int i = size()-2; i > position; i--)
+				for (size_t i = size()-2; i > position; i--)
 					_data[i] = _data[i-1];
 				_data[position] = val;
 			}
@@ -267,7 +267,7 @@ namespace std {
         if (lhs.size() != rhs.size())
            return false;
 
-        for (int i = 0; i < lhs.size(); i++)
+        for (size_t i = 0; i < lhs.size(); i++)
             if (!(lhs[i] == rhs[i]))
                 return false;
 

@@ -21,7 +21,9 @@ public:
 private:
     std::vector<Device*> keyboardDevices;
     std::vector<Device*> screenDevices;
-    std::vector<Device*> storageDevices;
+	std::vector<Device*> storageDevices;
+	std::vector<Device*> pciDevices;
+	std::vector<Device*> serialDevices;
 };
 
 extern DeviceManager deviceManager;

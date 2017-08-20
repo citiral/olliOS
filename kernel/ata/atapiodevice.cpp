@@ -4,7 +4,7 @@
 
 #include "ata/atapiodevice.h"
 
-AtaPioDevice::AtaPioDevice(unsigned short* data): _data(data) {
+AtaPioDevice::AtaPioDevice(u16 port, unsigned short* data): _port(port), _data(data) {
 }
 
 AtaPioDevice::~AtaPioDevice() {

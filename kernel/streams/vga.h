@@ -1,7 +1,7 @@
 #ifndef __VGA_H
 #define __VGA_H
 
-#include "streams/device.h"
+#include "streams/blockdevice.h"
 #include "types.h"
 
 #define VGA_DRIVER_DEVICE_NAME "VGA"
@@ -27,7 +27,7 @@ enum class VgaColor: i8 {
 	White = 15,
 };
 
-class VgaDriver : public Device {
+class VgaDriver : public BlockDevice {
 public:
 	VgaDriver();
 	virtual ~VgaDriver();

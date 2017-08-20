@@ -7,7 +7,7 @@
 
 #include "types.h"
 
-#define PORT_DATA           0x1F0
+/*#define PORT_DATA           0x1F0
 #define PORT_FEATURE        0x1F1
 #define PORT_ERROR          0x1F1
 #define PORT_SECTOR_COUNT   0x1F2
@@ -20,13 +20,38 @@
 #define PORT_DRIVE          0x1F6
 #define PORT_HEAD           0x1F6
 #define PORT_COMMAND        0x1F7
-#define PORT_STATUS         0x1F7
+#define PORT_STATUS         0x1F7*/
+
+#define PORT_DEFAULT_PRIMARY	0x1F0
+#define PORT_DEFAULT_SECONDARY	0x170
+
+#define PORT_DATA			0
+#define PORT_FEATURE		1
+#define PORT_ERROR			1
+#define PORT_SECTOR_COUNT	2
+#define PORT_SECTOR_NUMBER	3
+#define PORT_LBA_LOW		3
+#define PORT_CYLINDER_LOW	4
+#define PORT_LBA_MID		4
+#define PORT_CYLINDER_HIGH	5
+#define PORT_LBA_HIGH		5
+#define PORT_DRIVE			6
+#define PORT_HEAD			6
+#define PORT_COMMAND		7
+#define PORT_STATUS			7
 
 #define PORT_DEVICE_CONTROL 0x3F6
 
 #define COMMAND_IDENTIFY_DRIVE  0xEC
 #define COMMAND_IDENTIFY_PACKET_DRIVE  0xA1
 #define COMMAND_PACKET      0xA0
+
+#define BIT_STATUS_ERR	(1<<0)
+#define BIT_STATUS_DRQ	(1<<3)
+#define BIT_STATUS_SRV	(1<<4)
+#define BIT_STATUS_DF	(1<<5)
+#define BIT_STATUS_RDY	(1<<6)
+#define BIT_STATUS_BSY	(1<<7)
 
 //TODO: once scheduling is implemented, this should be partially redesigned
 // http://www.seagate.com/support/disc/manuals/ata/d1153r17.pdf
@@ -57,27 +82,29 @@ public:
     void printDeviceInformation();
 
     // if device is 0, it selects the master device, so he will receive all commands. If it is 1, the slave device is selected
-    void selectDevice(int device);
+    void selectDevice(u16 port, int device);
 
     // detects a device through the IDENTIFY DRIVE command and returns a pointer to the returned data if a device has been detected
-    unsigned short* detectDevice(int device);
+    unsigned short* detectDevice(u16 port, int device);
 
     // keeps polling the status register until the drive is no longer reporting it is busy
-    void waitForBusy();
+    void waitForBusy(u16 port);
 
     // keeps polling the status register until the drive is reporting it has data or has an error
     // returns true if there is data available, returns zero if there is an error available
-    bool waitForDataOrError();
+    bool waitForDataOrError(u16 port);
 
     // keeps waiting until interrupted is set to true. This is then set to false.
-    void waitForInterrupt();
+    void waitForInterrupt(u16 port);
 
     // notifies the ata driver an interrupt has happened
     void notifyInterrupt();
 
 private:
     // This has to be volatile, otherwise codegen might cache it in a register which won't detect changes by interrupt
-    volatile bool _interrupted;
+	volatile bool _interrupted;
+	bool _scanDefaultAddresses = true;
+	int _lastDevice = -1;
 };
 
 

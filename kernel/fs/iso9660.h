@@ -2,14 +2,14 @@
 #define __ISO9960_H
 
 #include "fs/filesystem.h"
-#include "streams/device.h"
+#include "streams/blockdevice.h"
 #include "kstd/vector.h"
 
 class Iso9660FileSystem;
 
 class Iso9660DirEntry : public DirEntry {
 public:
-    Iso9660DirEntry(Stream* fs, u8* record, u32 length, u32 offset);
+    Iso9660DirEntry(BlockDevice* fs, u8* record, u32 length, u32 offset);
     ~Iso9660DirEntry();
 
     virtual bool valid();
@@ -17,20 +17,20 @@ public:
     virtual std::string name();
     virtual DirEntryType type();
     virtual DirEntry* openDir();
-    virtual Stream* openFile();
+    virtual BlockDevice* openFile();
 
     u8* getSystemUseField(u8 b1, u8 b2);
 
 private:
+	BlockDevice* _fs;
     u8* _record;
-    u32 _offset;
     u32 _length;
-    Stream* _fs;
+    u32 _offset;
 };
 
 class Iso9660FileSystem : public FileSystem {
 public:
-    Iso9660FileSystem(Device* device);
+    Iso9660FileSystem(BlockDevice* device);
     ~Iso9660FileSystem();
     
     DirEntry* getRoot();
@@ -39,7 +39,7 @@ private:
     void loadVolumeDescriptors();
     u8* readExtend(u32 lba, u32 length);
 
-    Device* _device;
+    BlockDevice* _device;
     std::vector<u8*> _descriptors;
     u8* _primarydescriptor;
 };

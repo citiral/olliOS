@@ -17,7 +17,7 @@ public:
     // adds a char to the buffer and renders it
 	void addChar(u8 character);
 	// Remove a certain amount of characters from the current line.
-	void removeChars(int amount);
+	void removeChars(size_t amount);
     // gets the current line, null terminated
     std::string getNextLine();
 
@@ -31,8 +31,8 @@ private:
 
     std::vector<std::vector<char>> _input;
 	bool _lineReady;
-	int _logIndex = 0;
-	int _lineIndex = 0;
+	size_t _logIndex = 0;
+	size_t _lineIndex = 0;
 };
 
 #endif /* end of include guard: __INPUT_FORMATTER */

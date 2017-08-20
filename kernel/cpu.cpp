@@ -13,9 +13,18 @@ void CPU::dumpstack(unsigned int MaxFrames)
 			break;
 		// Unwind to previous stack frame
 		ebp = reinterpret_cast<unsigned int *>(ebp[0]);
-		unsigned int * arguments = &ebp[2];
+		//unsigned int * arguments = &ebp[2];
 		printf("  0x%X     \n", eip);
 	}
+}
+
+void CPU::panic(const char* msg)
+{
+	printf("Kernel Panic!!!\n");
+	printf("%s\n", msg);
+	dumpstack(10);
+	printf("Halting\n");
+	halt();
 }
 
 void CPU::panic()
@@ -23,7 +32,11 @@ void CPU::panic()
 	printf("Kernel Panic!!!\n");
 	dumpstack(10);
 	printf("Halting\n");
-	
+	halt();
+}
+
+void CPU::halt()
+{
 	while (true)
 	{
 		__asm__ volatile("cli");

@@ -4,6 +4,7 @@
 
 #include "alloc/LinearAlloc.h"
 #include "linker.h"
+#include "cdefs.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -12,7 +13,7 @@ LinearAlloc::LinearAlloc() {
 }
 
 void LinearAlloc::init(void* start, size_t length) {
-    this->start = start;
+    this->start = static_cast<char*>(start);
     remaining = length;
 }
 
@@ -31,7 +32,7 @@ void* LinearAlloc::malloc(size_t size) {
 }
 
 void* LinearAlloc::realloc(void* ptr, size_t size) {
-    size_t originalsize = *(size_t*)(ptr - sizeof(size_t));
+    size_t originalsize = *(size_t*)(static_cast<char*>(ptr) - sizeof(size_t));
 
     void* next = malloc(size);
 
@@ -46,6 +47,7 @@ void* LinearAlloc::realloc(void* ptr, size_t size) {
 }
 
 void LinearAlloc::free(void* ptr) {
+	UNUSED(ptr);
     // eh, fuck it
 }
 

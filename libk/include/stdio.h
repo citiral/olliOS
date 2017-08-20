@@ -3,8 +3,8 @@
 
 #include <stddef.h>
 
-class Stream;
-typedef Stream FILE;
+class BlockDevice;
+typedef BlockDevice FILE;
 
 #define SEEK_SET 0
 #define SEEK_CUR 1

@@ -10,19 +10,20 @@
 
 class AtaPioDevice: public Device {
 public:
-    AtaPioDevice(unsigned short* data);
+    AtaPioDevice(u16 port, unsigned short* data);
     ~AtaPioDevice();
 
     virtual DeviceType getDeviceType() const;
     virtual void getDeviceInfo(void* deviceinfo) const;
 
-    UNIMPLEMENTED(size_t write(const void* data, size_t amount), 0);
+    /*UNIMPLEMENTED(size_t write(const void* data, size_t amount), 0);
     UNIMPLEMENTED(size_t write(const void* data), 0);
     UNIMPLEMENTED(size_t write(char data), 0);
     UNIMPLEMENTED(size_t read(void* data, size_t amount), 0);
-    UNIMPLEMENTED(size_t seek(i32 offset, int position), 0);
+    UNIMPLEMENTED(size_t seek(i32 offset, int position), 0);*/
 
 private:
+	u16 _port;
     unsigned short* _data;
 };
 

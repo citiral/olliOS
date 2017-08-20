@@ -20,7 +20,7 @@ public:
 
 private:
 
-    void* start;
+    char* start; // char* instead of void* for C++11 compliance
     size_t remaining;
 };
 

@@ -12,7 +12,7 @@
 //We declare them as extern "C" so no name mangling happens.
 extern "C" {
     void __cxa_pure_virtual(void);
-    void __cxa_atexit(void (*func) (void *), void* arg, void* dso_handle);
+    void __cxa_atexit(void (*func) (void *) __attribute__((unused)), void* arg __attribute__((unused)), void* dso_handle __attribute__((unused)));
 }
 
 #endif /* end of include guard: __ABI_H */

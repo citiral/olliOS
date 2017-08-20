@@ -64,7 +64,9 @@ dir:
 
 iso: install
 	mkisofs -R -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -boot-info-table -o ollios.iso root
-#	grub-mkrescue ./root -o ./ollios.iso
+
+bootiso: install
+	grub-mkrescue ./root -o ./ollios.iso
 
 install: install-headers install-kernel install-grub
 

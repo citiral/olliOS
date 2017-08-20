@@ -3,11 +3,12 @@
 //
 
 #include <stdio.h>
+#include "cdefs.h"
 #include "io.h"
 #include "ata/ata.h"
 #include "ata/atapacketdevice.h"
 
-AtaPacketDevice::AtaPacketDevice(unsigned short* data, u8 drive): _data(data), _drive(drive), _lba(0) {
+AtaPacketDevice::AtaPacketDevice(u16 port, unsigned short* data, u8 drive): _port(port), _data(data), _drive(drive), _lba(0) {
 }
 
 AtaPacketDevice::~AtaPacketDevice() {
@@ -26,23 +27,23 @@ void AtaPacketDevice::getDeviceInfo(void* deviceinfo) const
 
 size_t AtaPacketDevice::read(void* data, size_t amount) {
     // select ourselves as drive
-    ataDriver.selectDevice(_drive);
+    ataDriver.selectDevice(_port, _drive);
     
     // round amount to the lowest block (2k boundary)
     amount -= amount % 2048;
 
     // we are not going to use DMA (set dma bit to zero)
-    outb(PORT_FEATURE, 0);
+    outb(_port+PORT_FEATURE, 0);
 
     // set the max amount of bytes we want to receive
-    outb(PORT_CYLINDER_LOW, amount & 0xFF);
-    outb(PORT_CYLINDER_HIGH, amount >> 8);
+    outb(_port+PORT_CYLINDER_LOW, amount & 0xFF);
+    outb(_port+PORT_CYLINDER_HIGH, amount >> 8);
 
     // convert the amount to blocks
     amount /= 2048;
 
     // send the packet command
-    outb(PORT_COMMAND, COMMAND_PACKET);
+    outb(_port+PORT_COMMAND, COMMAND_PACKET);
 
     // generate the commands we are going to send
     unsigned char commands[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -65,8 +66,8 @@ size_t AtaPacketDevice::read(void* data, size_t amount) {
     commands[9] = amount;
 
     // wait until the device is ready
-    ataDriver.waitForBusy();
-    ataDriver.waitForDataOrError();
+    ataDriver.waitForBusy(_port);
+    ataDriver.waitForDataOrError(_port);
 
     // set the group number to 0, I presume we can ignore this
     commands[10] = 0;
@@ -75,27 +76,49 @@ size_t AtaPacketDevice::read(void* data, size_t amount) {
     commands[11] = 0;
 
     // now lets send the commands
-    outsw(PORT_DATA, commands, 6);
+    outsw(_port+PORT_DATA, commands, 6);
 
     // wait until the device is ready
-    ataDriver.waitForInterrupt();
+    ataDriver.waitForInterrupt(_port);
 
     // now lets fetch the amount of data we can read
-    int wordcount = ((inb(PORT_LBA_HIGH) << 8) | inb(PORT_LBA_MID)) / 2;
+    int wordcount = ((inb(_port+PORT_LBA_HIGH) << 8) | inb(_port+PORT_LBA_MID)) / 2;
 
     // and now finally we can read the data
     for (int i = 0 ; i < wordcount ; i++) {
-        ((unsigned short*)data)[i] = inw(PORT_DATA);
+        ((unsigned short*)data)[i] = inw(_port+PORT_DATA);
     }
 
     // the device is going to send us one last interrupt
-    ataDriver.waitForBusy();
-    ataDriver.waitForInterrupt();
+    ataDriver.waitForBusy(_port);
+    ataDriver.waitForInterrupt(_port);
 
     // advance the lba by wordcount / 1024 (advance once for each 2K block read)
     _lba += wordcount / 1024;
 
     return wordcount * 2;
+}
+
+size_t AtaPacketDevice::write(const void* data, size_t amount)
+{
+	UNUSED(data);
+	UNUSED(amount);
+	CPU::panic("write not implemented on AtaPacketDevice");
+	return 0;
+}
+
+size_t AtaPacketDevice::write(const void* data)
+{
+	UNUSED(data);
+	CPU::panic("write not implemented on AtaPacketDevice");
+	return 0;
+}
+
+size_t AtaPacketDevice::write(char data)
+{
+	UNUSED(data);
+	CPU::panic("write not implemented on AtaPacketDevice");
+	return 0;
 }
 
 size_t AtaPacketDevice::seek(i32 offset, int position) {

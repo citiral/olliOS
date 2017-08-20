@@ -1,5 +1,6 @@
 #include "pci.h"
 #include "pcidevice.h"
+#include "devicemanager.h"
 #include "io.h"
 #include "cdefs.h"
 #include "kstd/vector.h"
@@ -15,6 +16,15 @@ struct pci_device_name {
 };
 
 pci_device_name pci_device_names[] = {
+	{0x1106, 0x3205, "VIA CPU-to-PCI Bridge"},
+	{0x1106, 0xB198, "VIA PCI-to-PCI Bridge"},
+	{0x1106, 0x3038, "VIA VT8251 USB1.0 Controller"},
+	{0x1106, 0x3104, "VIA VT6202 USB2.0 EHCI Controller"},
+	{0x1106, 0x3177, "VIA PCI-to-ISA Bridge"},
+	{0x1106, 0x0571, "VT8235 Bus Master IDE Controller"},
+	{0x1106, 0x3059, "VIA Sound AC97"},
+	{0x1106, 0x3065, "VIA VT6102 Rhine II Fast Ethernet"},
+	{0x1106, 0x7205, "VIA MK400 S3 UniChrome Graphics Adapter"},
 	{0x8086, 0x100E, "Intel Pro 1000/MT"},
 	{0x8086, 0x1237, "Intel 82440LX/EX"},
 	{0x8086, 0x7000, "Intel 82371SB PIIX3 PCI-to-ISA Bridge"},
@@ -42,7 +52,7 @@ namespace PCI
 		return unknown_device;
 	}
 
-	u32 configReadLong(u8 bus, u8 dev, u8 func, u8 reg)
+	u32 formatAddress(u8 bus, u8 dev, u8 func, u8 reg)
 	{
 		u32 lbus = (u32) bus;
 		u32 ldev = (u32) dev;
@@ -50,7 +60,12 @@ namespace PCI
 		u32 lreg = (u32) reg;
 
 		u32 address = PCI_ENABLE_BIT | (lbus << 16) | (ldev << 11) | (lfunc << 8) | (lreg & 0b11111100);
+		return address;
+	}
 
+	u32 configReadLong(u8 bus, u8 dev, u8 func, u8 reg)
+	{
+		u32 address = formatAddress(bus, dev, func, reg);
 		outl(PCI_CONFIG_ADDRESS, address);
 		u32 val = inl(PCI_CONFIG_DATA);
 		return val;
@@ -72,6 +87,27 @@ namespace PCI
 		return val;
 	}
 
+	void configWriteLong(u8 bus, u8 dev, u8 func, u8 reg, u32 value)
+	{
+		u32 address = formatAddress(bus, dev, func, reg);
+		outl(PCI_CONFIG_ADDRESS, address);
+		outl(PCI_CONFIG_DATA, value);
+	}
+
+	void configWriteWord(u8 bus, u8 dev, u8 func, u8 reg, u16 value)
+	{
+		u32 address = formatAddress(bus, dev, func, reg);
+		outl(PCI_CONFIG_ADDRESS, address);
+		outw(PCI_CONFIG_DATA, value);
+	}
+
+	void configWriteByte(u8 bus, u8 dev, u8 func, u8 reg, u8 value)
+	{
+		u32 address = formatAddress(bus, dev, func, reg);
+		outl(PCI_CONFIG_ADDRESS, address);
+		outb(PCI_CONFIG_DATA, value);
+	}
+
 	bool hasDevice(u8 bus, u8 dev, u8 func)
 	{
 		u16 vendor = configReadWord(bus, dev, func, 0);
@@ -81,7 +117,6 @@ namespace PCI
 	void init()
 	{
 		LOG_STARTUP("Searching for PCI devices...");
-		std::vector<PCIDevice*> devices;
 
 		for (u8 bus = 0; bus < 128; bus++)
 		{
@@ -92,7 +127,7 @@ namespace PCI
 					if (hasDevice(bus, dev, func))
 					{
 						PCIDevice* device = new PCIDevice(bus, dev, func);
-						devices.push_back(device);
+						deviceManager.addDevice(device);
 					}
 				}
 			}

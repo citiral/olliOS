@@ -53,7 +53,7 @@ void* BucketAlloc::malloc(size_t size) {
     if (mem == nullptr) {
 
         // this is the bucket malloc will start looking in
-        int bucket = nextHighestPowerOfTwo(size);
+        size_t bucket = nextHighestPowerOfTwo(size);
         u32 bucketmemsize = 1 << bucket;
 
         // we want to allocate pages that will fit that bucket or higher
@@ -92,7 +92,7 @@ void* BucketAlloc::mallocOneTry(size_t size) {
             // only if we don't fully use the chosen region and if there is room for another header (2 ints)
             if (size + 2 * sizeof(size_t) < oldregpos[0]) {
                 // shrink the region to make place for the new mem
-                size_t* newregpos = (size_t*)(buckets[i] + size + sizeof(size_t) * 2);
+                size_t* newregpos = (size_t*)((char*)(buckets[i]) + size + sizeof(size_t) * 2);
                 newregpos[0] = oldregpos[0] - size - sizeof(size_t) * 2;
 
                 // remove the old region from the bucket by replacing it with his next ptr
@@ -149,7 +149,7 @@ void* BucketAlloc::realloc(void* ptr, size_t size) {
 
 void BucketAlloc::free(void* ptr) {
     // get a pointer to the memory region (just memory + header)
-    size_t* reg = (size_t*)(ptr - 2 * sizeof(size_t));
+    size_t* reg = (size_t*)((char*)(ptr) - 2 * sizeof(size_t));
 
     // remove the used flag
     reg[0] = reg[0] ^ USED_FLAG;
@@ -163,8 +163,9 @@ void* BucketAlloc::calloc(size_t num, size_t size) {
 }
 
 void BucketAlloc::mergeOneArea(void* start, void* end) {
-// keep going untill we passed all memory
-    void* current = start;
+	// keep going untill we passed all memory
+	// Casting to a char* so that we're compliant with C++11
+    char* current = static_cast<char*>(start);
     while (current < end) {
         // get the current region
         size_t* regCur = (size_t*)current;
@@ -197,7 +198,7 @@ void BucketAlloc::mergeOneArea(void* start, void* end) {
     }
 
     // now that memory is merged we can reconstruct the buckets
-    current = start;
+    current = static_cast<char*>(start);
     while (current < end) {
         // get the current region
         size_t* regCur = (size_t*)current;

@@ -1,13 +1,15 @@
 #ifndef __DEVICE_H
 #define __DEVICE_H
 
-#include "streams/stream.h"
+#include "types.h"
 
-enum class DeviceType: u8 {
-    Keyboard = 0,
-    Screen = 1,
-	Storage = 2,
-	PCI = 3
+enum class DeviceType : u8 {
+	Memory = 0,
+    Keyboard = 1,
+    Screen = 2,
+	Storage = 3,
+	PCI = 4,
+	Serial = 5
 };
 
 /**
@@ -17,7 +19,7 @@ enum class DeviceType: u8 {
 * a device. A device needs to be registered with the devicemanager. A device
 * has the same interface as a file.
 */
-class Device : public Stream {
+class Device {
 public:
     virtual ~Device();
 
@@ -46,6 +48,10 @@ struct DeviceScreenInfo {
 };
 
 struct DevicePCIInfo {
+    DeviceInfo deviceInfo;
+};
+
+struct DeviceSerialInfo {
     DeviceInfo deviceInfo;
 };
 

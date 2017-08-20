@@ -20,7 +20,7 @@ DirEntry* VirtualFileSystem::getRoot() {
     return new VirtualDirEntry(&_root);
 }
 
-Stream* VirtualFileSystem::openFile(const char* path) {
+BlockDevice* VirtualFileSystem::openFile(const char* path) {
     DirEntry* root = getRoot();
 
     // we loop over each subfolder in the path
@@ -47,7 +47,7 @@ Stream* VirtualFileSystem::openFile(const char* path) {
             if (root->name() == cur) {
                 // if we are at the end of the path, open the file as a stream
                 if (path[length] == '\0') {
-                    Stream* file = root->openFile();
+                    BlockDevice* file = root->openFile();
                     delete root;
                     return file;
                 } else {
@@ -163,7 +163,7 @@ DirEntry* VirtualDirEntry::openDir() {
     return nullptr;
 }
 
-Stream* VirtualDirEntry::openFile() {
+BlockDevice* VirtualDirEntry::openFile() {
     return nullptr;
 }
 
@@ -177,7 +177,7 @@ VirtualDirectory* VirtualDirectory::createChildDirectory(std::string name) {
 }
 
 VirtualDirectory* VirtualDirectory::getChildDirectory(const char* name) {
-    for (int i = 0 ; i < directories.size() ; i++) {
+    for (size_t i = 0 ; i < directories.size() ; i++) {
         if (directories[i]->name == name) {
             return directories[i];
         }

@@ -2,7 +2,7 @@
 #define __STREAMS_KEYBOARD_H
 
 #include "types.h"
-#include "streams/device.h"
+#include "streams/blockdevice.h"
 
 #define INPUT_BUFFER_SIZE 16
 #define KEYBOARD_DRIVER_DEVICE_NAME "KEYBOARD"
@@ -84,7 +84,7 @@ public:
 extern VirtualKeycode scanset2_map1[255];
 extern VirtualKeycode scanset2_map2[255];
 
-class KeyboardDriver : public Device {
+class KeyboardDriver : public BlockDevice {
 public:
 	KeyboardDriver();
 	virtual ~KeyboardDriver();

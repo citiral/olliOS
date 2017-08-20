@@ -3,12 +3,15 @@
 
 #include "kstd/cstddef.h"
 #include "types.h"
-#include "streams/stream.h"
+#include "streams/blockdevice.h"
 
-class MemoryStream: public Stream {
+class MemoryStream : public BlockDevice {
 public:
     MemoryStream(void* data, size_t length);
-    virtual ~MemoryStream();
+    ~MemoryStream();
+	
+	virtual DeviceType getDeviceType() const;
+	virtual void getDeviceInfo(void* deviceinfo) const;
 
     virtual size_t write(const void* data, size_t amount);
     virtual size_t write(const void* data);

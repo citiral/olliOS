@@ -162,7 +162,7 @@ namespace std {
 			size_t hash = std::hash<K>()(k);
 			size_t bucket = hash % _numBuckets;
 
-			int used = _used[bucket];
+			size_t used = _used[bucket];
 			if (used >= _bucketSize)
 			{
 				increaseSize();
@@ -183,7 +183,6 @@ namespace std {
 			K** oldKeys = _keys;
 			size_t* oldUsed = _used;
 			size_t oldNumBuckets = _numBuckets;
-			size_t oldBucketSize = _bucketSize;
 			
 			_numBuckets *= 2;
 			_bucketSize *= 2;

@@ -19,6 +19,10 @@ public:
 	u16 configReadWord(u8 reg);
 	u8 configReadByte(u8 reg);
 
+	void configWriteLong(u8 reg, u32 value);
+	void configWriteWord(u8 reg, u16 value);
+	void configWriteByte(u8 reg, u8 value);
+
     DeviceType getDeviceType() const;
 	void getDeviceInfo(void* deviceinfo) const;
 

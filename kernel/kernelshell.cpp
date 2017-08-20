@@ -31,18 +31,24 @@ KernelShell::KernelShell()
 #if __KERNEL_ALLOCATOR == __KERNEL_ALLOCATOR_BUCKET
 void KernelShell::allocinfo(Environment& env, std::vector<std::string> args)
 {
+	UNUSED(env);
+	UNUSED(args);
 	kernelAllocator.printStatistics();
 	printf("\n");
 }
 
 void KernelShell::allocmerge(Environment& env, std::vector<std::string> args)
 {
+	UNUSED(env);
+	UNUSED(args);
 	kernelAllocator.merge();
 }
 #endif
 
 void KernelShell::devicesinfo(Environment& env, std::vector<std::string> args)
 {
+	UNUSED(env);
+	UNUSED(args);
 	/*const char* names[] = {"Keyboard", "Screen", "Storage"};
 
     for (u8 i = 0 ; i < 3 ; i++) {
@@ -58,13 +64,14 @@ void KernelShell::devicesinfo(Environment& env, std::vector<std::string> args)
     }*/
 }
 
-void KernelShell::cat(Environment& env, std::vector<std::string> args) {
+void KernelShell::cat(Environment& env, std::vector<std::string> args)
+{
     if (args.size() < 2) {
         printf("Please specify a directory.");
         return;
     }
 
-    Stream* file = vfs->openFile(Files::getPath(env, args[1]).c_str());
+    BlockDevice* file = vfs->openFile(Files::getPath(env, args[1]).c_str());
 
     if (!file) {
         printf("Invalid file: %s\n", args[1].c_str());
@@ -85,7 +92,8 @@ void KernelShell::cat(Environment& env, std::vector<std::string> args) {
     delete file;
 }
 
-void KernelShell::ls(Environment& env, std::vector<std::string> args) {
+void KernelShell::ls(Environment& env, std::vector<std::string> args)
+{
 	DirEntry* dir;
 	if (args.size() > 1)
 	{
@@ -111,7 +119,9 @@ void KernelShell::ls(Environment& env, std::vector<std::string> args) {
     }
 }
 
-void KernelShell::cd(Environment& env, std::vector<std::string> args) {
+void KernelShell::cd(Environment& env, std::vector<std::string> args)
+{
+	UNUSED(env);
 	if (args.size() <= 1)
 		env.set("pwd", Files::normalize(env.get("home")));
 	else
@@ -120,9 +130,11 @@ void KernelShell::cd(Environment& env, std::vector<std::string> args) {
 
 void KernelShell::help(Environment& env, std::vector<std::string> args)
 {
+	UNUSED(env);
+	UNUSED(args);
 	printf("Possible commands: ");
 
-	for (int i = 0; i + 1 < _commands.size(); i++)
+	for (size_t i = 0; i + 1 < _commands.size(); i++)
 	{
 		printf("%s, ", _commands[i].first);
 	}
@@ -173,7 +185,7 @@ void KernelShell::enter()
 	{
 		// read some virtual key events from the keyboard driver
 		VirtualKeyEvent input[10];
-		int read = deviceManager.getDevice(DeviceType::Keyboard, 0)->read(input, 10);
+		size_t read = ((KeyboardDriver*) deviceManager.getDevice(DeviceType::Keyboard, 0))->read(input, 10);
 
 		// send them to the input formatter
 		for (size_t i = 0; i < read; i += sizeof(VirtualKeyEvent))
@@ -193,7 +205,7 @@ void KernelShell::enter()
 
 			if (split.size() > 0)
 			{
-				for (int i = 0; i < _commands.size(); i++)
+				for (size_t i = 0; i < _commands.size(); i++)
 				{
 					if (split[0] == _commands[i].first)
 					{

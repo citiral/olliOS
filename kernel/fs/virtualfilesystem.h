@@ -4,13 +4,14 @@
 #include "fs/filesystem.h"
 #include "kstd/vector.h"
 #include "kstd/string.h"
+#include "streams/blockdevice.h"
 
 class VirtualDirectory {
 public:
     std::string name;
     std::vector<std::pair<std::string, FileSystem*>> fs;
     std::vector<VirtualDirectory*> directories;
-    std::vector<std::pair<std::string, Stream*>> files;
+    std::vector<std::pair<std::string, BlockDevice*>> files;
 
     VirtualDirectory* createChildDirectory(std::string name);
     VirtualDirectory* getChildDirectory(const char* name);
@@ -27,14 +28,14 @@ public:
     virtual std::string name();
     virtual DirEntryType type();
     virtual DirEntry* openDir();
-    virtual Stream* openFile();
+    virtual BlockDevice* openFile();
     
 private:
     // The directory this is iterating over
     VirtualDirectory* _vdir;
 
     // determines the index in said list 
-    int _index;
+    size_t _index;
 };
 
 class VirtualFileSystem : public FileSystem {
@@ -44,7 +45,7 @@ public:
 
     void BindFilesystem(std::string name, FileSystem* fs);
     DirEntry* fromPath(const char* path);
-    Stream* openFile(const char* path);
+    BlockDevice* openFile(const char* path);
     DirEntry* getRoot();
 
 private:

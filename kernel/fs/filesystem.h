@@ -5,7 +5,7 @@
 #ifndef OLLIOS_GIT_FILESYSTEM_H
 #define OLLIOS_GIT_FILESYSTEM_H
 
-#include "streams/stream.h"
+#include "streams/blockdevice.h"
 #include "kstd/vector.h"
 #include "kstd/string.h"
 #include "environment.h"
@@ -30,7 +30,7 @@ public:
     virtual std::string name() = 0;
     virtual DirEntryType type() = 0;
     virtual DirEntry* openDir() = 0;
-    virtual Stream* openFile() = 0;
+    virtual BlockDevice* openFile() = 0;
 };
 
 class FileSystem {

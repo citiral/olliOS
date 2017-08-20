@@ -24,6 +24,7 @@
 #include "kstd/new.h"
 #include "fs/filesystem.h"
 #include "pci/pci.h"
+#include "streams/serial.h"
 #include <stdlib.h>
 
 void initCpu() {
@@ -90,7 +91,7 @@ void initMemory(multiboot_info* multiboot) {
             // and let the physical memory manager know that memory is free.
             // we have to round it up the the nearest page though
             u32 offset = (0x1000 - (u32)addr % 0x1000);
-            physicalMemoryManager.registerAvailableMemory(addr + offset, length - offset);
+            physicalMemoryManager.registerAvailableMemory((void*) ((size_t) addr + offset), length - offset);
         }
     }
 
@@ -121,21 +122,26 @@ extern "C" void main(multiboot_info* multiboot) {
     // init the memory management, so we have proper paging and can allocate memory
     initMemory(multiboot);
 
-    // initialize the ATA driver
+	// Initialize the serial driver so that we can output debug messages very early.
+	initSerialDevices();
+	LOG_STARTUP("Serial driver initialized.");
+
+	// Initialize the PCI driver
+	PCI::init();
+	LOG_STARTUP("PCI driver initialized.");
+
+	// initialize the ATA driver
     ataDriver.initialize();
     LOG_STARTUP("ATA driver initialized.");
 
     // and register the default vga and and keyboard driver
     deviceManager.addDevice(&vgaDriver);
 	LOG_STARTUP("VGA driver initialized.");
-	
-	PCI::init();
-	LOG_STARTUP("PCI driver initialized.");
     
     deviceManager.addDevice(new KeyboardDriver());
-    LOG_STARTUP("Keyboard driver initialized.");
+	LOG_STARTUP("Keyboard driver initialized.");
 
-    vfs = new VirtualFileSystem();
+    /*vfs = new VirtualFileSystem();
     LOG_STARTUP("Virtual filesystem created.");
 
     auto storagedevices = deviceManager.getDevices(DeviceType::Storage);
@@ -147,7 +153,7 @@ extern "C" void main(multiboot_info* multiboot) {
         LOG_STARTUP("BINDING %s to %s", info.deviceInfo.name, "hdd");
         vfs->BindFilesystem(name, new Iso9660FileSystem(storagedevices[i]));
     }
-    LOG_STARTUP("Bound filesystems.");
+    LOG_STARTUP("Bound filesystems.");*/
 
     LOG_STARTUP("Welcome to OlliOS!");
 
@@ -183,7 +189,7 @@ extern "C" void main(multiboot_info* multiboot) {
     delete[] data;
 	*/
 
-    const char* string = "/test/help/bvb";
+    /*const char* string = "/test/help/bvb";
     int depth = 0;
     while (true) {
         int length = strcspn(string, "/");
@@ -201,7 +207,14 @@ extern "C" void main(multiboot_info* multiboot) {
             string++;
 
         depth++;
-    }
+	}*/
+	
+	std::vector<Device*> serialDevices = deviceManager.getDevices(DeviceType::Serial);
+	for (size_t i = 0; i < serialDevices.size(); i++)
+	{
+		Serial* dev = (Serial*) serialDevices[i];
+		dev->write("Hello, world!\n");
+	}
     
     KernelShell shell;
     shell.enter();

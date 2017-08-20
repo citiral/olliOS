@@ -19,59 +19,79 @@ AtaDriver::AtaDriver(): _interrupted(false) {
 void AtaDriver::initialize() {
     _interrupted = false;
 
-    // detect each device
-    unsigned short* data;
-    if ((data = (unsigned short*)detectDevice(0)) != nullptr) {
-        LOG_INFO("Found master ATA device: %s", (char*)(data + 27));
-    } if ((data = (unsigned short*)detectDevice(1)) != nullptr) {
-        LOG_INFO("Found slave ATA device: %s", (char*)(data + 27));
-    }
+	if (_scanDefaultAddresses)
+	{
+		// detect each device
+		unsigned short* data;
+		if ((data = (unsigned short*)detectDevice(PORT_DEFAULT_PRIMARY, 0)) != nullptr) {
+			LOG_INFO("Found primary master ATA device: %s", (char*)(data + 27));
+		}
+		if ((data = (unsigned short*)detectDevice(PORT_DEFAULT_PRIMARY, 1)) != nullptr) {
+			LOG_INFO("Found primary slave ATA device: %s", (char*)(data + 27));
+		}
+		if ((data = (unsigned short*)detectDevice(PORT_DEFAULT_SECONDARY, 0)) != nullptr) {
+			LOG_INFO("Found secundary master ATA device: %s", (char*)(data + 27));
+		}
+		if ((data = (unsigned short*)detectDevice(PORT_DEFAULT_SECONDARY, 1)) != nullptr) {
+			LOG_INFO("Found secundary slave ATA device: %s", (char*)(data + 27));
+		}
+	}
 }
 
-void AtaDriver::selectDevice(int device) {
-    // select the given drive
-    if (device == 0)
-        outb(PORT_DRIVE, 0xA0); // select master
-    else
-        outb(PORT_DRIVE, 0xB0); // select slave
+void AtaDriver::selectDevice(u16 p, int device) {
+	// We only need to do this if we actually select a different device.
+	if (device != _lastDevice)
+	{
+		// select the given drive
+		if (device == 0)
+			outb(p+PORT_DRIVE, 0xA0); // select master
+		else
+			outb(p+PORT_DRIVE, 0xB0); // select slave
 
-    // waste a bit of time to make sure the drive select has gone through
-    // reading the status register 5 times equals to around 500ns which should be enough (we are expected to wait around 400ns)
-    inb(PORT_STATUS);
-    inb(PORT_STATUS);
-    inb(PORT_STATUS);
-    inb(PORT_STATUS);
-    inb(PORT_STATUS);
+		// waste a bit of time to make sure the drive select has gone through
+		// reading the status register 5 times equals to around 500ns which should be enough (we are expected to wait around 400ns)
+		inb(p+PORT_STATUS);
+		inb(p+PORT_STATUS);
+		inb(p+PORT_STATUS);
+		inb(p+PORT_STATUS);
+		inb(p+PORT_STATUS);
+
+
+		_lastDevice = device;
+	}
 }
 
-unsigned short* AtaDriver::detectDevice(int device) {
+unsigned short* AtaDriver::detectDevice(u16 p, int device) {
     // select the device we want to detect
-    selectDevice(device);
+	selectDevice(p, device);
 
     // set these to 0 to properly recognize the signature
-    outb(PORT_SECTOR_COUNT, 0);
-    outb(PORT_LBA_LOW, 0);
-    outb(PORT_LBA_MID, 0);
-    outb(PORT_LBA_HIGH, 0);
+    outb(p+PORT_SECTOR_COUNT, 0);
+    outb(p+PORT_LBA_LOW, 0);
+    outb(p+PORT_LBA_MID, 0);
+    outb(p+PORT_LBA_HIGH, 0);
 
     // execute the identify command
-    outb(PORT_COMMAND, COMMAND_IDENTIFY_DRIVE);
+	outb(p+PORT_COMMAND, COMMAND_IDENTIFY_DRIVE);
+	
+	// Check the status register
+	// It will be 0 if no drive exists
+	// BIT_STATUS_DF will be high if there is a fault with the drive (if I read the specs correctly)
+	u8 status = inb(p+PORT_STATUS);
+	if (status == 0 || (status & BIT_STATUS_DF) > 0)
+		return nullptr;
 
     bool isPacket = false;
 
     // check if the signature matches that of a packet device
-    if (inb(PORT_SECTOR_COUNT) == 0x1 && inb(PORT_LBA_LOW) == 0x1 && inb(PORT_LBA_MID) == 0x14 && inb(PORT_LBA_HIGH) == 0xEB) {
+    if (inb(p+PORT_SECTOR_COUNT) == 0x1 && inb(p+PORT_LBA_LOW) == 0x1 && inb(p+PORT_LBA_MID) == 0x14 && inb(p+PORT_LBA_HIGH) == 0xEB) {
         // do the same again but send the identify packet drive command
-        outb(PORT_COMMAND, COMMAND_IDENTIFY_PACKET_DRIVE);
+        outb(p+PORT_COMMAND, COMMAND_IDENTIFY_PACKET_DRIVE);
         isPacket = true;
     }
 
-    // if the status register is not 0 there is a device connected
-     if (inb(PORT_STATUS) == 0)
-         return nullptr;
-
     // wait until the drive is ready
-    waitForInterrupt();
+    waitForInterrupt(p);
     /*waitForBusy();
 
     // if the drive is about to send an error, fail the detection
@@ -85,7 +105,7 @@ unsigned short* AtaDriver::detectDevice(int device) {
     // we already know the device is ready to send data so we can just start receiving immediately
     for (int i = 0 ; i < 256 ; i++) {
         // read the 16 bit data from the port
-        unsigned short val = inw(PORT_DATA);
+        unsigned short val = inw(p+PORT_DATA);
 
         // and convert it to little endian
         data[i] = ((val >> 8) & 0xFF) + ((val & 0xFF) << 8);
@@ -96,27 +116,27 @@ unsigned short* AtaDriver::detectDevice(int device) {
 
     // register it to the devicemanager
     if (isPacket) {
-        deviceManager.addDevice(new AtaPacketDevice(data, device));
+        deviceManager.addDevice(new AtaPacketDevice(p, data, device));
     } else {
-        deviceManager.addDevice(new AtaPioDevice(data));
+        deviceManager.addDevice(new AtaPioDevice(p, data));
     }
 
     return data;
 }
 
-void AtaDriver::waitForBusy() {
+void AtaDriver::waitForBusy(u16 p) {
     // keep checking the status register until the busy bit is false
     char status;
     do {
-        status = inb(PORT_STATUS);
+        status = inb(p+PORT_STATUS);
         asm volatile ("pause");
     } while ((status & 0x80) == 0x80);
 }
 
-bool AtaDriver::waitForDataOrError() {
+bool AtaDriver::waitForDataOrError(u16 p) {
     // keep checking the status register until the the data bit or error bit is true
     do {
-        char status = inb(PORT_STATUS);
+        char status = inb(p+PORT_STATUS);
 
         if ((status & 0x08) == 0x08)
             return true;
@@ -127,14 +147,14 @@ bool AtaDriver::waitForDataOrError() {
     } while (true);
 }
 
-void AtaDriver::waitForInterrupt() {
+void AtaDriver::waitForInterrupt(u16 p) {
     while (_interrupted == false) {
         asm volatile("pause");        
     }
     _interrupted = false;
 
     // read the status register to acknowledge the IRQ
-    inb(PORT_STATUS);
+    inb(p+PORT_STATUS);
 }
 
 void AtaDriver::notifyInterrupt() {
