@@ -5,5 +5,6 @@ char* strcpy(char * destination, const char * source) {
     size_t i = 0;
     do {
         destination[i] = source[i];
-    } while(source[i++] != 0);
+	} while(source[i++] != 0);
+	return destination;
 }
