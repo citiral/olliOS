@@ -14,6 +14,9 @@ public:
 	bool supportsLBA48();
 	int getDrive(); // Check what drive this is. 0 = master, 1 = false
 
+	u64 getBlocks();
+	u64 getBytes();
+
 	void selectDevice();
 
     virtual DeviceType getDeviceType() const =0;
@@ -35,6 +38,10 @@ public:
 	u32 inL(u16 reg);
 	void inSW (unsigned short int reg, void *addr, unsigned long int count);
 
+protected:
+	unsigned short* _data;
+	size_t _bytesPerSector = 512;
+
 private:
 	void readName();
 	/*void writeRegisterB(u8 reg, u8 data);
@@ -43,10 +50,9 @@ private:
 	u16 readRegisterW(u8 reg);*/
 
 	u16 _port;
-	unsigned short* _data;
 	std::string _name;
     u8 _drive;
-    size_t _lba28size;
+    u32 _lba28size;
 };
 
 #endif

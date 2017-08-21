@@ -38,6 +38,11 @@ void AtaDriver::initialize() {
 	}
 }
 
+void AtaDriver::disableScanDefaultAddresses()
+{
+	_scanDefaultAddresses = false;
+}
+
 void AtaDriver::reset(u16 p)
 {
 	outb(p, 0b00000100);

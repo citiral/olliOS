@@ -84,6 +84,9 @@ public:
     // discovers devices and initializes them so after this function they can be used.
 	void initialize();
 
+	// Don't scan the default addresses. Normally called after a PCI IDE Interface has been detected.
+	void disableScanDefaultAddresses();
+
 	// Reset the device;
 	void reset(u16 p);
 

@@ -1,6 +1,9 @@
 #include "devices/pci/pciide.h"
+#include "devices/ata/ata.h"
 
 PCIIDE::PCIIDE(u8 bus, u8 dev, u8 func) : PCIDevice(bus, dev, func) {
+	ataDriver.detectDevice(getBaseAddress(0), 0);
+	ataDriver.detectDevice(getBaseAddress(1), 1);
 }
 
 PCIIDE::~PCIIDE() {

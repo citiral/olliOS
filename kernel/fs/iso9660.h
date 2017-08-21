@@ -18,6 +18,7 @@ public:
     virtual DirEntryType type();
     virtual DirEntry* openDir();
     virtual BlockDevice* openFile();
+	virtual DirEntry* createDir(std::string name);
 
     u8* getSystemUseField(u8 b1, u8 b2);
 

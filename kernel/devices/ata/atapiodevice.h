@@ -41,9 +41,6 @@ private:
 	// Turn a byte address to a LBA address
 	size_t toLBA(size_t address);
 
-	u16 _port;
-	unsigned short* _data;
-	size_t _bytesPerSector = 512;
 	size_t _pointer = 0;
 };
 

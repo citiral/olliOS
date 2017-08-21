@@ -3,6 +3,8 @@
 #include "devices/memorystream.h"
 #include "cdefs.h"
 #include "kstd/utility.h"
+#include "cpu.h"
+
 template <class T>
 T readType(u8* descriptor, size_t offset) {
     return *(T*)(descriptor + offset);
@@ -149,4 +151,9 @@ BlockDevice* Iso9660DirEntry::openFile() {
     _fs->read(data, std::roundup(length, 2048u));
 
     return new MemoryStream(data, length);
+}
+
+DirEntry* Iso9660DirEntry::createDir() {
+	CPU::panic("Directory creation not supported on ISO9660 implementation");
+	return nullptr;
 }

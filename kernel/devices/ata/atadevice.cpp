@@ -1,14 +1,30 @@
 #include "devices/ata/atadevice.h"
 #include "devices/ata/ata.h"
 #include "io.h"
+#include "types.h"
 
 #define BIT_LBA48 (1<<10)
 
 AtaDevice::AtaDevice(u16 port, unsigned short* data, int drive) : _port(port), _data(data), _drive(drive)
 {
 	readName();
-	_lba28size = (((u32) data[60]) << 16) | ((u32) data[61]);
-	printf("Disk size = %s", _lba28size);
+
+	u32 B = data[60] & 0xFF;
+	u32 A = (data[60] >> 8) & 0xFF;
+	u32 D = data[61] & 0xFF;
+	u32 C = (data[61] >> 8) & 0xFF;
+
+	_lba28size = (A << 0) | (B << 8) | (C << 16) | (D << 24);
+
+	//_lba28size = (((u32) data[60])) | ((((u32) data[61]) & 0x0FFFFFFF) << 16);
+	if (_lba28size != 0)
+	{
+		u64 bytes = (u64) _lba28size * (u64) _bytesPerSector;
+		u64 kib = bytes / 1024;
+		u64 mib = kib / 1024;
+		u64 gib = mib / 1024;
+		printf("Disk size = %d blocks, %dKiB, %dMiB, %dGiB\n", _lba28size, (u32) kib, (u32) mib, (u64) gib);
+	}
 }
 
 AtaDevice::~AtaDevice()

@@ -149,16 +149,17 @@ extern "C" void main(multiboot_info* multiboot) {
 	vfs = new VirtualFileSystem();
     LOG_STARTUP("Virtual filesystem created.");
 
-    auto storagedevices = deviceManager.getDevices(DeviceType::Storage);
-    for (int i =  0; i < storagedevices.size() ; i++) {
+    /*auto storagedevices = deviceManager.getDevices(DeviceType::Storage);
+    for (size_t i =  0; i < storagedevices.size() ; i++) {
+		BlockDevice* device = (BlockDevice*) storagedevices[i];
         DeviceStorageInfo info;
-        storagedevices[i]->getDeviceInfo(&info);
+        device->getDeviceInfo(&info);
         char* name = "hdda";
         name[3] += i;
         LOG_STARTUP("BINDING %s to %s", info.deviceInfo.name, "hdd");
-        vfs->BindFilesystem(name, new Iso9660FileSystem(storagedevices[i]));
+        vfs->BindFilesystem(name, new Iso9660FileSystem(device));
     }
-    LOG_STARTUP("Bound filesystems.");
+    LOG_STARTUP("Bound filesystems.");*/
 
 	LOG_STARTUP("Welcome to OlliOS!");
 	

@@ -28,7 +28,8 @@ public:
     virtual std::string name();
     virtual DirEntryType type();
     virtual DirEntry* openDir();
-    virtual BlockDevice* openFile();
+	virtual BlockDevice* openFile();
+	virtual DirEntry* createDir(std::string name);
     
 private:
     // The directory this is iterating over

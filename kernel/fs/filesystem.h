@@ -30,7 +30,8 @@ public:
     virtual std::string name() = 0;
     virtual DirEntryType type() = 0;
     virtual DirEntry* openDir() = 0;
-    virtual BlockDevice* openFile() = 0;
+	virtual BlockDevice* openFile() = 0;
+	virtual DirEntry* createDir(std::string name) = 0;
 };
 
 class FileSystem {
