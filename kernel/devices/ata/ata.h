@@ -5,7 +5,7 @@
 #ifndef OLLIOS_GIT_ATA_H
 #define OLLIOS_GIT_ATA_H
 
-#include "ata/atadevice.h"
+#include "devices/ata/atadevice.h"
 #include "types.h"
 
 /*#define PORT_DATA           0x1F0
@@ -45,7 +45,10 @@
 
 #define COMMAND_IDENTIFY_DRIVE  0xEC
 #define COMMAND_IDENTIFY_PACKET_DRIVE  0xA1
-#define COMMAND_PACKET      0xA0
+#define COMMAND_PACKET  0xA0
+#define COMMAND_READ  0x20
+#define COMMAND_WRITE  0x30
+#define COMMAND_FLUSH  0xE7
 
 #define BIT_STATUS_ERR	(1<<0)
 #define BIT_STATUS_DRQ	(1<<3)
@@ -79,7 +82,10 @@ public:
     AtaDriver();
 
     // discovers devices and initializes them so after this function they can be used.
-    void initialize();
+	void initialize();
+
+	// Reset the device;
+	void reset(u16 p);
 
     void printDeviceInformation();
 

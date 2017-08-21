@@ -6,20 +6,25 @@
 
 PCIDevice::PCIDevice(u8 bus, u8 dev, u8 func)
 {
+	// Save these values
 	_bus = bus;
 	_device = dev;
 	_func = func;
 
+	// Read some basic values from the device
 	_vendorId = configReadWord(0);
 	_deviceId = configReadWord(2);
 	_revisionId = configReadByte(8);
 
+	// Get the device name from the hard coded list (no other way, sorry)
 	_deviceName = PCI::getName(_vendorId, _deviceId);
 
+	// Get the device class
 	_classCode = configReadByte(11);
 	_subclassCode = configReadByte(10);
 	_headerType = configReadByte(14);
 
+	// Print the name to the console
 	if (_deviceName[0] == '?')
 		printf("PCI%d:%d.%d, VendorID=0x%X, DevID=0x%X, Rev=0x%X: Class=0x%X:0x%X 0x%X\n", bus, dev, func, _vendorId, _deviceId, _revisionId, _classCode, _subclassCode, _headerType);
 	else
@@ -68,45 +73,21 @@ DeviceType PCIDevice::getDeviceType() const
 
 void PCIDevice::getDeviceInfo(void* deviceinfo) const
 {
-	/*DevicePCIInfo* info = (DevicePCIInfo*) deviceinfo;
-	info->deviceInfo.name = _deviceName;*/
-	DeviceKeyboardInfo* info = (DeviceKeyboardInfo*)deviceinfo;
-	info->deviceInfo.name = "gd";
+	DevicePCIInfo* info = (DevicePCIInfo*) deviceinfo;
+	info->deviceInfo.name = _deviceName;
 }
 
-size_t PCIDevice::write(const void* data, size_t amount) {
-	CPU::panic("Call to unimplemented function write in PCIDevice.cpp");
-	UNUSED(data);
-	UNUSED(amount);
-	return 0;
-};
+void PCIDevice::writeIOBAR(int bar, u32 value)
+{
+	u8 location = 0x10 + 4*bar;
+	value = (value & ~(2)) | 1;
+	configWriteLong(location, value);
+}
 
-size_t PCIDevice::write(const void* data)  {
-	CPU::panic("Call to unimplemented function write in PCIDevice.cpp");
-	CPU::panic();
-	UNUSED(data);
-	return 0;
-};
-
-size_t PCIDevice::write(char data) {
-	CPU::panic("Call to unimplemented function write in PCIDevice.cpp");
-	CPU::panic();
-	UNUSED(data);
-	return 0;
-};
-
-size_t PCIDevice::read(void* data, size_t amount) {
-	CPU::panic("Call to unimplemented function read in PCIDevice.cpp");
-	CPU::panic();
-	UNUSED(data);
-	UNUSED(amount);
-	return 0;
-};
-
-size_t PCIDevice::seek(i32 offset, int position) {
-	CPU::panic("Call to unimplemented function seek in PCIDevice.cpp");
-	CPU::panic();
-	UNUSED(offset);
-	UNUSED(position);
-	return 0;
-};
+u32 PCIDevice::readIOBAR(int bar)
+{
+	u8 location = 0x10 + 4*bar;
+	u32 value = configReadLong(location);
+	value &= 0xFFFFFFFC;
+	return value;
+}

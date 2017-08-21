@@ -11,7 +11,10 @@ public:
     ~AtaDevice();
 
 	std::string& getName();
-	bool supportLBA48();
+	bool supportsLBA48();
+	int getDrive(); // Check what drive this is. 0 = master, 1 = false
+
+	void selectDevice();
 
     virtual DeviceType getDeviceType() const =0;
     virtual void getDeviceInfo(void* deviceinfo) const =0;
@@ -34,12 +37,16 @@ public:
 
 private:
 	void readName();
+	/*void writeRegisterB(u8 reg, u8 data);
+	void writeRegisterW(u8 reg, u16 data);
+	u8 readRegisterB(u8 reg);
+	u16 readRegisterW(u8 reg);*/
 
 	u16 _port;
 	unsigned short* _data;
 	std::string _name;
     u8 _drive;
-    size_t _lba;
+    size_t _lba28size;
 };
 
 #endif

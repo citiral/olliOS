@@ -2,9 +2,9 @@
 // Created by Olivier on 24/09/16.
 //
 
-#include "ata/ata.h"
-#include "ata/atapacketdevice.h"
-#include "ata/atapiodevice.h"
+#include "devices/ata/ata.h"
+#include "devices/ata/atapacketdevice.h"
+#include "devices/ata/atapiodevice.h"
 #include "io.h"
 #include "cdefs.h"
 #include "devicemanager.h"
@@ -17,8 +17,8 @@ AtaDriver::AtaDriver(): _interrupted(false) {
 }
 
 void AtaDriver::initialize() {
-    _interrupted = false;
-
+	_interrupted = false;
+	
 	if (_scanDefaultAddresses)
 	{
 		// detect each device
@@ -30,12 +30,23 @@ void AtaDriver::initialize() {
 			LOG_INFO("Found primary slave ATA device: '%s'", device->getName().c_str());
 		}
 		if ((device = detectDevice(PORT_DEFAULT_SECONDARY, 0)) != nullptr) {
-			LOG_INFO("Found secundary master ATA device: '%s'", device->getName().c_str());
+			LOG_INFO("Found secondary master ATA device: '%s'", device->getName().c_str());
 		}
 		if ((device = detectDevice(PORT_DEFAULT_SECONDARY, 1)) != nullptr) {
-			LOG_INFO("Found secundary slave ATA device: '%s'", device->getName().c_str());
+			LOG_INFO("Found secondary slave ATA device: '%s'", device->getName().c_str());
 		}
 	}
+}
+
+void AtaDriver::reset(u16 p)
+{
+	outb(p, 0b00000100);
+
+	// Just a very simple spinloop
+	for (int i = 0; i < 1000; i++)
+		asm volatile ("pause");
+
+	outb(p, 0b00000000);
 }
 
 void AtaDriver::selectDevice(u16 p, int device) {

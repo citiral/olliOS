@@ -374,7 +374,6 @@ void PageDirectory::invalidatePage(void* address) {
 
 void* PageDirectory::getVirtualAddress(void* physical) {
 	// Loop over page directories
-	int count = 0;
 	void* phys = (void*) ((size_t)(physical) & ~((size_t)4095));
 	for (int pdi = 0; pdi < 1024; pdi++) {
 		PageDirectoryEntry* entry = getReadableEntryPointer(pdi);

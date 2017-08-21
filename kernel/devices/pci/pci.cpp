@@ -1,5 +1,7 @@
-#include "pci.h"
-#include "pcidevice.h"
+#include "devices/pci/pci.h"
+#include "devices/pci/pcidevice.h"
+#include "devices/pci/pciide.h"
+
 #include "devicemanager.h"
 #include "io.h"
 #include "cdefs.h"
@@ -126,7 +128,16 @@ namespace PCI
 				{
 					if (hasDevice(bus, dev, func))
 					{
-						PCIDevice* device = new PCIDevice(bus, dev, func);
+						u8 classCode = configReadByte(bus, dev, func, 11);
+						u8 subclassCode = configReadByte(bus, dev, func, 10);
+						//_headerType = configReadByte(bus, dev, func, 14);
+
+						PCIDevice* device;
+						if (classCode == 0x1 && subclassCode == 0x1)
+							device = new PCIIDE(bus, dev, func);
+						else
+							device = new PCIDevice(bus, dev, func);
+
 						deviceManager.addDevice(device);
 					}
 				}

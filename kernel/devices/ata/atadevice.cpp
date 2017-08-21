@@ -1,4 +1,5 @@
-#include "ata/atadevice.h"
+#include "devices/ata/atadevice.h"
+#include "devices/ata/ata.h"
 #include "io.h"
 
 #define BIT_LBA48 (1<<10)
@@ -6,10 +7,14 @@
 AtaDevice::AtaDevice(u16 port, unsigned short* data, int drive) : _port(port), _data(data), _drive(drive)
 {
 	readName();
+	_lba28size = (((u32) data[60]) << 16) | ((u32) data[61]);
+	printf("Disk size = %s", _lba28size);
 }
 
 AtaDevice::~AtaDevice()
-{}
+{
+	delete[] _data;
+}
 
 std::string& AtaDevice::getName()
 {
@@ -31,9 +36,19 @@ void AtaDevice::readName()
 	_name = std::string(name, lastCharPos+1);
 }
 
-bool AtaDevice::supportLBA48()
+bool AtaDevice::supportsLBA48()
 {
-	return _data[83] & BIT_LBA48 > 0;
+	return (_data[83] & BIT_LBA48) > 0;
+}
+
+int AtaDevice::getDrive()
+{
+	return _drive;
+}
+
+void AtaDevice::selectDevice()
+{
+	ataDriver.selectDevice(_port, _drive);
 }
 
 //

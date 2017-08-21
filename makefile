@@ -13,9 +13,9 @@ CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O0 -Wall -Wextra -fno-excep
 LDFLAGS = -ffreestanding -O2 -nostdlib -lgcc
 LIBS = $(ROOT)/usr/lib/libk.a
 
-KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/util/*.cpp) $(wildcard kernel/devices/*.cpp) $(wildcard kernel/alloc/*.cpp) $(wildcard kernel/ata/*.cpp) $(wildcard kernel/fs/*.cpp) $(wildcard kernel/kstd/*.cpp)  $(wildcard kernel/memory/*.cpp) $(wildcard kernel/pci/*.cpp)
+KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/util/*.cpp) $(wildcard kernel/devices/*.cpp) $(wildcard kernel/devices/ata/*.cpp) $(wildcard kernel/devices/pci/*.cpp) $(wildcard kernel/alloc/*.cpp) $(wildcard kernel/fs/*.cpp) $(wildcard kernel/kstd/*.cpp)  $(wildcard kernel/memory/*.cpp)
 KERNEL_ASM = $(wildcard kernel/*.s)
-HEADERS = $(wildcard kernel/*.h) $(wildcard kernel/util/*.h) $(wildcard kernel/devices/*.h) $(wildcard kernel/alloc/*.h) $(wildcard kernel/ata/*.h) $(wildcard kernel/fs/*.h) $(wildcard kernel/kstd/*.h)  $(wildcard kernel/memory/*.h)
+HEADERS = $(wildcard kernel/*.h) $(wildcard kernel/util/*.h) $(wildcard kernel/devices/*.h) $(wildcard kernel/devices/ata/*.h) $(wildcard kernel/devices/pci/*.h) $(wildcard kernel/alloc/*.h) $(wildcard kernel/fs/*.h) $(wildcard kernel/kstd/*.h)  $(wildcard kernel/memory/*.h)
 
 CRTI_OBJ=crti.o
 CRTN_OBJ=crtn.o
@@ -50,6 +50,9 @@ clean:
 %.o: kernel/**/%.cpp
 	$(CC) -c $< -o build/$@ $(CCFLAGS)
 
+%.o: kernel/**/**/%.cpp
+	$(CC) -c $< -o build/$@ $(CCFLAGS)
+
 %.o: kernel/%.s
 	$(CC) -c $< -o build/$@ $(CCFLAGS)
 
@@ -76,6 +79,7 @@ install-grub:
 install-headers:
 	cd kernel && cp --parents -v *.h  ../$(ROOT)usr/include/
 	cd kernel && cp --parents -v **/*.h  ../$(ROOT)usr/include/
+	cd kernel && cp --parents -v **/**/*.h  ../$(ROOT)usr/include/
 
 install-kernel: libk compile-kernel
 	cp -RTv build/$(OUTPUT) $(ROOT)boot/$(OUTPUT)

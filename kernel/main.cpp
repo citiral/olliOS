@@ -21,8 +21,8 @@
 #include "devices/keyboard.h"
 #include "devices/vga.h"
 #include "devices/serial.h"
-#include "pci/pci.h"
-#include "ata/ata.h"
+#include "devices/ata/ata.h"
+#include "devices/pci/pci.h"
 
 #include "fs/iso9660.h"
 #include "fs/virtualfilesystem.h"
@@ -146,7 +146,7 @@ extern "C" void main(multiboot_info* multiboot) {
     deviceManager.addDevice(new KeyboardDriver());
 	LOG_STARTUP("Keyboard driver initialized.");
 
-    /*vfs = new VirtualFileSystem();
+	vfs = new VirtualFileSystem();
     LOG_STARTUP("Virtual filesystem created.");
 
     auto storagedevices = deviceManager.getDevices(DeviceType::Storage);
@@ -158,7 +158,7 @@ extern "C" void main(multiboot_info* multiboot) {
         LOG_STARTUP("BINDING %s to %s", info.deviceInfo.name, "hdd");
         vfs->BindFilesystem(name, new Iso9660FileSystem(storagedevices[i]));
     }
-    LOG_STARTUP("Bound filesystems.");*/
+    LOG_STARTUP("Bound filesystems.");
 
 	LOG_STARTUP("Welcome to OlliOS!");
 	

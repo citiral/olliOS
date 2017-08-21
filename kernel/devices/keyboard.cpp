@@ -53,10 +53,7 @@ KeyboardDriver::~KeyboardDriver()
 
 bool irqKeyboard(u32 interrupt, void* stack, void* obj)
 {
-	if (interrupt == 0x20+1)
-		return ((KeyboardDriver*) obj)->interrupt1(interrupt, stack);
-	else
-		return ((KeyboardDriver*) obj)->interrupt12(interrupt, stack);
+	return ((KeyboardDriver*) obj)->interrupt1(interrupt, stack);
 }
 
 void KeyboardDriver::enableIRQ() {
@@ -78,7 +75,7 @@ void KeyboardDriver::sendCommand(u8 command)
 	_commandFailed = false;
 	//printf("Sending 0x%X\n", command);
 
-	while (inb(STATUS_PORT) & STATUS_INPUT_BUFFER_EMPTY != 0);
+	while (inb(STATUS_PORT) & (STATUS_INPUT_BUFFER_EMPTY != 0));
 	outb(COMMAND_PORT, command);
 }
 
@@ -93,9 +90,9 @@ void KeyboardDriver::sendDataCommand(u8 command, u8 data)
 	_commandFailed = false;
 	//printf("Sending 0x%X 0x%X\n", command, data);
 
-	while (inb(STATUS_PORT) & STATUS_INPUT_BUFFER_EMPTY != 0);
+	while (inb(STATUS_PORT) & (STATUS_INPUT_BUFFER_EMPTY != 0));
 	outb(COMMAND_PORT, command);
-	while (inb(STATUS_PORT) & STATUS_INPUT_BUFFER_EMPTY != 0);
+	while (inb(STATUS_PORT) & (STATUS_INPUT_BUFFER_EMPTY != 0));
 	outb(IO_PORT, data);
 }
 

@@ -5,14 +5,13 @@
 #include <stdio.h>
 #include "cdefs.h"
 #include "io.h"
-#include "ata/ata.h"
-#include "ata/atapacketdevice.h"
+#include "devices/ata/ata.h"
+#include "devices/ata/atapacketdevice.h"
 
 AtaPacketDevice::AtaPacketDevice(u16 port, unsigned short* data, u8 drive): AtaDevice(port, data, drive), _lba(0) {
 }
 
 AtaPacketDevice::~AtaPacketDevice() {
-    delete[] _data;
 }
 
 DeviceType AtaPacketDevice::getDeviceType() const {

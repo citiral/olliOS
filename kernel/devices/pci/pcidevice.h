@@ -23,14 +23,16 @@ public:
 	void configWriteWord(u8 reg, u16 value);
 	void configWriteByte(u8 reg, u8 value);
 
+	void writeIOBAR(int bar, u32 value); // Write an IO BAR. Note that it will mask the return value correctly so you won't have to ;)
+	u32 readIOBAR(int bar); // Read an IO BAR. Note that it will mask the return value correctly so you won't have to ;)
+
+	/*
+	void writeMemBAR(int bar, u32 value); // Write a memory BAR. Note that it will mask the return value correctly so you won't have to ;)
+	u32 readMemBAR(int bar); // Read a memory BAR. Note that it will mask the return value correctly so you won't have to ;)
+	*/
+
     DeviceType getDeviceType() const;
 	void getDeviceInfo(void* deviceinfo) const;
-
-    size_t write(const void* data, size_t amount);
-    size_t write(const void* data);
-    size_t write(char data);
-    size_t read(void* data, size_t amount);
-    size_t seek(i32 offset, int position);
 private:
 	u8 _bus;
 	u8 _device;
