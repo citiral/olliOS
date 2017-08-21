@@ -1,8 +1,8 @@
 #include "fs/iso9660.h"
-#include "streams/blockdevice.h"
+#include "devices/blockdevice.h"
+#include "devices/memorystream.h"
 #include "cdefs.h"
 #include "kstd/utility.h"
-#include "streams/memorystream.h"
 template <class T>
 T readType(u8* descriptor, size_t offset) {
     return *(T*)(descriptor + offset);

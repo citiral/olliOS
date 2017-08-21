@@ -2,7 +2,7 @@
 #define __ISO9960_H
 
 #include "fs/filesystem.h"
-#include "streams/blockdevice.h"
+#include "devices/blockdevice.h"
 #include "kstd/vector.h"
 
 class Iso9660FileSystem;

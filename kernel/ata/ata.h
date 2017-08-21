@@ -5,6 +5,7 @@
 #ifndef OLLIOS_GIT_ATA_H
 #define OLLIOS_GIT_ATA_H
 
+#include "ata/atadevice.h"
 #include "types.h"
 
 /*#define PORT_DATA           0x1F0
@@ -56,6 +57,7 @@
 //TODO: once scheduling is implemented, this should be partially redesigned
 // http://www.seagate.com/support/disc/manuals/ata/d1153r17.pdf
 // ftp://ftp.seagate.com/acrobat/reference/111-1c.pdf
+// IDENTIFY Data structure can be found here on page 91 (129 in PDF)
 // http://www.t13.org/documents/uploadeddocuments/docs2006/d1699r3f-ata8-acs.pdf
 
 enum class AtaDeviceIndex: u8 {
@@ -63,12 +65,12 @@ enum class AtaDeviceIndex: u8 {
     SLAVE = 1,
 };
 
-class AtaDevice {
+/*class AtaDevice {
 public:
 private:
     unsigned short* identify;
     AtaDeviceIndex index;
-};
+};*/
 
 // for now we are only going to support one controller
 // and use atapi
@@ -84,8 +86,9 @@ public:
     // if device is 0, it selects the master device, so he will receive all commands. If it is 1, the slave device is selected
     void selectDevice(u16 port, int device);
 
-    // detects a device through the IDENTIFY DRIVE command and returns a pointer to the returned data if a device has been detected
-    unsigned short* detectDevice(u16 port, int device);
+	// detects a device through the IDENTIFY DRIVE command and // returns a pointer to the returned data if a device has been detected
+	// returns the device itself.
+	AtaDevice* detectDevice(u16 port, int device);
 
     // keeps polling the status register until the drive is no longer reporting it is busy
     void waitForBusy(u16 port);

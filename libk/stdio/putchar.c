@@ -1,5 +1,5 @@
 #include "stdio.h"
-#include "streams/vga.h"
+#include "devices/vga.h"
 
 int putchar(int character)
 {

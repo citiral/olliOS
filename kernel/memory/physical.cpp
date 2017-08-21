@@ -41,6 +41,18 @@ void* PhysicalMemoryManager::allocatePhysicalMemory() {
     return nullptr;
 }
 
+void* PhysicalMemoryManager::allocatePhysicalMemory(size_t reverseMask) {
+	for (size_t index = 0; index < DEVICE_MAX_MEMORY / 0x1000; index++) {
+		if ((((index * 0x1000) & reverseMask) == 0) && (_bitmap[index/8] & (0b10000000 >> (index % 8))) == 0) {
+            // set the current page to 1
+            _bitmap[index/8] |= (0b10000000 >> (index % 8));
+			// and return it
+            return (void*)(index * 0x1000);
+        }
+	}
+	return nullptr;
+}
+
 void PhysicalMemoryManager::freePhysicalMemory(void* memory) {
     // get the index
     size_t index = (size_t)memory / 0x1000;

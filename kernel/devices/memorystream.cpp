@@ -1,4 +1,4 @@
-#include "streams/memorystream.h"
+#include "devices/memorystream.h"
 #include "cdefs.h"
 #include <stdio.h>
 #include <string.h>

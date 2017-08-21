@@ -5,6 +5,7 @@
 #include "kernelshell.h"
 #include "alloc.h"
 #include "devicemanager.h"
+#include "devices/keyboard.h"
 #include "fs/filesystem.h"
 #include "fs/virtualfilesystem.h"
 #include <string.h>

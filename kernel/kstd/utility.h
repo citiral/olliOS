@@ -48,24 +48,24 @@ namespace std {
 
         pair& operator=(const pair& other) {
             first = other.first;
-            second = other.second;
+			second = other.second;
         }
 
         template< class U1, class U2 >
         pair& operator=(const pair<U1,U2>& other) {
             first = other.first;
-            second = other.second;
+			second = other.second;
         }
 
         pair& operator=(pair&& other) {
             swap(first, other.first);
-            swap(second, other.second);
+			swap(second, other.second);
         }
 
         template< class U1, class U2 >
         pair& operator=(pair<U1,U2>&& other) {
             swap(first, other.first);
-            swap(second, other.second);
+			swap(second, other.second);
         }
 
         T1 first;

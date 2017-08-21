@@ -2,7 +2,7 @@
 #define __INPUT_FORMATTER
 
 #include "types.h"
-#include "streams/keyboard.h"
+#include "devices/keyboard.h"
 #include "kstd/vector.h"
 #include "kstd/string.h"
 

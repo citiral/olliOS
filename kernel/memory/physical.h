@@ -10,7 +10,10 @@ public:
     void init();
     void registerAvailableMemory(void* start, size_t length);
     void reservePhysicalMemory(void* start, size_t length);
-    void* allocatePhysicalMemory();
+	void* allocatePhysicalMemory();
+	// Allocate but the returned address will contain a 0 where the reverseMask has a 1
+	// This can be used to allocate something on a specific boundary
+	void* allocatePhysicalMemory(size_t reverseMask);
     void freePhysicalMemory(void* memory);
 
 private:

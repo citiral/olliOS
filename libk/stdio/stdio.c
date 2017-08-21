@@ -1,4 +1,4 @@
 #include "stdio.h"
-#include "streams/vga.h"
+#include "devices/vga.h"
 
 FILE* stdout = &vgaDriver;

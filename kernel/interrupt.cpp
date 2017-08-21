@@ -1,6 +1,7 @@
 #include "interrupt.h"
 #include "types.h"
 #include "interruptHandlers.h"
+#include "pic.h"
 
 extern "C" void cppInt(u32 interrupt);
 
@@ -98,6 +99,50 @@ void IdtFlush()
 	pointer.base = (u32)&idt;
 	pointer.limit = (u16)(idt.getLength()*8 - 1);
 	reload_idt(pointer.limit, pointer.base);
+}
+
+Interrupts interrupts;
+
+void Interrupts::registerIRQ(u32 irq, IRQ handler, void* obj)
+{
+	_callbacks[irq].push_back(handler);
+	_objects[irq].push_back(obj);
+}
+
+void Interrupts::unregisterIRQ(u32 irq, IRQ handler, void* obj)
+{
+	std::vector<IRQ>& callbacks = _callbacks[irq];
+	std::vector<void*>& objects = _objects[irq];
+	for (size_t i = 0; i < callbacks.size(); i++)
+	{
+		if (&(callbacks[i]) == &handler && objects[i] == obj)
+		{
+			callbacks.erase(i);
+			objects.erase(i);
+			return;
+		}
+	}
+}
+
+void Interrupts::callIRQ(u32 irq, void* stack)
+{
+	std::vector<IRQ>& callbacks = _callbacks[irq];
+	std::vector<void*>& objects = _objects[irq];
+
+	for (size_t i = 0; i < callbacks.size(); i++)
+	{
+		bool c = callbacks[i](irq, stack, objects[i]);
+		if (c)
+		{
+			break;
+		}
+	}
+	endInterrupt(irq - 20);
+}
+
+void interrupts_callRawIRQ(u32 irq)
+{
+	interrupts.callIRQ(irq, nullptr);
 }
 
 extern "C" void __attribute__ ((noinline)) IdtRegisterInterrupts()
@@ -359,10 +404,13 @@ extern "C" void __attribute__ ((noinline)) IdtRegisterInterrupts()
 	GENERATE_INTERRUPT(254);
 	GENERATE_INTERRUPT(255);
 
-	for (u32 x = 0 ; x < 256 ; x++)
-		idt.setFunction(x, &intHandlerUndefined);
+	/*for (u32 x = 0 ; x < 256 ; x++)
+		idt.setFunction(x, &intHandlerUndefined);*/
 	
-	idt.setFunction(INT_KEYBOARD, &intHandlerKeyboard);
+	for (u32 x = 0; x < MAX_IDT_ENTRIES; x++)
+		idt.setFunction(x, &interrupts_callRawIRQ);
+	
+	//idt.setFunction(INT_KEYBOARD, &intHandlerKeyboard);
     idt.setFunction(INT_ATA_BUS1, &intHandlerAta);
 	idt.setFunction(INT_ATA_BUS2, &intHandlerAta);
 	idt.setFunction(INT_GENERAL_PROTECTION_VIOLATION, &intHandlerGeneralProtectionViolation);

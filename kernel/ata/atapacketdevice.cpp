@@ -8,7 +8,7 @@
 #include "ata/ata.h"
 #include "ata/atapacketdevice.h"
 
-AtaPacketDevice::AtaPacketDevice(u16 port, unsigned short* data, u8 drive): _port(port), _data(data), _drive(drive), _lba(0) {
+AtaPacketDevice::AtaPacketDevice(u16 port, unsigned short* data, u8 drive): AtaDevice(port, data, drive), _lba(0) {
 }
 
 AtaPacketDevice::~AtaPacketDevice() {

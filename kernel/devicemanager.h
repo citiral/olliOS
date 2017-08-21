@@ -1,9 +1,7 @@
 #pragma once
 
 #include "util/singleton.h"
-#include "streams/device.h"
-
-#include "streams/device.h"
+#include "devices/device.h"
 #include "kstd/vector.h"
 
 class DeviceManager

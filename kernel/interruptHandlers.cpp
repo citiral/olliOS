@@ -1,8 +1,8 @@
 #include "interruptHandlers.h"
 #include "interrupt.h"
 #include "devicemanager.h"
-#include "streams/vga.h"
-#include "streams/keyboard.h"
+#include "devices/vga.h"
+#include "devices/keyboard.h"
 #include "io.h"
 #include "pic.h"
 #include "ata/ata.h"
@@ -24,7 +24,7 @@ void intHandlerUndefined(u32 interrupt) {
 
 }
 
-void intHandlerKeyboard(u32 interrupt) {
+/*void intHandlerKeyboard(u32 interrupt) {
     // get the keyboard button that has been pressed
 	u8 data = inb(0x60);
 
@@ -33,7 +33,7 @@ void intHandlerKeyboard(u32 interrupt) {
 
     // and end the interrupt
 	endInterrupt(interrupt - 0x20);
-}
+}*/
 
 void intHandlerAta(u32 interrupt) {
 	UNUSED(interrupt);

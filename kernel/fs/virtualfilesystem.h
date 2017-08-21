@@ -4,7 +4,7 @@
 #include "fs/filesystem.h"
 #include "kstd/vector.h"
 #include "kstd/string.h"
-#include "streams/blockdevice.h"
+#include "devices/blockdevice.h"
 
 class VirtualDirectory {
 public:

@@ -3,7 +3,7 @@
 
 #include "kstd/cstddef.h"
 #include "types.h"
-#include "streams/blockdevice.h"
+#include "devices/blockdevice.h"
 
 class MemoryStream : public BlockDevice {
 public:

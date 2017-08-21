@@ -76,6 +76,10 @@ public:
 	// maps the given 4kb space to the given physical address
 	void mapMemory(void* page, void* physical);
 	
+	// Maps the given length-sized to the given physical address
+	// Note that it can only map 4kb spaces internally so a bit more might get allocated
+	void mapMemory(void* page, void* physical, size_t length);
+
 	// Gets the current page directory
 	static PageDirectory* current();
 
@@ -97,6 +101,12 @@ public:
 	// uses teh INVLPG to invalidate a cached TLB entry. This makes sure that page changes are recognized.
 	void invalidatePage(int index, int tableindex);
 	void invalidatePage(void* address);
+
+	// Get the address in virtual space for a given physical address
+	void* getVirtualAddress(void* physical);
+
+	// Get the address in physical space for a given virtual address
+	void* getPhysicalAddress(void* virt);
 };
 
 void PageInit();

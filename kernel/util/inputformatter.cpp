@@ -1,7 +1,7 @@
 #include "util/inputformatter.h"
 #include "devicemanager.h"
-#include "streams/vga.h"
-#include "streams/keyboard.h"
+#include "devices/vga.h"
+#include "devices/keyboard.h"
 #include "stdio.h"
 
 InputFormatter::InputFormatter():

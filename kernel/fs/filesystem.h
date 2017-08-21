@@ -5,7 +5,7 @@
 #ifndef OLLIOS_GIT_FILESYSTEM_H
 #define OLLIOS_GIT_FILESYSTEM_H
 
-#include "streams/blockdevice.h"
+#include "devices/blockdevice.h"
 #include "kstd/vector.h"
 #include "kstd/string.h"
 #include "environment.h"

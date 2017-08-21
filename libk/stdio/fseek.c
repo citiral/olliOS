@@ -1,5 +1,5 @@
 #include "stdio.h"
-#include "streams/blockdevice.h"
+#include "devices/blockdevice.h"
 
 int fseek(FILE* stream, long int offset, int origin)
 {

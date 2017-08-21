@@ -2,7 +2,7 @@
 #define OLLIOS_BLOCK_DEVICE_H
 
 #include "kstd/cstddef.h"
-#include "streams/device.h"
+#include "devices/device.h"
 #include "types.h"
 
 #define STREAM_SIZE_UNDEFINED -1

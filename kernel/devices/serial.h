@@ -1,7 +1,7 @@
 #ifndef OLLIOS_SERIAL_H
 #define OLLIOS_SERIAL_H
 
-#include "streams/blockdevice.h"
+#include "devices/blockdevice.h"
 
 // Serial speeds
 // The number of the clock divisor used to actually set the speed.

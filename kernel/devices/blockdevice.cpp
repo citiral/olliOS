@@ -1,4 +1,4 @@
-#include "streams/blockdevice.h"
+#include "devices/blockdevice.h"
 
 BlockDevice::~BlockDevice()
 {

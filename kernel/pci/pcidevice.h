@@ -1,7 +1,7 @@
 #ifndef OLLIOS_PCIDEVICE_H
 #define OLLIOS_PCIDEVICE_H
 
-#include "streams/device.h"
+#include "devices/device.h"
 #include "kstd/string.h"
 #include "types.h"
 

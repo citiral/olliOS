@@ -22,18 +22,18 @@ void AtaDriver::initialize() {
 	if (_scanDefaultAddresses)
 	{
 		// detect each device
-		unsigned short* data;
-		if ((data = (unsigned short*)detectDevice(PORT_DEFAULT_PRIMARY, 0)) != nullptr) {
-			LOG_INFO("Found primary master ATA device: %s", (char*)(data + 27));
+		AtaDevice* device;
+		if ((device = detectDevice(PORT_DEFAULT_PRIMARY, 0)) != nullptr) {
+			LOG_INFO("Found primary master ATA device: '%s'", device->getName().c_str());
 		}
-		if ((data = (unsigned short*)detectDevice(PORT_DEFAULT_PRIMARY, 1)) != nullptr) {
-			LOG_INFO("Found primary slave ATA device: %s", (char*)(data + 27));
+		if ((device = detectDevice(PORT_DEFAULT_PRIMARY, 1)) != nullptr) {
+			LOG_INFO("Found primary slave ATA device: '%s'", device->getName().c_str());
 		}
-		if ((data = (unsigned short*)detectDevice(PORT_DEFAULT_SECONDARY, 0)) != nullptr) {
-			LOG_INFO("Found secundary master ATA device: %s", (char*)(data + 27));
+		if ((device = detectDevice(PORT_DEFAULT_SECONDARY, 0)) != nullptr) {
+			LOG_INFO("Found secundary master ATA device: '%s'", device->getName().c_str());
 		}
-		if ((data = (unsigned short*)detectDevice(PORT_DEFAULT_SECONDARY, 1)) != nullptr) {
-			LOG_INFO("Found secundary slave ATA device: %s", (char*)(data + 27));
+		if ((device = detectDevice(PORT_DEFAULT_SECONDARY, 1)) != nullptr) {
+			LOG_INFO("Found secundary slave ATA device: '%s'", device->getName().c_str());
 		}
 	}
 }
@@ -61,7 +61,7 @@ void AtaDriver::selectDevice(u16 p, int device) {
 	}
 }
 
-unsigned short* AtaDriver::detectDevice(u16 p, int device) {
+AtaDevice* AtaDriver::detectDevice(u16 p, int device) {
     // select the device we want to detect
 	selectDevice(p, device);
 
@@ -114,14 +114,17 @@ unsigned short* AtaDriver::detectDevice(u16 p, int device) {
     // set 47 to null, this means the device name will be null terminated, and the value at 47 is unimportant (reserved) anyway.
     data[47] = 0;
 
-    // register it to the devicemanager
+	// register it to the devicemanager
+	AtaDevice* atadevice;
     if (isPacket) {
-        deviceManager.addDevice(new AtaPacketDevice(p, data, device));
+		atadevice = new AtaPacketDevice(p, data, device);
+        deviceManager.addDevice(atadevice);
     } else {
-        deviceManager.addDevice(new AtaPioDevice(p, data));
+		atadevice = new AtaPioDevice(p, data, device);
+        deviceManager.addDevice(atadevice);
     }
 
-    return data;
+    return atadevice;
 }
 
 void AtaDriver::waitForBusy(u16 p) {

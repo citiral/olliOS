@@ -302,6 +302,22 @@ void PageDirectory::mapMemory(void* page, void* physical) {
 	getReadableTablePointer(dirindex, pageindex)->enableFlag(PFLAG_RW | PFLAG_PRESENT);
 }
 
+void PageDirectory::mapMemory(void* page, void* physical, size_t length) {
+	// Convert the length from bytes to blocks of 4KiB
+	if ((length & 0xFFF) == 0)
+		length >>= 12;
+	else
+		length = (length >> 12) + 1;
+
+	// Map them
+
+	char* pg = static_cast<char*>(page);
+	char* phys = static_cast<char*>(physical);
+	for (size_t i = 0; i < length; i++) {
+		mapMemory((void*) (pg + i*4096), (void*) (phys + i*4096));
+	}
+}
+
 void PageDirectory::allocateEntry(int index) {
 	// if the entry is already allocated, we don't have to do anything
 	if (getReadableEntryPointer(index)->getFlag(PFLAG_PRESENT))
@@ -356,3 +372,28 @@ void PageDirectory::invalidatePage(void* address) {
 	asm volatile("invlpg (%0)" ::"r" (address) : "memory");
 }
 
+void* PageDirectory::getVirtualAddress(void* physical) {
+	// Loop over page directories
+	int count = 0;
+	void* phys = (void*) ((size_t)(physical) & ~((size_t)4095));
+	for (int pdi = 0; pdi < 1024; pdi++) {
+		PageDirectoryEntry* entry = getReadableEntryPointer(pdi);
+		if (entry->getAddress() != 0)
+		{
+			for (int pti = 0; pti < 1024; pti++) {
+				PageTableEntry* entry = getReadableTablePointer(pdi, pti);
+				if (entry->getAddress() == phys) {
+					return (void*) ((((size_t)pdi) * 4096*1024) + (((size_t)pti) * 4096) + ((size_t) physical&4095));
+				}
+			}
+		}
+	}
+	return 0;
+}
+
+void* PageDirectory::getPhysicalAddress(void* virt) {
+	int pdIndex = ((size_t)(virt) >> 12) >> 10;
+	int ptIndex = ((size_t)(virt) >> 12) & (1024-1);
+	PageTableEntry* page = getReadableTablePointer(pdIndex, ptIndex);
+	return (void*) ((size_t) page->getAddress() + ((size_t) virt & (size_t)(4095)));
+}

@@ -1,31 +1,36 @@
-#include "cpu.h"
-#include "kstd/string.h"
 #include "types.h"
+#include "stdio.h"
+#include "string.h"
+#include "kstd/string.h"
+#include "kstd/new.h"
+#include "stdlib.h"
+
+#include "cpu.h"
 #include "gdt.h"
 #include "interrupt.h"
+
 #include "pic.h"
 #include "io.h"
-#include "string.h"
-#include "streams/keyboard.h"
-#include "stdio.h"
-#include "memory/virtual.h"
 #include "alloc.h"
 #include "linker.h"
+
+#include "memory/virtual.h"
+#include "memory/physical.h"
+
+#include "devicemanager.h"
+#include "devices/keyboard.h"
+#include "devices/vga.h"
+#include "devices/serial.h"
+#include "pci/pci.h"
+#include "ata/ata.h"
+
 #include "fs/iso9660.h"
 #include "fs/virtualfilesystem.h"
-#include "alloc.h"
-#include "ata/ata.h"
-#include "devicemanager.h"
-#include "streams/vga.h"
-#include "streams/keyboard.h"
-#include "memory/physical.h"
+#include "fs/filesystem.h"
+
 #include "multiboot.h"
 #include "kernelshell.h"
-#include "kstd/new.h"
-#include "fs/filesystem.h"
-#include "pci/pci.h"
-#include "streams/serial.h"
-#include <stdlib.h>
+
 
 void initCpu() {
     // setup a flat segmentation structure. We're going to be using paging anyway.
@@ -155,7 +160,19 @@ extern "C" void main(multiboot_info* multiboot) {
     }
     LOG_STARTUP("Bound filesystems.");*/
 
-    LOG_STARTUP("Welcome to OlliOS!");
+	LOG_STARTUP("Welcome to OlliOS!");
+	
+	/*char* mainL = (char*) main;
+	char* physL = (char*) kernelPageDirectory.getPhysicalAddress((void*)mainL);
+	printf("Location of 0x%X = 0x%X\n", mainL, physL);
+
+	physL = (char*) physicalMemoryManager.allocatePhysicalMemory(0xFFFFF);
+	char* virtL = (char*) kernelPageDirectory.getVirtualAddress((void*)physL);
+	printf("Physical 0x%X is located at 0x%X\n", physL, virtL);
+
+	printf("Val 0x%X:0x%X\n", *mainL, *virtL);
+	*mainL = 51;
+	printf("Val 0x%X:0x%X\n", *mainL, *virtL);*/
 
     //KeyboardDriver driver;
     

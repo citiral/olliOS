@@ -5,22 +5,22 @@
 #ifndef OLLIOS_GIT_ATAPIODEVICE_H
 #define OLLIOS_GIT_ATAPIODEVICE_H
 
-#include "streams/device.h"
+#include "ata/atadevice.h"
 #include "cdefs.h"
 
-class AtaPioDevice: public Device {
+class AtaPioDevice: public AtaDevice {
 public:
-    AtaPioDevice(u16 port, unsigned short* data);
+    AtaPioDevice(u16 port, unsigned short* data, int device);
     ~AtaPioDevice();
 
     virtual DeviceType getDeviceType() const;
     virtual void getDeviceInfo(void* deviceinfo) const;
 
-    /*UNIMPLEMENTED(size_t write(const void* data, size_t amount), 0);
-    UNIMPLEMENTED(size_t write(const void* data), 0);
-    UNIMPLEMENTED(size_t write(char data), 0);
-    UNIMPLEMENTED(size_t read(void* data, size_t amount), 0);
-    UNIMPLEMENTED(size_t seek(i32 offset, int position), 0);*/
+    size_t write(const void* data, size_t amount);
+    size_t write(const void* data);
+    size_t write(char data);
+    size_t read(void* data, size_t amount);
+    size_t seek(i32 offset, int position);
 
 private:
 	u16 _port;

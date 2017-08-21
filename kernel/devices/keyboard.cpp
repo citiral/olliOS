@@ -1,13 +1,26 @@
-#include "streams/vga.h"
-#include "streams/keyboard.h"
+#include "devices/vga.h"
+#include "devices/keyboard.h"
 #include "io.h"
 #include "cdefs.h"
+#include "interrupt.h"
+#include "stdio.h"
 
 #define COMMAND_PORT 0x64
 #define IO_PORT 0x60
+#define STATUS_PORT 0x64
 
-#define CMD_SET_COMMAND_BYTE 0x60
-#define CMD_SET_SCAMECODE_SET 0xF0
+#define CMD_READ_CONFIG 0x60
+#define CMD_SET_SCANCODE_SET 0xF0
+#define CMD_WRITE_CONFIG 
+
+#define BIT_SCANCODE_TRANSLATION (1<<6)
+
+#define STATUS_INPUT_BUFFER_EMPTY (1<<1)
+
+#define SCANSET_GET 0
+#define SCANSET_1 1
+#define SCANSET_2 2
+#define SCANSET_3 3
 
 VirtualKeyEvent::VirtualKeyEvent()
 {
@@ -25,13 +38,159 @@ KeyboardDriver::KeyboardDriver():
 	_code1(0), _code2(0), _code3(0), _bufferPos(0), _bufferLength(0)
 {
 	//set the command byte to make the keyboard know we are working with interrupts.
-	outb(COMMAND_PORT, CMD_SET_COMMAND_BYTE);
+	enableIRQ();
+	outb(COMMAND_PORT, CMD_READ_CONFIG);
 	outb(IO_PORT, 0b00000001);
+	//while (!_commandReturned && !_commandFailed);
+	setScanCodeSet(SCANSET_2);
+	setScanCodeTranslation(false);
 }
 
 KeyboardDriver::~KeyboardDriver()
 {
 
+}
+
+bool irqKeyboard(u32 interrupt, void* stack, void* obj)
+{
+	if (interrupt == 0x20+1)
+		return ((KeyboardDriver*) obj)->interrupt1(interrupt, stack);
+	else
+		return ((KeyboardDriver*) obj)->interrupt12(interrupt, stack);
+}
+
+void KeyboardDriver::enableIRQ() {
+	interrupts.registerIRQ(0x20+1, &irqKeyboard, this);
+}
+
+void KeyboardDriver::waitForResponse()
+{
+	while (!_commandReturned && !_commandFailed) ;
+}
+
+void KeyboardDriver::sendCommand(u8 command)
+{
+	_commandNeedsData = false;
+	_commandBufD = command;
+	_commandBufP = command;
+	_commandSendCount = 0;
+	_commandReturned = false;
+	_commandFailed = false;
+	//printf("Sending 0x%X\n", command);
+
+	while (inb(STATUS_PORT) & STATUS_INPUT_BUFFER_EMPTY != 0);
+	outb(COMMAND_PORT, command);
+}
+
+void KeyboardDriver::sendDataCommand(u8 command, u8 data)
+{
+	_commandNeedsData = false;
+	_commandBufC = command;
+	_commandBufD = data;
+	_commandBufP = COMMAND_PORT;
+	_commandSendCount = 0;
+	_commandReturned = false;
+	_commandFailed = false;
+	//printf("Sending 0x%X 0x%X\n", command, data);
+
+	while (inb(STATUS_PORT) & STATUS_INPUT_BUFFER_EMPTY != 0);
+	outb(COMMAND_PORT, command);
+	while (inb(STATUS_PORT) & STATUS_INPUT_BUFFER_EMPTY != 0);
+	outb(IO_PORT, data);
+}
+
+void KeyboardDriver::sendKBCommand(u8 command)
+{
+	_commandNeedsData = false;
+	_commandBufC = command;
+	_commandBufP = IO_PORT;
+	_commandSendCount = 0;
+	_commandReturned = false;
+	_commandFailed = false;
+	//printf("Sending KB 0x%X\n", command);
+	outb(IO_PORT, command);
+}
+
+void KeyboardDriver::sendDataKBCommand(u8 command, u8 data)
+{
+	sendKBCommand(command);
+	while (!_commandReturned && !_commandFailed) ;
+	if (_commandReturned)
+	{
+		sendKBCommand(data);
+		while (!_commandReturned && !_commandFailed) ;
+	}
+}
+
+bool KeyboardDriver::interrupt1(u32 interrupt, void* stack) {
+	UNUSED(interrupt);
+	UNUSED(stack);
+	u8 data = inb(IO_PORT);
+	_commandRetValue = data;
+	//printf("INT1 0x%X\n", data);
+	if (data == 0xFA) // Received acknowledge
+		_commandReturned = true;
+	else if (data == 0xFE) { // Something happened, resend
+		// We'll only retry 3 times. If it still fails then the
+		// controller probably just doesn't support the command
+		if (_commandSendCount < 3) {
+			_commandSendCount++;
+			outb(_commandBufP, _commandBufC);
+			if (_commandNeedsData)
+				// Data always goes through IO port (afaik)
+				outb(IO_PORT, _commandBufD);
+		}
+		else
+			_commandFailed = true;
+	}
+	else if (!_noWrite)
+	{
+		write(data);
+	}
+	else
+	{
+		_commandReturned = true;
+		//printf("Returned\n");
+	}
+	return true;
+}
+
+u8 KeyboardDriver::getScanCodeSet(){
+	_noWrite = true;
+	sendDataKBCommand(0xF0, 0x00);
+	_noWrite = false;
+	if (_commandReturned)
+		return _commandRetValue;
+	else
+		return 0;
+}
+
+void KeyboardDriver::setScanCodeSet(u8 scanset) {
+	u8 current = getScanCodeSet();
+	if (current != 0 && current != scanset) {
+		_commandReturned = false;
+		sendDataKBCommand(0xF0, scanset);
+	}
+}
+
+void KeyboardDriver::setScanCodeTranslation(bool enabled) {
+	// Read controller configuration
+	_noWrite = true;
+	sendCommand(0x20);
+	waitForResponse();
+	_noWrite = false;
+	u8 config = _commandRetValue;
+
+	if (enabled)
+		// Clear bit
+		config = (config | BIT_SCANCODE_TRANSLATION);
+	else
+		// Set bit
+		config = (config & ~BIT_SCANCODE_TRANSLATION);
+	
+	_noWrite = true;
+	sendDataCommand(0x60, config);
+	_noWrite = false;
 }
 
 DeviceType KeyboardDriver::getDeviceType() const

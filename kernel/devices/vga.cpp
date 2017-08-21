@@ -1,4 +1,4 @@
-#include "streams/vga.h"
+#include "devices/vga.h"
 #include "io.h"
 #include "stdio.h"
 #include "cdefs.h"
