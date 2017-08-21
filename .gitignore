@@ -15,3 +15,6 @@ ollios.iso
 .idea
 .vscode
 .directory
+
+# Hard drive image
+disk.img
