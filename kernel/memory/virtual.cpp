@@ -211,7 +211,6 @@ void* PageDirectory::bindPhysicalPage(void* physical) {
 		// check if the table is used. if not, we allocate and return that one
 		if (!getReadableTablePointer(dirindex, pageindex)->getFlag(PFLAG_PRESENT)) {
 			mapMemory(page, physical);
-			printf("page: %X", page);
 			return page;
 		}
 
