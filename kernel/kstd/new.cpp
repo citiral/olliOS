@@ -19,7 +19,7 @@ void* operator new (std::size_t size, void* ptr) noexcept {
     return ptr;
 }
 
-void* operator new[](unsigned long size) {
+void* operator new[](std::size_t size) {
     return ::operator new(size);
 }
 

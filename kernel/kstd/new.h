@@ -11,7 +11,7 @@ void* operator new(std::size_t size);
 //void* operator new (std::size_t size, const std::nothrow_t& nothrow_value) noexcept;
 void* operator new(std::size_t size, void* ptr) noexcept;
 
-void* operator new[](unsigned long size);
+void* operator new[](std::size_t size);
 //void* operator new[] (std::size_t size, const std::nothrow_t& nothrow_value) noexcept;
 void* operator new[](std::size_t size, void* ptr) noexcept;
 

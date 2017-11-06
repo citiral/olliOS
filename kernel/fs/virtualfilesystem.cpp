@@ -167,8 +167,8 @@ BlockDevice* VirtualDirEntry::openFile() {
     return nullptr;
 }
 
-DirEntry* VirtualDirEntry::createDir(std::name) {
-	return createChildDirectory(name);
+DirEntry* VirtualDirEntry::createDir(std::string name) {
+	return new VirtualDirEntry(_vdir->createChildDirectory(name));
 }
 
 
