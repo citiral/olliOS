@@ -30,6 +30,7 @@
 
 #include "multiboot.h"
 #include "kernelshell.h"
+#include "cpuid.h"
 
 
 void initCpu() {
@@ -162,6 +163,13 @@ extern "C" void main(multiboot_info* multiboot) {
     LOG_STARTUP("Bound filesystems.");*/
 
 	LOG_STARTUP("Welcome to OlliOS!");
+    cpuid_field cpu = cpuid(0);
+    for (int i = 0 ; i < 32 ; i+= 8)
+        printf("%c", (char)((cpu.ebx >> i) & 0x000000FF));
+    for (int i = 0 ; i < 32 ; i+= 8)
+        printf("%c", (char)((cpu.edx >> i) & 0x000000FF));
+    for (int i = 0 ; i < 32 ; i+= 8)
+        printf("%c", (char)((cpu.ecx >> i) & 0x000000FF));
 	
 	/*char* mainL = (char*) main;
 	char* physL = (char*) kernelPageDirectory.getPhysicalAddress((void*)mainL);
