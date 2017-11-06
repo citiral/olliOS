@@ -133,13 +133,13 @@ extern "C" void main(multiboot_info* multiboot) {
     acpi::init();
     
     cpuid_field features = cpuid(1);
-    if (features.edx & (int)cpuid_feature::EDX_APIC != 0) {
+    if ((features.edx & (int)cpuid_feature::EDX_APIC) != 0) {
         LOG_STARTUP("Initializing APIC.");
-        //apic::Init();
+        apic::Init();
     } else {
         LOG_STARTUP("APIC not supported, skipping. (Threading will not be supported)");
     }
-    
+
 	// Initialize the serial driver so that we can output debug messages very early.
 	initSerialDevices();
 	LOG_STARTUP("Serial driver initialized.");

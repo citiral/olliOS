@@ -2,6 +2,8 @@
 #include "types.h"
 #include "interruptHandlers.h"
 #include "pic.h"
+#include "stdio.h"
+#include "apic.h"
 
 extern "C" void cppInt(u32 interrupt);
 
@@ -82,7 +84,14 @@ IdtDescriptor& Idt::getEntry(u32 index) {
 }
 
 void cppInt(u32 interrupt) {
+	//printf("Interrupt happened: %X\n", interrupt);
 	idt.callFunction(interrupt);
+    if (apic::enabled()) {
+        apic::endInterrupt(interrupt);
+    } else {
+        endInterrupt(interrupt - 20);
+    }
+
 }
 
 void IdtcreateEmpty()
@@ -137,7 +146,12 @@ void Interrupts::callIRQ(u32 irq, void* stack)
 			break;
 		}
 	}
-	endInterrupt(irq - 20);
+
+    if (apic::enabled()) {
+        apic::endInterrupt(irq);
+    } else {
+        endInterrupt(irq - 20);
+    }
 }
 
 void interrupts_callRawIRQ(u32 irq)
@@ -404,9 +418,6 @@ extern "C" void __attribute__ ((noinline)) IdtRegisterInterrupts()
 	GENERATE_INTERRUPT(254);
 	GENERATE_INTERRUPT(255);
 
-	/*for (u32 x = 0 ; x < 256 ; x++)
-		idt.setFunction(x, &intHandlerUndefined);*/
-	
 	for (u32 x = 0; x < MAX_IDT_ENTRIES; x++)
 		idt.setFunction(x, &interrupts_callRawIRQ);
 	
@@ -414,5 +425,6 @@ extern "C" void __attribute__ ((noinline)) IdtRegisterInterrupts()
     idt.setFunction(INT_ATA_BUS1, &intHandlerAta);
 	idt.setFunction(INT_ATA_BUS2, &intHandlerAta);
 	idt.setFunction(INT_GENERAL_PROTECTION_VIOLATION, &intHandlerGeneralProtectionViolation);
-	idt.setFunction(INT_PAGE_FAULT, &intHandlerPageFault);
+    idt.setFunction(INT_PAGE_FAULT, &intHandlerPageFault);
+    idt.setFunction(INT_SPURIOUS, &intHandlerSpurious);
 }
