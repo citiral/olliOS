@@ -193,6 +193,35 @@ void PageDirectory::bindVirtualPage(void* page) {
 	memset(page, 0, 0x1000);
 }
 
+// makes sure the given physical 4kb space is bound to some random virtual memory
+void* PageDirectory::bindPhysicalPage(void* physical) {
+	void* page = (void*)0;
+	
+	// we keep looping from this page until we find one that is free, or until we reach the end of the address space. We also don't want to allocate the last 4MB.
+	int dirindex;
+	do {
+		// we get the indexes related to that page
+		dirindex = ((u32)page) / 0x400000;
+		int pageindex = (((u32)page) % 0x400000) / 0x1000;
+
+		// if the entry doesnt exist, lets allocate one. Its content should be empty so the following checks should pass
+		if (!getReadableEntryPointer(dirindex)->getFlag(PFLAG_PRESENT))
+			allocateEntry(dirindex);
+
+		// check if the table is used. if not, we allocate and return that one
+		if (!getReadableTablePointer(dirindex, pageindex)->getFlag(PFLAG_PRESENT)) {
+			mapMemory(page, physical);
+			printf("page: %X", page);
+			return page;
+		}
+
+		// and otherwise we advance by one page
+		page = (void*)((u32)page + 0x1000);
+	} while (dirindex < 1023);
+
+	return nullptr;
+}
+
 void* PageDirectory::bindFirstFreeVirtualPage(void* page) {
 	// first we round this up to the nearest page
 	page = (void*)((u32)page + ((u32)page % 0x1000 == 0 ? 0 : (0x1000 - ((u32)page % 0x1000))));
@@ -290,8 +319,8 @@ void PageDirectory::unbindVirtualPage(void* page) {
 
 void PageDirectory::mapMemory(void* page, void* physical) {
 	// we get the indexes related to that page
-	int dirindex = (u32)page / 0x100000;
-	int pageindex = ((u32)page % 0x100000) / 0x1000;
+	int dirindex = (u32)page / 0x400000;
+	int pageindex = ((u32)page % 0x400000) / 0x1000;
 
 	// if the directory does not exist, allocate one
 	if (!getReadableEntryPointer(dirindex)->getFlag(PFLAG_PRESENT))
