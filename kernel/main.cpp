@@ -4,12 +4,14 @@
 #include "kstd/string.h"
 #include "kstd/new.h"
 #include "stdlib.h"
+#include "acpi.h"
 
 #include "cpu.h"
 #include "gdt.h"
 #include "interrupt.h"
 
 #include "pic.h"
+#include "apic.h"
 #include "io.h"
 #include "alloc.h"
 #include "linker.h"
@@ -128,6 +130,16 @@ extern "C" void main(multiboot_info* multiboot) {
     // init the memory management, so we have proper paging and can allocate memory
     initMemory(multiboot);
 
+    acpi::init();
+    
+    cpuid_field features = cpuid(1);
+    if (features.edx & (int)cpuid_feature::EDX_APIC != 0) {
+        LOG_STARTUP("Initializing APIC.");
+        //apic::Init();
+    } else {
+        LOG_STARTUP("APIC not supported, skipping. (Threading will not be supported)");
+    }
+    
 	// Initialize the serial driver so that we can output debug messages very early.
 	initSerialDevices();
 	LOG_STARTUP("Serial driver initialized.");
@@ -162,14 +174,8 @@ extern "C" void main(multiboot_info* multiboot) {
     }
     LOG_STARTUP("Bound filesystems.");*/
 
-	LOG_STARTUP("Welcome to OlliOS!");
-    cpuid_field cpu = cpuid(0);
-    for (int i = 0 ; i < 32 ; i+= 8)
-        printf("%c", (char)((cpu.ebx >> i) & 0x000000FF));
-    for (int i = 0 ; i < 32 ; i+= 8)
-        printf("%c", (char)((cpu.edx >> i) & 0x000000FF));
-    for (int i = 0 ; i < 32 ; i+= 8)
-        printf("%c", (char)((cpu.ecx >> i) & 0x000000FF));
+    LOG_STARTUP("Welcome to OlliOS!");
+
 	
 	/*char* mainL = (char*) main;
 	char* physL = (char*) kernelPageDirectory.getPhysicalAddress((void*)mainL);
