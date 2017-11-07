@@ -84,7 +84,6 @@ IdtDescriptor& Idt::getEntry(u32 index) {
 }
 
 void cppInt(u32 interrupt) {
-	//printf("Interrupt happened: %X\n", interrupt);
 	idt.callFunction(interrupt);
     if (apic::enabled()) {
         apic::endInterrupt(interrupt);

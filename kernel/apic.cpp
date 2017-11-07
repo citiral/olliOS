@@ -1,6 +1,5 @@
 #include "acpi.h"
 #include "apic.h"
-#include "stdint.h"
 #include "memory/virtual.h"
 #include "memory/physical.h"
 #include "pic.h"
@@ -17,6 +16,7 @@ namespace apic {
     uint32_t volatile* registers;
     std::vector<MADTIoEntry*> ioApics;
     std::vector<MADTLocalEntry*> processors;
+    uint64_t busFrequency;
 
     bool _enabled = false;
 
@@ -91,26 +91,6 @@ namespace apic {
                 // For now we ignore source overrides
                 MADTSourceOverrideEntry* override = (MADTSourceOverrideEntry*)entry;
                 LOG_INFO("found source override %d %d %d %d", override->busSource, override->irqSource, override->globalSystemInterrupt, override->flags);
-
-                /*bool lowTriggered = (override->flags & 2) != 0;
-                bool levelTriggered = (override->flags & 8) != 0;
-
-                // We find the apic that has this as base
-                for (uint32_t i = 0 ; i < ioApics.size() ; i++) {
-                    MADTIoEntry volatile* apic = ioApics[i];
-                    apic->apicAddress[APIC_IO_SEL] = APIC_IO_VER_OFFSET;
-                    unsigned int maxIrqs = (apic->apicAddress[APIC_IO_WIN] & 0x00FF0000) >> 16;
-
-                    if (apic->globalBase <= override->irqSource && apic->globalBase + maxIrqs > override->irqSource) {
-                        LOG_DEBUG("addr %X", apic->apicAddress);
-                        ((uint32_t volatile*) apic->apicAddress)[APIC_IO_SEL] = APIC_IO_REDIRECTION0_OFFSET + (override->irqSource - apic->globalBase)*2;
-                        ((uint32_t volatile*) apic->apicAddress)[APIC_IO_WIN] = override->globalSystemInterrupt + (lowTriggered << 13) + (levelTriggered << 15);
-                        ((uint32_t volatile*) apic->apicAddress)[APIC_IO_SEL] = APIC_IO_REDIRECTION1_OFFSET + (override->irqSource - apic->globalBase)*2;
-                        ((uint32_t volatile*) apic->apicAddress)[APIC_IO_WIN] = 0;
-
-                        LOG_INFO("Setting irq %d %d", override->globalSystemInterrupt + (lowTriggered << 13) + (levelTriggered << 15), 0);
-                    }
-                }*/
             } else {
                 LOG_INFO("unhandled MADT entry type %d", entry->type);
             }
@@ -135,9 +115,40 @@ namespace apic {
                 ((uint32_t volatile*) apic->apicAddress)[APIC_IO_WIN] = higher;
             }
         }
-        BOCHS_BREAKPOINT
 
-        LOG_INFO("error status: %X", registers[APIC_ERROR_REGISTER]);
+        // Lastly, we are going to set the timer. First, we initialize the timer
+        registers[APIC_TIMER_DIVIDE_REGISTER] = 11;
+        registers[APIC_TIMER_INITIAL_COUNT_REGISTER] = 0xFFFFFFFFu;
+        registers[APIC_LAPIC_TIMER_REGISTER] = 0xFC;
+
+        // Then we wait until the next second begins
+        outb(0x70, 0x00);
+        int curSecond = inb(0x71);
+        int now;
+        do {
+            outb(0x70, 0x00);
+            now = inb(0x71);
+        } while (now != curSecond);
+
+        // we reset the timer count
+        registers[APIC_TIMER_INITIAL_COUNT_REGISTER] = 0xFFFFFFFFu;
+
+        // and wait for the next second again
+        do {
+            outb(0x70, 0x00);
+            curSecond = inb(0x71);
+        } while (now == curSecond);
+
+        // We read the elapsed ticks in 1 second, from this we can calculate the bus frequency.
+        uint32_t count = registers[APIC_TIMER_CURRENT_COUNT_REGISTER];
+        busFrequency = (0xFFFFFFFFu - count) * 16;
+        LOG_INFO("External bus frequency: %u Mhz", (int) (busFrequency / 1024) / 1024);
+        registers[APIC_TIMER_INITIAL_COUNT_REGISTER] = 0;
+    }
+
+    void setSleep(uint32_t count, bool onetime) {
+        registers[APIC_LAPIC_TIMER_REGISTER] = 0xFCu | (onetime ? 0 : (1<<17));
+        registers[APIC_TIMER_INITIAL_COUNT_REGISTER] = count;
     }
 
 }

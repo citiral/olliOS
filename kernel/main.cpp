@@ -9,6 +9,7 @@
 #include "cpu.h"
 #include "gdt.h"
 #include "interrupt.h"
+#include "sleep.h"
 
 #include "pic.h"
 #include "apic.h"
@@ -174,7 +175,11 @@ extern "C" void main(multiboot_info* multiboot) {
     }
     LOG_STARTUP("Bound filesystems.");*/
 
-    LOG_STARTUP("Welcome to OlliOS!");
+    while (true) {
+        LOG_STARTUP("Welcome to OlliOS!");
+        sleep(1000);
+    }
+
 
 	
 	/*char* mainL = (char*) main;
