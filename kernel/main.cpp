@@ -11,6 +11,9 @@
 #include "interrupt.h"
 #include "sleep.h"
 
+#include "eventbus/eventbus.h"
+#include "eventbus/eventbustest.h"
+
 #include "pic.h"
 #include "apic.h"
 #include "io.h"
@@ -175,13 +178,6 @@ extern "C" void main(multiboot_info* multiboot) {
     }
     LOG_STARTUP("Bound filesystems.");*/
 
-    while (true) {
-        LOG_STARTUP("Welcome to OlliOS!");
-        sleep(1000);
-    }
-
-
-	
 	/*char* mainL = (char*) main;
 	char* physL = (char*) kernelPageDirectory.getPhysicalAddress((void*)mainL);
 	printf("Location of 0x%X = 0x%X\n", mainL, physL);
@@ -245,14 +241,11 @@ extern "C" void main(multiboot_info* multiboot) {
 
         depth++;
 	}*/
+
+	EventBusTest busTest;
+	busTest.sendTestEvent(1337);
+	busTest.sendTestEvent(1338);
 	
-	std::vector<Device*> serialDevices = deviceManager.getDevices(DeviceType::Serial);
-	for (size_t i = 0; i < serialDevices.size(); i++)
-	{
-		Serial* dev = (Serial*) serialDevices[i];
-		dev->write("Hello, world!\n");
-	}
-    
     KernelShell shell;
     shell.enter();
 }
