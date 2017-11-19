@@ -26,7 +26,23 @@ void CMOS::respondTime(Event& event)
 
 	response->seconds = readRTC(0);
 	response->minutes = readRTC(2);
-	response->hours = readRTC(4);
+
+	// This needs to be handled specially
+	char h = readRTC(4);
+	if (!rtcIs24())
+	{
+		if ((h & 0x80) > 0) // PM
+		{
+			h = (h & 0x7F) + 12;
+		}
+		
+		if (h == 12 || h == 24)
+		{
+			h -= 12;
+		}
+	}
+	response->hours = h;
+
 	response->day = readRTC(7);
 	response->month = readRTC(8);
 	response->year = ((int) readRTC(9)) + ((int) readRTC(0x32)) * 100; 

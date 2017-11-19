@@ -254,9 +254,9 @@ extern "C" void main(multiboot_info* multiboot) {
 
 	GetTimeEvent event;
 	event.prepare(TARGET_ANY);
-	TimeResponse* response = static_cast<TimeResponse*>(bus.fireEventAndWait(event));
+	TimeResponse* response = (TimeResponse*) bus.fireEventAndWait(event);
 	//TimeResponse response = ((TimeResponse) bus.getResponse());
-	LOG_INFO("Current date: %d / %d / %d", response->day, response->month, response->year);
+	LOG_INFO("Boot finished at %d:%d:%d %d/%d/%d", response->hours, response->minutes, response->seconds, response->day, response->month, response->year);
 	delete response;
 
     KernelShell shell;
