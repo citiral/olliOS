@@ -14,4 +14,4 @@ private:
 	BusDevice& _bus;
 };
 
-#endif __OLLIOS_EVENTBUSTEST_H
+#endif

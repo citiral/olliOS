@@ -13,6 +13,7 @@
 
 #include "eventbus/eventbus.h"
 #include "eventbus/eventbustest.h"
+#include "eventbus/nulllistener.h"
 
 #include "pic.h"
 #include "apic.h"
@@ -29,6 +30,7 @@
 #include "devices/serial.h"
 #include "devices/ata/ata.h"
 #include "devices/pci/pci.h"
+#include "devices/cmos.h"
 
 #include "fs/iso9660.h"
 #include "fs/virtualfilesystem.h"
@@ -124,6 +126,11 @@ void printrec(DirEntry* root) {
         }
         root->advance();
     }
+}
+
+void loadEventHandlers()
+{
+	new CMOS();
 }
 
 extern "C" void main(multiboot_info* multiboot) {
@@ -242,10 +249,16 @@ extern "C" void main(multiboot_info* multiboot) {
         depth++;
 	}*/
 
-	EventBusTest busTest;
-	busTest.sendTestEvent(1337);
-	busTest.sendTestEvent(1338);
-	
+	NullListener bus;
+	loadEventHandlers();
+
+	GetTimeEvent event;
+	event.prepare(TARGET_ANY);
+	TimeResponse* response = static_cast<TimeResponse*>(bus.fireEventAndWait(event));
+	//TimeResponse response = ((TimeResponse) bus.getResponse());
+	LOG_INFO("Current date: %d / %d / %d", response->day, response->month, response->year);
+	delete response;
+
     KernelShell shell;
     shell.enter();
 }

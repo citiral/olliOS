@@ -7,6 +7,7 @@
 class BusDevice;
 class EventListener;
 struct Event;
+struct Response;
 
 // An event bus
 class EventBus
@@ -17,9 +18,14 @@ public:
 
 	// Registers a new event listener 
 	BusDevice& registerListener(EventListener& listener);
-	void fireEvent(BusDevice& device, Event& event);
+
+	// Used by BusDevice
+	int fireEvent(BusDevice& device, Event& event);
+	void fireResponse(BusDevice& device, Response* response);
 
 private:
+	void setHeaders(Event& Event, BusDevice& device);
+
 	std::vector<BusDevice*> _devices;
 };
 
@@ -30,14 +36,23 @@ public:
 	BusDevice(EventBus& bus, EventListener& listener, const int id);
 	~BusDevice();
 
-	void fireEvent(Event& event);
+	// Used by EventBus
 	bool handleEvent(Event& event);
+	void handleResponse(Response* response);
 	int id();
+
+	// Used by event listeners
+	int fireEvent(Event& event); // Fires an event and returns the id of the device that responded if target == TARGET_ANY
+	void respond(Event& event, Response* response);
+	bool hasResponse();
+	Response* getResponse();
+	Response* fireEventAndWait(Event& event);
 
 private:
 	EventBus& _bus;
 	EventListener& _listener;
 	const int _id;
+	std::vector<Response*> _responses;
 };
 
 // A class that can listen to an event.
@@ -51,17 +66,29 @@ public:
 // Represents an event that can be sent.
 struct Event
 {
+	/*Event(const Response& r) : type(r.type), target(r.target), r.s
+	Event(EventType type) : type(type) {};
+	Event(EventType type, EventTarget target) : type(type), target(target) {};*/
+
 	EventType type; // The type of request
 	EventTarget target; // Device that is target by the request
 	EventTarget sender; // Device that sent the request
 
-	size_t payloadSize = 0; // Size of the event that was sent.
+	virtual void prepare(EventTarget target)
+	{
+		this->target = target;
+	}
+
+	//size_t payloadSize = 0; // Number of bytes after this variable.
 };
 
 // Represents a response that can be sent back after an event was received
 struct Response : Event
 {
-
+	virtual void prepare(EventTarget target)
+	{
+		Event::prepare(target);
+	}
 };
 
 extern EventBus kernelBus;

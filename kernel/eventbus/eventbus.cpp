@@ -1,5 +1,6 @@
 #include "eventbus.h"
 
+#include "cdefs.h"
 #include "cpu.h"
 
 EventBus kernelBus;
@@ -20,14 +21,14 @@ EventBus::~EventBus()
 
 BusDevice& EventBus::registerListener(EventListener& listener)
 {
-	BusDevice* device = new BusDevice(*this, listener, _devices.size());
+	BusDevice* device = new BusDevice(*this, listener, _devices.size() + 1);
 	_devices.push_back(device);
 	return *device;
 }
 
-void EventBus::fireEvent(BusDevice& device, Event& event)
+int EventBus::fireEvent(BusDevice& device, Event& event)
 {
-	event.sender = device.id();
+	setHeaders(event, device);
 
 	// Add synchronization when atomic_boolean exists
 
@@ -41,23 +42,42 @@ void EventBus::fireEvent(BusDevice& device, Event& event)
 			// If target == TARGET_ANY it should break if the event was processed.
 			if (device->handleEvent(event) && event.target == TARGET_ANY)
 			{
-				return;
+				return device->id();
 			}
 		}
 
 		// If target == TARGET_ANY the function will have already returned if a handler was found
 		if (event.target == TARGET_ANY)
 		{
-			CPU::panic("No device could handle event");
+			return 0;
+		}
+		else
+		{
+			return TARGET_ALL;
 		}
 	}
 	else
 	{
-		if (!_devices[event.target]->handleEvent(event))
+		if (!_devices[event.target-1]->handleEvent(event))
 		{
-			CPU::panic("Device could not handle event");
+			return 0;
+		}
+		else
+		{
+			return event.target;
 		}
 	}
+}
+
+void EventBus::fireResponse(BusDevice& device, Response* response)
+{
+	setHeaders(*response, device);
+	_devices[response->target-1]->handleResponse(response);
+}
+
+void EventBus::setHeaders(Event& event, BusDevice& device)
+{
+	event.sender = device.id();
 }
 
 BusDevice::BusDevice(EventBus& bus, EventListener& listener, const int id) : _bus(bus), _listener(listener), _id(id)
@@ -66,16 +86,58 @@ BusDevice::BusDevice(EventBus& bus, EventListener& listener, const int id) : _bu
 
 BusDevice::~BusDevice()
 {
+	size_t size = _responses.size();
+	for (size_t i = 0; i < size; i++)
+	{
+		delete _responses[i];
+	}
 }
 
-void BusDevice::fireEvent(Event& event)
+int BusDevice::fireEvent(Event& event)
 {
-	_bus.fireEvent(*this, event);
+	return _bus.fireEvent(*this, event);
+}
+
+void BusDevice::respond(Event& event, Response* response)
+{
+	response->target = event.sender;
+	_bus.fireResponse(*this, response);
 }
 
 bool BusDevice::handleEvent(Event& event)
 {
 	return _listener.handleEvent(event);
+}
+
+void BusDevice::handleResponse(Response* response)
+{
+	_responses.push_back(response);
+}
+
+bool BusDevice::hasResponse()
+{
+	return _responses.size() > 0;
+}
+
+Response* BusDevice::getResponse()
+{
+	Response* response;
+	if (hasResponse())
+	{
+		response = _responses[0];
+		_responses.erase(0);
+	}
+	else
+	{
+		CPU::panic("No response");
+	}
+	return response;
+}
+
+Response* BusDevice::fireEventAndWait(Event& event)
+{
+	fireEvent(event);
+	return getResponse();
 }
 
 int BusDevice::id()

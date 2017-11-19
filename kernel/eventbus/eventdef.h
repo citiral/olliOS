@@ -7,4 +7,6 @@ typedef unsigned int EventTarget;
 #define TARGET_ANY 0x00000000
 #define TARGET_ALL 0xFFFFFFFF
 
+#define GETTIME 1
+
 #endif
