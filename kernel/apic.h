@@ -43,7 +43,9 @@ namespace apic {
 
     // Starts all cpus
     void StartAllCpus(void* startAddress);
+
 }
 
+    extern "C" void SmpEntryPoint();
 
 #endif /* end of include guard: __PIC_H */

@@ -88,6 +88,8 @@ void interrupts_callRawIRQ(u32 irq);
 
 void IdtcreateEmpty();
 void IdtFlush();
+u32 IdtBase();
+u16 IdtLimit();
 extern Interrupts interrupts;
 extern "C" void __attribute__ ((noinline)) IdtRegisterInterrupts();
 extern "C" void reload_idt(u16 limit, u32 base);

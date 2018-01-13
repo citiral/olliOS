@@ -1,6 +1,7 @@
 #include "acpi.h"
 #include "apic.h"
 #include "gdt.h"
+#include "interrupt.h"
 #include "memory/virtual.h"
 #include "memory/physical.h"
 #include "pic.h"
@@ -10,15 +11,18 @@
 #include "cdefs.h"
 #include <stdio.h>
 
+// Functions and constant defined by the SMP trampoline
 extern "C" void smp_trampoline_entry();
 extern "C" void end_smp_trampoline_entry();
 extern u16 smp_gdt_size;
 extern u32 smp_gdt_offset;
+extern void* smp_stack;
+extern PageDirectory* smp_page;
+extern void(*smp_entry_point)();
 
 using namespace acpi;
 
 namespace apic {
-
     // A pointer to the registers of the APIC. These are by default mapped to physical page FEE00xxx
     uint32_t volatile* registers;
     std::vector<MADTIoEntry*> ioApics;
@@ -154,6 +158,9 @@ namespace apic {
         // and we initialize the gdt offset in the smp trampoline to our gdt
         smp_gdt_size = GdtSize();
         smp_gdt_offset = GdtOffset();
+        smp_page = (PageDirectory*)((char*)&kernelPageDirectory - 0xC0000000);
+        smp_stack = new char[0x1000*16] + 0x1000*16;
+        smp_entry_point = SmpEntryPoint;
     }
 
     void setSleep(uint32_t count, bool onetime) {
@@ -184,9 +191,14 @@ namespace apic {
             registers[APIC_INT_COMMAND1_REGISTER] = startPage | (6 << 8) | (1 << 14);
             sleep(1);
 
-            //registers[APIC_INT_COMMAND2_REGISTER] = processors[i]->apicId << 24;
-            //registers[APIC_INT_COMMAND1_REGISTER] = startPage | (6 << 8) | (1 << 14);
-            //sleep(1);
+        while(true)
+            LOG_INFO("HELLO FROM CPU 1");
         }
     }
 }
+
+    void SmpEntryPoint() {
+        while(true)
+            LOG_INFO("HELLO FROM CPU 2");
+        while(true);
+    }

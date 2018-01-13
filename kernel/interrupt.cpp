@@ -110,6 +110,16 @@ void IdtFlush()
 	reload_idt(pointer.limit, pointer.base);
 }
 
+u32 IdtBase()
+{
+	return (u32)&idt;
+}
+
+u16 IdtLimit()
+{
+	return (u16)(idt.getLength()*8 - 1);
+}
+
 Interrupts interrupts;
 
 void Interrupts::registerIRQ(u32 irq, IRQ handler, void* obj)
