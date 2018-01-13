@@ -9,9 +9,6 @@ smp_stack       dd  1
 ; a pointer to the kernel pagetable
 global smp_page
 smp_page        dd  1
-; the C++ entry point which the trampoline will enter
-global smp_entry_point
-smp_entry_point dd  1
 
 gdtptr:
 ; the gdt values to be used during the trampoline
@@ -48,7 +45,7 @@ or eax, 1
 mov cr0, eax
 
 ; and jump to the 32 bit section of our trampoline
-jmp 08h:smp_trampoline_32
+jmp 0x8:smp_trampoline_32
 
 BITS 32
 smp_trampoline_32:
@@ -69,11 +66,14 @@ mov eax, cr0
 or eax, 0x80000000
 mov cr0, eax
 
+; make a long jump to make sure paging is on
+jmp 0x8:smp_enable_paging
+smp_enable_paging:
+
 ; load the stack
 mov esp, [smp_stack]
 
 ; enter our C++ entry point
-mov eax, 0xdeadbeef
 extern SmpEntryPoint
 call SmpEntryPoint
 

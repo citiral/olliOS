@@ -18,7 +18,6 @@ extern u16 smp_gdt_size;
 extern u32 smp_gdt_offset;
 extern void* smp_stack;
 extern PageDirectory* smp_page;
-extern void(*smp_entry_point)();
 
 using namespace acpi;
 
@@ -28,9 +27,12 @@ namespace apic {
     std::vector<MADTIoEntry*> ioApics;
     std::vector<MADTLocalEntry*> processors;
     uint64_t busFrequency;
-    void* trampoline_code;
 
+    // Whether or not the APIC has been enabled
     bool _enabled = false;
+
+    // A flag to check if the other processor has been started
+    bool _cpuReady = false;
 
     bool enabled() {
         return _enabled;
@@ -38,7 +40,7 @@ namespace apic {
 
     void endInterrupt(u32 interrupt) {
         UNUSED(interrupt);
-        registers[APIC_EOI_REGISTER] = 1;
+        registers[APIC_EOI_REGISTER] = 0;
     }
 
     void Init() {
@@ -159,8 +161,6 @@ namespace apic {
         smp_gdt_size = GdtSize();
         smp_gdt_offset = GdtOffset();
         smp_page = (PageDirectory*)((char*)&kernelPageDirectory - 0xC0000000);
-        smp_stack = new char[0x1000*16] + 0x1000*16;
-        smp_entry_point = SmpEntryPoint;
     }
 
     void setSleep(uint32_t count, bool onetime) {
@@ -175,13 +175,22 @@ namespace apic {
         u32 startPage = ((size_t)0x8000 / 0x1000) & 0xFF;
         LOG_INFO("Addr: %X", 0x8000);
         LOG_INFO("Startpage: %X", startPage);
+        LOG_INFO("Apic: %X", registers[APIC_IO_VER_OFFSET]);
 
-        for (int i = 0 ; i < 2 ; i++) {
+        // as a test, enable the keyboard interrupt on all cpus
+
+        for (int i = 0 ; i < processors.size() ; i++) {
             // skip processor 0, that's us :)
             if (processors[i]->processorId == 0)
                 continue;
 
-            // First send an init IPI
+            // Allocate a stack for the processor
+            smp_stack = new char[0x1000*16] + 0x1000*16;
+
+            // Make sure the done flag is not set
+            _cpuReady = false;
+
+            // Send an init IPI
             registers[APIC_INT_COMMAND2_REGISTER] = processors[i]->apicId << 24;
             registers[APIC_INT_COMMAND1_REGISTER] = (5 << 8) | (1 << 14);
             sleep(15);
@@ -191,14 +200,56 @@ namespace apic {
             registers[APIC_INT_COMMAND1_REGISTER] = startPage | (6 << 8) | (1 << 14);
             sleep(1);
 
-        while(true)
-            LOG_INFO("HELLO FROM CPU 1");
+            // We keep waiting while the other cpu is not ready yet
+            while(!_cpuReady) {
+                sleep(100);
+            }
+        }
+
+        // and then we divide all interrupts over all processors
+        for (uint32_t i = 0 ; i < ioApics.size() ; i++) {
+            MADTIoEntry volatile* apic = ioApics[i];
+            // We get the # of irqs this apic can handle
+            apic->apicAddress[APIC_IO_SEL] = APIC_IO_VER_OFFSET;
+            unsigned int maxIrqs = ((apic->apicAddress[APIC_IO_WIN] & 0x00FF0000) >> 16) + 1;
+
+            // and redirect each to globalBase + irq + 0x20
+            for (uint32_t irq = 0 ; irq < maxIrqs ; irq++) {
+                uint32_t lower = ((unsigned char)(irq + apic->globalBase + 0x20)); // all other flags happen to be 0
+                uint32_t higher = (irq % processors.size()) << 24; // needs to contain the cpuid in bit 56-63, but this is gonna be 0
+                //LOG_INFO("setting ioapic %d %d", lower, higher);
+                ((uint32_t volatile*) apic->apicAddress)[APIC_IO_SEL] = APIC_IO_REDIRECTION0_OFFSET + irq*2;
+                ((uint32_t volatile*) apic->apicAddress)[APIC_IO_WIN] = lower;
+                ((uint32_t volatile*) apic->apicAddress)[APIC_IO_SEL] = APIC_IO_REDIRECTION1_OFFSET + irq*2;
+                ((uint32_t volatile*) apic->apicAddress)[APIC_IO_WIN] = higher;
+            }
         }
     }
 }
 
-    void SmpEntryPoint() {
-        while(true)
-            LOG_INFO("HELLO FROM CPU 2");
-        while(true);
+void SmpEntryPoint() {
+    using namespace apic;
+
+    // TODO at some point the core will needs his own TSS
+
+    // Load the IDT on this cpu
+    IdtFlush();
+
+    // re-enable interrupts
+    __asm__ volatile("sti");
+
+    // re-enable NMI
+    u8 flags = inb(0x70);
+    flags |= 0x80;
+    outb(0x70, flags);
+
+    // Enable the APIC of this CPU
+    registers[APIC_SIV_REGISTER] = 0x1FF;
+
+
+    _cpuReady = true;
+    while(true) {
+        LOG_INFO("HELLO FROM CPU");
+        __asm__("hlt");
     }
+}

@@ -270,5 +270,5 @@ extern "C" void main(multiboot_info* multiboot) {
 	busTest.sendTestEvent(1338);
 	
     KernelShell shell;
-    //shell.enter();
+    shell.enter();
 }

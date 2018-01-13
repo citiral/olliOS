@@ -222,8 +222,6 @@ void KernelShell::enter()
 			}
 			printf("%s$ ", _env.get("pwd").data());
 		}
-
-		__asm__ volatile("hlt");
 	}
 }
 

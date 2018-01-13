@@ -4,7 +4,10 @@
 #include "types.h"
 #include "stdint.h"
 
+#define APIC_ID_REGISTER 4
 #define APIC_EOI_REGISTER 44
+#define APIC_LDR_REGISTER 52
+#define APIC_DFR_REGISTER 56
 #define APIC_SIV_REGISTER 60
 #define APIC_INT_COMMAND1_REGISTER 192
 #define APIC_INT_COMMAND2_REGISTER 196
@@ -46,6 +49,6 @@ namespace apic {
 
 }
 
-    extern "C" void SmpEntryPoint();
+extern "C" void SmpEntryPoint();
 
 #endif /* end of include guard: __PIC_H */
