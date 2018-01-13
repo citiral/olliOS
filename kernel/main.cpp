@@ -11,6 +11,9 @@
 #include "interrupt.h"
 #include "sleep.h"
 
+#include "eventbus/eventbus.h"
+#include "eventbus/eventbustest.h"
+
 #include "pic.h"
 #include "apic.h"
 #include "io.h"
@@ -176,8 +179,11 @@ extern "C" void main(multiboot_info* multiboot) {
     }
     LOG_STARTUP("Bound filesystems.");*/
 
+<<<<<<< HEAD
     LOG_STARTUP("Welcome to OlliOS!");
 	
+=======
+>>>>>>> 7a9e42e667e72ea8e8f626dd996b2849156a57eb
 	/*char* mainL = (char*) main;
 	char* physL = (char*) kernelPageDirectory.getPhysicalAddress((void*)mainL);
 	printf("Location of 0x%X = 0x%X\n", mainL, physL);
@@ -250,6 +256,10 @@ extern "C" void main(multiboot_info* multiboot) {
 	}*/
 
 	BOCHS_BREAKPOINT
+	EventBusTest busTest;
+	busTest.sendTestEvent(1337);
+	busTest.sendTestEvent(1338);
+	
     KernelShell shell;
     //shell.enter();
 }

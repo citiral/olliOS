@@ -13,10 +13,10 @@ CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O0 -Wall -Wextra -fno-excep
 LDFLAGS = -ffreestanding -O2 -nostdlib -lgcc
 LIBS = $(ROOT)/usr/lib/libk.a
 
-KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/util/*.cpp) $(wildcard kernel/devices/*.cpp) $(wildcard kernel/devices/ata/*.cpp) $(wildcard kernel/devices/pci/*.cpp) $(wildcard kernel/alloc/*.cpp) $(wildcard kernel/fs/*.cpp) $(wildcard kernel/kstd/*.cpp)  $(wildcard kernel/memory/*.cpp)
+KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/eventbus/*.cpp) $(wildcard kernel/util/*.cpp) $(wildcard kernel/devices/*.cpp) $(wildcard kernel/devices/ata/*.cpp) $(wildcard kernel/devices/pci/*.cpp) $(wildcard kernel/alloc/*.cpp) $(wildcard kernel/fs/*.cpp) $(wildcard kernel/kstd/*.cpp)  $(wildcard kernel/memory/*.cpp)
 KERNEL_ASM = $(wildcard kernel/*.s)
 KERNEL_NASM = $(wildcard kernel/*.asm)
-HEADERS = $(wildcard kernel/*.h) $(wildcard kernel/util/*.h) $(wildcard kernel/devices/*.h) $(wildcard kernel/devices/ata/*.h) $(wildcard kernel/devices/pci/*.h) $(wildcard kernel/alloc/*.h) $(wildcard kernel/fs/*.h) $(wildcard kernel/kstd/*.h)  $(wildcard kernel/memory/*.h)
+HEADERS = $(wildcard kernel/*.h) $(wildcard kernel/eventbus/*.h) $(wildcard kernel/util/*.h) $(wildcard kernel/devices/*.h) $(wildcard kernel/devices/ata/*.h) $(wildcard kernel/devices/pci/*.h) $(wildcard kernel/alloc/*.h) $(wildcard kernel/fs/*.h) $(wildcard kernel/kstd/*.h)  $(wildcard kernel/memory/*.h)
 
 CRTI_OBJ=crti.o
 CRTN_OBJ=crtn.o
