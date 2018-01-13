@@ -7,13 +7,16 @@ SECTIONS
 {
 	. = 0xC0100000;
     __KERNEL_BEGIN = .;
+
 	/* As said in boot.s, the multiboot header should come first, so lets do that */
 	.text ALIGN(0x1000) : AT(ADDR(.text) - 0xC0000000)
 	{
 		*(.multiboot)
-		*(.text)
+		build/smp_trampoline.o(.text)
+		EXCLUDE_FILE(*build/smp_trampoline.o) *(.text)
 		*(.rodata)
 	}
+
 
    .data ALIGN (0x1000) : AT(ADDR(.data) - 0xC0000000) {
        *(.data)

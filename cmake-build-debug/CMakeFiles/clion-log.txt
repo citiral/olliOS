@@ -1,0 +1,4 @@
+/opt/clion/bin/cmake/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /home/citiral/Source/olliOS
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/citiral/Source/olliOS/cmake-build-debug

@@ -83,11 +83,11 @@ void initMemory(multiboot_info* multiboot) {
                 continue;
 
             // only use the first physical gb
-            if ((size_t)addr >= 0x40000000)
-                continue;
+            //if ((size_t)addr >= 0x40000000)
+                //continue;
 
             // don't let this shit overlap with the kernel itself
-            if ((size_t)addr < (size_t)KERNEL_END_PHYSICAL) {
+            if ((size_t)addr < (size_t)KERNEL_END_PHYSICAL && (size_t)addr > 0x00100000) {
                 size_t diff = (size_t)KERNEL_END_PHYSICAL - (size_t) addr;
                 addr = (void*)((size_t)addr + diff);
 
@@ -96,10 +96,11 @@ void initMemory(multiboot_info* multiboot) {
 
                 length -= diff;
             }
-            
+
             // and let the physical memory manager know that memory is free.
             // we have to round it up the the nearest page though
             u32 offset = (0x1000 - (u32)addr % 0x1000);
+            LOG_INFO("reserving %X bytes starting at %X.", length - offset, (size_t) addr + offset);
             physicalMemoryManager.registerAvailableMemory((void*) ((size_t) addr + offset), length - offset);
         }
     }
@@ -132,11 +133,12 @@ extern "C" void main(multiboot_info* multiboot) {
     initMemory(multiboot);
 
     acpi::init();
-    
+
     cpuid_field features = cpuid(1);
     if ((features.edx & (int)cpuid_feature::EDX_APIC) != 0) {
         LOG_STARTUP("Initializing APIC.");
         apic::Init();
+        apic::StartAllCpus(0);
     } else {
         LOG_STARTUP("APIC not supported, skipping. (Threading will not be supported)");
     }
@@ -146,9 +148,8 @@ extern "C" void main(multiboot_info* multiboot) {
 	LOG_STARTUP("Serial driver initialized.");
 
 	// Initialize the PCI driver
-	PCI::init();
+	//PCI::init();
 	LOG_STARTUP("PCI driver initialized.");
-
 	// initialize the ATA driver
     ataDriver.initialize();
     LOG_STARTUP("ATA driver initialized.");
@@ -175,12 +176,7 @@ extern "C" void main(multiboot_info* multiboot) {
     }
     LOG_STARTUP("Bound filesystems.");*/
 
-    while (true) {
-        LOG_STARTUP("Welcome to OlliOS!");
-        sleep(1000);
-    }
-
-
+    LOG_STARTUP("Welcome to OlliOS!");
 	
 	/*char* mainL = (char*) main;
 	char* physL = (char*) kernelPageDirectory.getPhysicalAddress((void*)mainL);
@@ -245,14 +241,15 @@ extern "C" void main(multiboot_info* multiboot) {
 
         depth++;
 	}*/
-	
-	std::vector<Device*> serialDevices = deviceManager.getDevices(DeviceType::Serial);
+
+	/*std::vector<Device*> serialDevices = deviceManager.getDevices(DeviceType::Serial);
 	for (size_t i = 0; i < serialDevices.size(); i++)
 	{
 		Serial* dev = (Serial*) serialDevices[i];
 		dev->write("Hello, world!\n");
-	}
-    
+	}*/
+
+	BOCHS_BREAKPOINT
     KernelShell shell;
-    shell.enter();
+    //shell.enter();
 }

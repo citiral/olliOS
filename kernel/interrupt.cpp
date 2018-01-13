@@ -4,6 +4,7 @@
 #include "pic.h"
 #include "stdio.h"
 #include "apic.h"
+#include "cdefs.h"
 
 extern "C" void cppInt(u32 interrupt);
 

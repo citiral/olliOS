@@ -154,6 +154,7 @@ BlockDevice* Iso9660DirEntry::openFile() {
 }
 
 DirEntry* Iso9660DirEntry::createDir(std::string name) {
+    UNUSED(name);
 	CPU::panic("Directory creation not supported on ISO9660 implementation");
 	return nullptr;
 }

@@ -5,6 +5,8 @@
 
 
 bool sleepIRQ(u32 irq, void* stack, void* data) {
+    UNUSED(irq);
+    UNUSED(stack);
     *(bool*)data = true;
     return true;
 }

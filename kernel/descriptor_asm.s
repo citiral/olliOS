@@ -3,11 +3,13 @@
 
 
 #the IDT pointer
+.global IDTPtr
 IDTPtr:
 	.word 0
 	.long 0
 
 #the GDT pointer
+.global GDTPtr
 GDTPtr:
 	.word 0
 	.long 0

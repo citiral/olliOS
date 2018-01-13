@@ -5,7 +5,7 @@
 
 #define BIT_LBA48 (1<<10)
 
-AtaDevice::AtaDevice(u16 port, unsigned short* data, int drive) : _port(port), _data(data), _drive(drive)
+AtaDevice::AtaDevice(u16 port, unsigned short* data, int drive) : _data(data), _port(port),_drive(drive)
 {
 	readName();
 

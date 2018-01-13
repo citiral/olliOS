@@ -40,14 +40,14 @@ namespace acpi {
 
     bool validateChecksum(unsigned char* data, unsigned int length) {
         unsigned int checksum = 0;
-        for (int i = 0 ; i < length ; i++) {
-            checksum += ((unsigned char*)data)[i];
+        for (unsigned int i = 0 ; i < length ; i++) {
+            checksum += data[i];
         }
         return (char)checksum == 0;
     }
 
     ACPISDTHeader* findHeader(const char signature[4]) {
-        for (int i = 0 ; i < (rsdt->header.Length - sizeof(rsdt->header)) / sizeof(ACPISDTHeader*) ; i += 1) {
+        for (unsigned int i = 0 ; i < (rsdt->header.Length - sizeof(rsdt->header)) / sizeof(ACPISDTHeader*) ; i += 1) {
             if (rsdt->headers[i] != nullptr) {
                 ACPISDTHeader* virt = mapHeader(rsdt->headers[i]);
                 if (memcmp(virt, signature, 4) == 0)

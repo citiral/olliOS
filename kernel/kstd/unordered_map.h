@@ -15,7 +15,7 @@ namespace std {
 		size_t _bucketSize = 8;
 
 	public:
-		unordered_map()
+		unordered_map(): _values(nullptr), _keys(nullptr), _used(nullptr), _numBuckets(16), _bucketSize(8)
 		{
 			allocateBuckets();
 		}

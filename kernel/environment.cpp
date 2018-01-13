@@ -1,6 +1,6 @@
 #include "environment.h"
 
-Environment::Environment()
+Environment::Environment(): _vars()
 {
 	//_vars = new std::unordered_map<std::string, std::string>();
 }

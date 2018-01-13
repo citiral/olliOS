@@ -37,8 +37,11 @@ namespace apic {
     // Starts the sleep timer with the given state
     void setSleep(uint32_t count, bool onetime);
 
-    //initializes the apic
+    // initializes the apic
     void Init();
+
+    // Starts all cpus
+    void StartAllCpus(void* startAddress);
 }
 
 

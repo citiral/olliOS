@@ -51,10 +51,9 @@ void* BucketAlloc::malloc(size_t size) {
 
     // if it is still null, allocate new virtual pages to use.
     if (mem == nullptr) {
-
         // this is the bucket malloc will start looking in
         size_t bucket = nextHighestPowerOfTwo(size);
-        u32 bucketmemsize = 1 << bucket;
+        u32 bucketmemsize = 1u << bucket;
 
         // we want to allocate pages that will fit that bucket or higher
         // so first we round up the bucketmemsize

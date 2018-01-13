@@ -5,8 +5,11 @@
 #include "pic.h"
 #include "io.h"
 #include "kstd/vector.h"
+#include "sleep.h"
 #include "cdefs.h"
 #include <stdio.h>
+
+extern "C" void smp_trampoline_entry();
 
 using namespace acpi;
 
@@ -25,6 +28,7 @@ namespace apic {
     }
 
     void endInterrupt(u32 interrupt) {
+        UNUSED(interrupt);
         registers[APIC_EOI_REGISTER] = 1;
     }
 
@@ -37,8 +41,8 @@ namespace apic {
         mapPics(0xE9, 0xF7);
 
         // Then we disable the PIC by masking all IRQs
-        outb(SLAVE_DATA, 0xFFFF);
-        outb(MASTER_DATA, 0xFFFF);
+        outb(SLAVE_DATA, 0xFF);
+        outb(MASTER_DATA, 0xFF);
 
         //outb(0x22, 0x70);
         //outb(0x23, 0x1);
@@ -151,4 +155,31 @@ namespace apic {
         registers[APIC_TIMER_INITIAL_COUNT_REGISTER] = count;
     }
 
+    void StartAllCpus(void* startAddress) {
+        return;
+        UNUSED(startAddress);
+        u32 startPage = ((u32)smp_trampoline_entry / 0x1000) & 0xFF;
+        LOG_INFO("Addr: %X", smp_trampoline_entry );
+        LOG_INFO("Startpage: %X", startPage);
+
+        for (int i = 0 ; i < 2 ; i++) {
+            // skip processor 0, that's us :)
+            if (processors[i]->processorId == 0)
+                continue;
+
+            // First send an init IPI
+            registers[APIC_INT_COMMAND2_REGISTER] = processors[i]->apicId << 24;
+            registers[APIC_INT_COMMAND1_REGISTER] = (5 << 8) | (1 << 14);
+            sleep(15);
+
+            // Then send two startup IPIs to actually boot up the other processor
+            registers[APIC_INT_COMMAND2_REGISTER] = processors[i]->apicId << 24;
+            registers[APIC_INT_COMMAND1_REGISTER] = startPage | (6 << 8) | (1 << 14);
+            sleep(1);
+
+            //registers[APIC_INT_COMMAND2_REGISTER] = processors[i]->apicId << 24;
+            //registers[APIC_INT_COMMAND1_REGISTER] = startPage | (6 << 8) | (1 << 14);
+            //sleep(1);
+        }
+    }
 }

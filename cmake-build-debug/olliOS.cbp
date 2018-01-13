@@ -1,0 +1,456 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="olliOS"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/citiral/Source/olliOS/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/citiral/Source/olliOS/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/citiral/Source/olliOS/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/citiral/Source/olliOS/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/citiral/Source/olliOS/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/home/citiral/Source/olliOS/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/citiral/Source/olliOS/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/citiral/Source/olliOS/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/citiral/Source/olliOS/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/citiral/Source/olliOS/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/home/citiral/Source/olliOS/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/citiral/Source/olliOS/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/citiral/Source/olliOS/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/citiral/Source/olliOS/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/citiral/Source/olliOS/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="olliOS">
+				<Option output="/home/citiral/Source/olliOS/cmake-build-debug/olliOS" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/citiral/Source/olliOS/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/citiral/Source/olliOS/ollios"/>
+					<Add directory="/home/citiral/Source/olliOS/kernel"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/7.2.0/../../../../include/c++/7.2.0"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/7.2.0/../../../../include/c++/7.2.0/x86_64-pc-linux-gnu"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/7.2.0/../../../../include/c++/7.2.0/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/7.2.0/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/7.2.0/include-fixed"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/citiral/Source/olliOS/cmake-build-debug/Makefile&quot;  VERBOSE=1 olliOS"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/citiral/Source/olliOS/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/citiral/Source/olliOS/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/citiral/Source/olliOS/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="olliOS/fast">
+				<Option output="/home/citiral/Source/olliOS/cmake-build-debug/olliOS" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/citiral/Source/olliOS/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/citiral/Source/olliOS/ollios"/>
+					<Add directory="/home/citiral/Source/olliOS/kernel"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/7.2.0/../../../../include/c++/7.2.0"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/7.2.0/../../../../include/c++/7.2.0/x86_64-pc-linux-gnu"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/7.2.0/../../../../include/c++/7.2.0/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/7.2.0/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/7.2.0/include-fixed"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/citiral/Source/olliOS/cmake-build-debug/Makefile&quot;  VERBOSE=1 olliOS/fast"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/citiral/Source/olliOS/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/citiral/Source/olliOS/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/citiral/Source/olliOS/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/abi.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/abi.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/acpi.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/acpi.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/alloc.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/alloc.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/alloc/BucketAlloc.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/alloc/BucketAlloc.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/alloc/LinearAlloc.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/alloc/LinearAlloc.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/apic.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/apic.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/boot.s">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/cdefs.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/cpu.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/cpu.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/cpuid.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/cpuid.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/crti.s">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/crtn.s">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/descriptor.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/descriptor.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/descriptor_asm.s">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/devicemanager.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/devicemanager.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/devices/ata/ata.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/devices/ata/ata.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/devices/ata/atadevice.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/devices/ata/atadevice.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/devices/ata/atapacketdevice.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/devices/ata/atapacketdevice.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/devices/ata/atapiodevice.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/devices/ata/atapiodevice.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/devices/blockdevice.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/devices/blockdevice.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/devices/device.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/devices/device.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/devices/keyboard.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/devices/keyboard.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/devices/memorystream.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/devices/memorystream.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/devices/pci/pci.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/devices/pci/pci.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/devices/pci/pcidevice.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/devices/pci/pcidevice.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/devices/pci/pciide.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/devices/pci/pciide.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/devices/serial.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/devices/serial.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/devices/vga.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/devices/vga.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/environment.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/environment.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/fs/filesystem.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/fs/filesystem.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/fs/iso9660.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/fs/iso9660.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/fs/virtualfilesystem.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/fs/virtualfilesystem.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/gdt.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/gdt.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/interrupt.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/interrupt.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/interruptHandlers.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/interruptHandlers.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/interrupt_asm.s">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/io.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/io.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/kernelshell.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/kernelshell.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/kstd/algorithm.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/kstd/cstddef.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/kstd/functional.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/kstd/new.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/kstd/new.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/kstd/optional.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/kstd/string.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/kstd/string.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/kstd/type_traits.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/kstd/unordered_map.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/kstd/utility.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/kstd/vector.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/linker.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/linker.ld">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/main.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/memory/physical.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/memory/physical.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/memory/virtual.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/memory/virtual.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/multiboot.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/options.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/pic.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/pic.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/types.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/util/inputformatter.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/util/inputformatter.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/util/linkedlist.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/util/linkedlist.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/util/rtti.cpp">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/util/rtti.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/kernel/util/singleton.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/libk/include/stdio.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/libk/include/stdlib.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/libk/include/string.h">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/libk/stdio/fseek.c">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/libk/stdio/printf.c">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/libk/stdio/putchar.c">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/libk/stdio/stdio.c">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/libk/stdlib/calloc.c">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/libk/stdlib/free.c">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/libk/stdlib/malloc.c">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/libk/stdlib/realloc.c">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/libk/string/memcmp.c">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/libk/string/memcpy.c">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/libk/string/memmove.c">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/libk/string/memset.c">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/libk/string/strcmp.c">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/libk/string/strcpy.c">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/libk/string/strcspn.c">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/libk/string/strlen.c">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/libk/string/strtok_r.c">
+			<Option target="olliOS"/>
+		</Unit>
+		<Unit filename="/home/citiral/Source/olliOS/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>
