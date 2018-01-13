@@ -175,7 +175,6 @@ namespace apic {
         u32 startPage = ((size_t)0x8000 / 0x1000) & 0xFF;
         LOG_INFO("Addr: %X", 0x8000);
         LOG_INFO("Startpage: %X", startPage);
-        LOG_INFO("Apic: %X", registers[APIC_IO_VER_OFFSET]);
 
         // as a test, enable the keyboard interrupt on all cpus
 
