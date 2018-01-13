@@ -33,5 +33,7 @@ public:
 
 void GdtCreateFlat();
 void GdtFlush();
+u16 GdtSize();
+u32 GdtOffset();
 
 #endif /* end of include guard: __GDT_H */

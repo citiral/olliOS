@@ -1,5 +1,6 @@
 #include "acpi.h"
 #include "apic.h"
+#include "gdt.h"
 #include "memory/virtual.h"
 #include "memory/physical.h"
 #include "pic.h"
@@ -11,6 +12,8 @@
 
 extern "C" void smp_trampoline_entry();
 extern "C" void end_smp_trampoline_entry();
+extern u16 smp_gdt_size;
+extern u32 smp_gdt_offset;
 
 using namespace acpi;
 
@@ -45,9 +48,6 @@ namespace apic {
         // Then we disable the PIC by masking all IRQs
         outb(SLAVE_DATA, 0xFF);
         outb(MASTER_DATA, 0xFF);
-
-        //outb(0x22, 0x70);
-        //outb(0x23, 0x1);
 
         // We enable the APIC by setting the spurious interrupt vector register
         registers[APIC_SIV_REGISTER] = 0x1FF;
@@ -151,9 +151,9 @@ namespace apic {
         LOG_INFO("External bus frequency: %u Mhz", (int) (busFrequency / 1024) / 1024);
         registers[APIC_TIMER_INITIAL_COUNT_REGISTER] = 0;
 
-        // We also copy the smp_trampoline_entry code to an area < 1MB that we know is accessible with an IPC
-        trampoline_code = (void*)0x00008000;
-        memcpy(trampoline_code, (void*)smp_trampoline_entry, (size_t)end_smp_trampoline_entry - (size_t)smp_trampoline_entry);
+        // and we initialize the gdt offset in the smp trampoline to our gdt
+        smp_gdt_size = GdtSize();
+        smp_gdt_offset = GdtOffset();
     }
 
     void setSleep(uint32_t count, bool onetime) {
@@ -162,9 +162,11 @@ namespace apic {
     }
 
     void StartAllCpus(void* startAddress) {
+        char* test = (char*)0x8000;
+
         UNUSED(startAddress);
-        u32 startPage = ((size_t)trampoline_code / 0x1000) & 0xFF;
-        LOG_INFO("Addr: %X", trampoline_code);
+        u32 startPage = ((size_t)0x8000 / 0x1000) & 0xFF;
+        LOG_INFO("Addr: %X", 0x8000);
         LOG_INFO("Startpage: %X", startPage);
 
         for (int i = 0 ; i < 2 ; i++) {

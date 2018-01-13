@@ -37,3 +37,11 @@ void GdtCreateFlat() {
 void GdtFlush() {
 	reloadGdt(GDTSize, (u32)GDTTable - 0xC0000000);
 }
+
+u16 GdtSize() {
+	return GDTSize;
+}
+
+u32 GdtOffset() {
+	return (u32)GDTTable - 0xC0000000;
+}
