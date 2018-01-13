@@ -10,7 +10,7 @@ namespace acpi {
     RSDT* rsdt;
 
     void init() {
-        // First we have to found the RSDP
+        // First we have to find the RSDP
         bool found = false;
         for (char* i = (char*)0x000E0000 ; i < (char*)0x000FFFFF - sizeof(RSDPDescriptor) ; i++) {
             if (memcmp(i, "RSD PTR ", 8) == 0) {
@@ -30,7 +30,7 @@ namespace acpi {
             return;
         }
 
-        rsdt = (RSDT*)mapHeader((ACPISDTHeader*)rsdp->RsdtAddress);        
+        rsdt = (RSDT*)mapHeader((ACPISDTHeader*)rsdp->RsdtAddress);
         LOG_INFO("resdt size %d", rsdt->header.Length);
         if (!validateChecksum((unsigned char*)rsdt, rsdt->header.Length)) {
             LOG_ERROR("RSDT checksum invalid.");

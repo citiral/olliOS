@@ -90,7 +90,7 @@ void initMemory(multiboot_info* multiboot) {
                 //continue;
 
             // don't let this shit overlap with the kernel itself
-            if ((size_t)addr < (size_t)KERNEL_END_PHYSICAL && (size_t)addr > 0x00100000) {
+            if ((size_t)addr < (size_t)KERNEL_END_PHYSICAL) {
                 size_t diff = (size_t)KERNEL_END_PHYSICAL - (size_t) addr;
                 addr = (void*)((size_t)addr + diff);
 
@@ -134,7 +134,6 @@ extern "C" void main(multiboot_info* multiboot) {
 
     // init the memory management, so we have proper paging and can allocate memory
     initMemory(multiboot);
-
     acpi::init();
 
     cpuid_field features = cpuid(1);
@@ -179,11 +178,8 @@ extern "C" void main(multiboot_info* multiboot) {
     }
     LOG_STARTUP("Bound filesystems.");*/
 
-<<<<<<< HEAD
     LOG_STARTUP("Welcome to OlliOS!");
 	
-=======
->>>>>>> 7a9e42e667e72ea8e8f626dd996b2849156a57eb
 	/*char* mainL = (char*) main;
 	char* physL = (char*) kernelPageDirectory.getPhysicalAddress((void*)mainL);
 	printf("Location of 0x%X = 0x%X\n", mainL, physL);
