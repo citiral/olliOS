@@ -12,6 +12,7 @@ smp_trampoline_entry:
 mov ax,0xDEAD
 mov bx,0xBEEF
 hlt
+jmp smp_trampoline_entry
 ;jmp smp_trampoline_entry
 ;cli            ; disable interrupts
 ;lgdt [GDTPtr]    ; load GDT register with start address of Global Descriptor Table
@@ -22,3 +23,5 @@ hlt
 
 ;smp_trampoline_init:
 ;jmp smp_trampoline_init
+global end_smp_trampoline_entry
+end_smp_trampoline_entry:

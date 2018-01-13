@@ -27,6 +27,7 @@ namespace apic {
 
     // The frequency of the external bus. This is used for the apic timer, but is exposed for everyone to use.
     extern uint64_t busFrequency;
+    extern void* trampoline_code;
 
     // Returns true if the apic is enabled (and used). If this is false, the PIC is used instead
     bool enabled();

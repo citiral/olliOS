@@ -10,6 +10,7 @@
 #include <stdio.h>
 
 extern "C" void smp_trampoline_entry();
+extern "C" void end_smp_trampoline_entry();
 
 using namespace acpi;
 
@@ -20,6 +21,7 @@ namespace apic {
     std::vector<MADTIoEntry*> ioApics;
     std::vector<MADTLocalEntry*> processors;
     uint64_t busFrequency;
+    void* trampoline_code;
 
     bool _enabled = false;
 
@@ -148,6 +150,10 @@ namespace apic {
         busFrequency = (0xFFFFFFFFu - count) * 16;
         LOG_INFO("External bus frequency: %u Mhz", (int) (busFrequency / 1024) / 1024);
         registers[APIC_TIMER_INITIAL_COUNT_REGISTER] = 0;
+
+        // We also copy the smp_trampoline_entry code to an area < 1MB that we know is accessible with an IPC
+        trampoline_code = (void*)0x00008000;
+        memcpy(trampoline_code, (void*)smp_trampoline_entry, (size_t)end_smp_trampoline_entry - (size_t)smp_trampoline_entry);
     }
 
     void setSleep(uint32_t count, bool onetime) {
@@ -156,10 +162,9 @@ namespace apic {
     }
 
     void StartAllCpus(void* startAddress) {
-        return;
         UNUSED(startAddress);
-        u32 startPage = ((u32)smp_trampoline_entry / 0x1000) & 0xFF;
-        LOG_INFO("Addr: %X", smp_trampoline_entry );
+        u32 startPage = ((size_t)trampoline_code / 0x1000) & 0xFF;
+        LOG_INFO("Addr: %X", trampoline_code);
         LOG_INFO("Startpage: %X", startPage);
 
         for (int i = 0 ; i < 2 ; i++) {
