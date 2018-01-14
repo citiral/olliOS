@@ -16,7 +16,6 @@
 
 void intHandlerWakeup(u32 interrupt)
 {
-	LOG_INFO("WOKE");
 }
 
 void intHandlerAta(u32 interrupt) {

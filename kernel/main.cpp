@@ -263,13 +263,8 @@ extern "C" void main(multiboot_info* multiboot) {
 	{
 		Serial* dev = (Serial*) serialDevices[i];
 		dev->write("Hello, world!\n");
-	}*/
+	}*/	
 
-	BOCHS_BREAKPOINT
-	EventBusTest busTest;
-	busTest.sendTestEvent(1337);
-	busTest.sendTestEvent(1338);
-	
     KernelShell shell;
-    //shell.enter();
+    shell.enter();
 }

@@ -1,11 +1,11 @@
-#include "thread.h"
+#include "threading/thread.h"
 #include "apic.h"
 #include <string.h>
 
 using namespace threading;
 
-extern "C" volatile u32 thread_enter(u32* pEsp, u32* esp);
-extern "C" volatile void thread_exit(u32* pEsp);
+extern "C" u32 __attribute__ ((noinline)) thread_enter(volatile u32* pEsp, volatile u32* esp);
+extern "C" void __attribute__ ((noinline)) thread_exit(volatile u32* pEsp);
 
 // global values that hold the parent stack pointer of a running thread. Each core will always use his own index.
 // 16 is enough to hold all possible processors.
@@ -69,9 +69,9 @@ void Thread::enter() {
     if (!_finished) {
         // whenever we enter the thread, we set the very first item on the stack to our parent stack pointer.
         // this way the child stack can access it when it finishes on its own.
-        u32* parent_pointer = parent_stack_pointers + apic::id();
-        *(u32*)(_stack + THREAD_STACK_SIZE - 4) = (u32)parent_pointer;
-        u32 status = thread_enter(parent_pointer, &esp);
+        volatile u32* parent_pointer = parent_stack_pointers + apic::id();
+        *(volatile u32*)(_stack + THREAD_STACK_SIZE - 4) = (u32)parent_pointer;
+        volatile u32 status = thread_enter(parent_pointer, &esp);
         if (status == 0)
             _finished = true;
     }

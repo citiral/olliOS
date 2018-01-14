@@ -12,7 +12,7 @@
 // if the first bit of a region is 1 it means that region is currently in use
 #define USED_FLAG 0x80000000
 
-BucketAlloc::BucketAlloc() {
+BucketAlloc::BucketAlloc(): lock() {
 
 }
 
@@ -40,6 +40,9 @@ void BucketAlloc::init(void* start, size_t length) {
 }
 
 void* BucketAlloc::malloc(size_t size) {
+    CLI();
+    lock.lock();
+
     // try to allocate the memory
     void* mem = mallocOneTry(size);
 
@@ -74,6 +77,8 @@ void* BucketAlloc::malloc(size_t size) {
     }
 
     // and return the allocated memory, this might be null if nothing was found
+    lock.release();
+    STI();
     return mem;
 }
 
@@ -147,6 +152,8 @@ void* BucketAlloc::realloc(void* ptr, size_t size) {
 }
 
 void BucketAlloc::free(void* ptr) {
+    CLI();
+    lock.lock();
     // get a pointer to the memory region (just memory + header)
     size_t* reg = (size_t*)((char*)(ptr) - 2 * sizeof(size_t));
 
@@ -155,6 +162,8 @@ void BucketAlloc::free(void* ptr) {
 
     // and insert it into a bucket
     insertIntoBucket(reg);
+    lock.release();
+    STI();
 }
 
 void* BucketAlloc::calloc(size_t num, size_t size) {

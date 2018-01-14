@@ -1,8 +1,8 @@
 #ifndef __CDEFS_H
 #define __CDEFS_H
 
+#include "cpu.h"
 #include <stdio.h>
-#include <cpu.h>
 
 #define __PAGE_ALIGNED __attribute__((aligned(0x1000)))
 #define __PACKED __attribute__ ((__packed__))
@@ -19,6 +19,9 @@
 
 #define UNIMPLEMENTED(FUNC, R) FUNC { LOG_UNIMPLEMENTED(); CPU::panic(); return R; }
 #define UNUSED(X) ((void) X)
+
+#define CLI() __asm__("cli")
+#define STI() __asm__("sti")
 
 #define SIZEOF_GB 0x40000000
 #define SIZEOF_MB 0x100000

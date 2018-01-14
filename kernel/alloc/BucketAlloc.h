@@ -6,6 +6,7 @@
 #define OLLIOS_GIT_BUCKETALLOC_H
 
 #include "kstd/cstddef.h"
+#include "threading/spinlock.h"
 
 class BucketAlloc {
 public:
@@ -34,6 +35,7 @@ private:
 public:
     void* buckets[32];
     void* memoryLinkedList;
+    threading::Spinlock lock;
 };
 
 #endif //OLLIOS_GIT_BUCKETALLOC_H
