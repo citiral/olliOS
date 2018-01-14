@@ -1,3 +1,0 @@
-/home/citiral/Source/olliOS/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/home/citiral/Source/olliOS/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/citiral/Source/olliOS/cmake-build-debug/CMakeFiles/olliOS.dir
