@@ -436,5 +436,6 @@ extern "C" void __attribute__ ((noinline)) IdtRegisterInterrupts()
 	idt.setFunction(INT_ATA_BUS2, &intHandlerAta);
 	idt.setFunction(INT_GENERAL_PROTECTION_VIOLATION, &intHandlerGeneralProtectionViolation);
     idt.setFunction(INT_PAGE_FAULT, &intHandlerPageFault);
+	idt.setFunction(INT_WAKEUP, &intHandlerWakeup);
     idt.setFunction(INT_SPURIOUS, &intHandlerSpurious);
 }

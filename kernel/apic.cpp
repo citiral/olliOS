@@ -118,7 +118,7 @@ namespace apic {
 
             // and redirect each to globalBase + irq + 0x20
             for (uint32_t irq = 0 ; irq < maxIrqs ; irq++) {
-                uint32_t lower = ((unsigned char)(irq + apic->globalBase + 0x20)); // all other flags happen to be 0
+                uint32_t lower = ((unsigned char)(irq + apic->globalBase + 0x20)) ; // all other flags happen to be 0
                 uint32_t higher = 0; // needs to contain the cpuid in bit 56-63, but this is gonna be 0
                 //LOG_INFO("setting ioapic %d %d", lower, higher);
                 ((uint32_t volatile*) apic->apicAddress)[APIC_IO_SEL] = APIC_IO_REDIRECTION0_OFFSET + irq*2;
@@ -224,6 +224,76 @@ namespace apic {
             }
         }
     }
+
+    void disableIrq(u8 irq)
+    {
+        // IRQ's are mapped starting from 0x20, so irq 0x21 has offset 1
+        irq -= 0x20;
+
+        // Read the current lower half of the irq
+        ((uint32_t volatile*) ioApics[0]->apicAddress)[APIC_IO_SEL] = APIC_IO_REDIRECTION0_OFFSET + irq*2;
+        u32 lower = ((uint32_t volatile*) ioApics[0]->apicAddress)[APIC_IO_WIN];
+
+        // set its disable bit
+        lower |= 1<<16;
+
+        // and write the updated register
+        ((uint32_t volatile*) ioApics[0]->apicAddress)[APIC_IO_SEL] = APIC_IO_REDIRECTION0_OFFSET + irq*2;
+        ((uint32_t volatile*) ioApics[0]->apicAddress)[APIC_IO_WIN] = lower;
+    }
+
+    void enableIrq(u8 irq)
+    {
+        // IRQ's are mapped starting from 0x20, so irq 0x21 has offset 1
+        irq -= 0x20;
+
+        // Read the current lower half of the irq
+        ((uint32_t volatile*) ioApics[0]->apicAddress)[APIC_IO_SEL] = APIC_IO_REDIRECTION0_OFFSET + irq*2;
+        u32 lower = ((uint32_t volatile*) ioApics[0]->apicAddress)[APIC_IO_WIN];
+
+        // unset its disable bit
+        lower &= ~(1<<16);
+
+        // and write the updated register
+        ((uint32_t volatile*) ioApics[0]->apicAddress)[APIC_IO_SEL] = APIC_IO_REDIRECTION0_OFFSET + irq*2;
+        ((uint32_t volatile*) ioApics[0]->apicAddress)[APIC_IO_WIN] = lower;
+    }
+
+    void wakeupOtherCpus()
+    {
+        // send an IPI to all other CPUS
+        registers[APIC_INT_COMMAND2_REGISTER] = 0;
+        registers[APIC_INT_COMMAND1_REGISTER] = 0xFE | (3 << 18);
+
+        // and wait for the delivery status to confirm the interrupt
+        while (registers[APIC_INT_COMMAND1_REGISTER] & (1 << 12)) {
+            __asm__("pause");
+        }
+    }
+
+    void wakeupAllCpus()
+    {
+        // send an IPI to all other CPUS
+        registers[APIC_INT_COMMAND2_REGISTER] = 0;
+        registers[APIC_INT_COMMAND1_REGISTER] = 0xFE | (2 << 18);
+
+        // and wait for the delivery status to confirm the interrupt
+        while (registers[APIC_INT_COMMAND1_REGISTER] & (1 << 12)) {
+            __asm__("pause");
+        }
+    }
+
+    void wakeupOneCpu(u8 id)
+    {
+        // send an IPI to all other CPUS
+        registers[APIC_INT_COMMAND2_REGISTER] = id << 24;
+        registers[APIC_INT_COMMAND1_REGISTER] = 0xFE;
+
+        // and wait for the delivery status to confirm the interrupt
+        while (registers[APIC_INT_COMMAND1_REGISTER] & (1 << 12)) {
+            __asm__("pause");
+        }
+    }
 }
 
 void SmpEntryPoint() {
@@ -245,10 +315,8 @@ void SmpEntryPoint() {
     // Enable the APIC of this CPU
     registers[APIC_SIV_REGISTER] = 0x1FF;
 
-
     _cpuReady = true;
     while(true) {
-        LOG_INFO("HELLO FROM CPU");
         __asm__("hlt");
     }
 }

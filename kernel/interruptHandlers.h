@@ -4,6 +4,7 @@
 #include "types.h"
 
 // Normal undefined handler
+void intHandlerWakeup(u32 interrupt);
 void intHandlerUndefined(u32 interrupt);
 //void intHandlerKeyboard(u32 interrupt);
 void intHandlerAta(u32 interrupt);

@@ -8,6 +8,7 @@
 #include "devices/keyboard.h"
 #include "fs/filesystem.h"
 #include "fs/virtualfilesystem.h"
+#include "apic.h"
 #include <string.h>
 #include "stdio.h"
 

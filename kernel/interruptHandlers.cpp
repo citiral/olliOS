@@ -14,6 +14,11 @@
 	endInterrupt(interrupt - 0x20);
 }*/
 
+void intHandlerWakeup(u32 interrupt)
+{
+	LOG_INFO("WOKE");
+}
+
 void intHandlerAta(u32 interrupt) {
 	UNUSED(interrupt);
     ataDriver.notifyInterrupt();

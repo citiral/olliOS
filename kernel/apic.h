@@ -47,6 +47,20 @@ namespace apic {
     // Starts all cpus
     void StartAllCpus(void* startAddress);
 
+    // Disables an irq
+    void disableIrq(u8 irq);
+
+    // Enables an irq
+    void enableIrq(u8 irq);
+
+    // Sends a wakeup IPI (0xFE) to all cpus except the one issuing the IPI
+    void wakeupOtherCpus();
+
+    // Sends a wakeup IPI (0xFE) to all cpus including the one issuing the IPI
+    void wakeupAllCpus();
+
+    // Sends a wakeup IPI (0xFE) to the CPU with the given apic ID
+    void wakeupOneCpu(u8 id);
 }
 
 extern "C" void SmpEntryPoint();
