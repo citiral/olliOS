@@ -61,6 +61,9 @@ namespace apic {
 
     // Sends a wakeup IPI (0xFE) to the CPU with the given apic ID
     void wakeupOneCpu(u8 id);
+
+    // Returns the id of the local apic. This can be used to identify the current core
+    u8 id();
 }
 
 extern "C" void SmpEntryPoint();

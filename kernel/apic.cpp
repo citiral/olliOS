@@ -5,10 +5,12 @@
 #include "memory/virtual.h"
 #include "memory/physical.h"
 #include "pic.h"
+#include "cpuid.h"
 #include "io.h"
 #include "kstd/vector.h"
 #include "sleep.h"
 #include "cdefs.h"
+#include "thread.h"
 #include <stdio.h>
 
 // Functions and constant defined by the SMP trampoline
@@ -294,10 +296,23 @@ namespace apic {
             __asm__("pause");
         }
     }
+
+    u8 id()
+    {
+        cpuid_field id = cpuid(1);
+        return id.ebx >> 24;
+    }
+}
+
+void threadTest() {
+    LOG_INFO("thread running");
+    threading::exit();
+    LOG_INFO("thread running2");
 }
 
 void SmpEntryPoint() {
     using namespace apic;
+    LOG_INFO("greetings from cpu %X", id());
 
     // TODO at some point the core will needs his own TSS
 
@@ -316,6 +331,18 @@ void SmpEntryPoint() {
     registers[APIC_SIV_REGISTER] = 0x1FF;
 
     _cpuReady = true;
+    
+    if (id() == 2) {
+        LOG_INFO("starting thread");
+        threading::Thread t = threading::Thread(threadTest);
+        t.enter();
+        LOG_INFO("thread ended");
+        t.enter();
+        LOG_INFO("thread ended2");
+        t.enter();
+        LOG_INFO("thread ended3");
+    }
+
     while(true) {
         __asm__("hlt");
     }
