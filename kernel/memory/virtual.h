@@ -63,6 +63,9 @@ public:
 
 	// makes sure the given virtual 4kb space is bound to some random physical memory
 	void bindVirtualPage(void* page);
+	
+	// makes sure the given physical 4kb space is bound to some random virtual memory
+	void* bindPhysicalPage(void* physical);
 
 	// binds the first free virtual 4kb page starting from the given virtual address
 	void* bindFirstFreeVirtualPage(void* page);

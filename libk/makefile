@@ -8,7 +8,7 @@ ARCH = arch/i686
 
 ROOT = ../root/
 
-LIBK_CCFLAGS = -D__is_libk -D__is_kernel -std=gnu++11 -fbuiltin -ffreestanding -O0 -g -Wall -Wextra -fno-rtti -Wno-write-strings -fno-exceptions $(INCLUDE) --sysroot=$(ROOT) -nostdlib -m32
+LIBK_CCFLAGS = -D__is_libk -D__is_kernel -std=gnu++11 -fbuiltin -ffreestanding -O0 -g -Wall -Wextra -fno-rtti -Wno-write-strings -fno-exceptions $(INCLUDE) --sysroot=$(ROOT) -nostdlib -m32 -mgeneral-regs-only
 
 INCLUDE = -I $(ROOT)usr/include
 

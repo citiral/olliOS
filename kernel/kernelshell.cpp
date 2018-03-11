@@ -8,10 +8,11 @@
 #include "devices/keyboard.h"
 #include "fs/filesystem.h"
 #include "fs/virtualfilesystem.h"
+#include "apic.h"
 #include <string.h>
 #include "stdio.h"
 
-KernelShell::KernelShell()
+KernelShell::KernelShell(): _commands(), _env()
 {
 #if __KERNEL_ALLOCATOR == __KERNEL_ALLOCATOR_BUCKET
 	_commands.push_back(std::pair<const char *, CommandFunction>("allocinfo", &KernelShell::allocinfo));
@@ -20,13 +21,12 @@ KernelShell::KernelShell()
     _commands.push_back(std::pair<const char*, CommandFunction>("devicesinfo", &KernelShell::devicesinfo));
     _commands.push_back(std::pair<const char*, CommandFunction>("help", &KernelShell::help));
     _commands.push_back(std::pair<const char*, CommandFunction>("ls", &KernelShell::ls));
-	_commands.push_back(std::pair<const char*, CommandFunction>("cat", &KernelShell::cat));
+	/*_commands.push_back(std::pair<const char*, CommandFunction>("cat", &KernelShell::cat));
 	_commands.push_back(std::pair<const char*, CommandFunction>("cd", &KernelShell::cd));
 	_commands.push_back(std::pair<const char*, CommandFunction>("set", &KernelShell::set));
 	_commands.push_back(std::pair<const char*, CommandFunction>("unset", &KernelShell::unset));
-
 	_env.set("pwd", "/");
-	_env.set("home", "/");
+	_env.set("home", "/");*/
 }
 
 #if __KERNEL_ALLOCATOR == __KERNEL_ALLOCATOR_BUCKET
@@ -223,8 +223,6 @@ void KernelShell::enter()
 			}
 			printf("%s$ ", _env.get("pwd").data());
 		}
-
-		__asm__ volatile("hlt");
 	}
 }
 

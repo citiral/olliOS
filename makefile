@@ -9,13 +9,14 @@ ROOT = root/
 OUTPUT=ollios.bin
 
 INCLUDE = -I $(ROOT)usr/include
-CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O0 -Wall -Wextra -fno-exceptions -fno-rtti $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -nostdlib -fno-threadsafe-statics -Werror=return-type -m32 -g
+CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O0 -Wall -Wextra -fno-exceptions -fno-rtti $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -nostdlib -fno-threadsafe-statics -Werror=return-type -m32 -g -mgeneral-regs-only
 LDFLAGS = -ffreestanding -O2 -nostdlib -lgcc
 LIBS = $(ROOT)/usr/lib/libk.a
 
-KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/util/*.cpp) $(wildcard kernel/devices/*.cpp) $(wildcard kernel/devices/ata/*.cpp) $(wildcard kernel/devices/pci/*.cpp) $(wildcard kernel/alloc/*.cpp) $(wildcard kernel/fs/*.cpp) $(wildcard kernel/kstd/*.cpp)  $(wildcard kernel/memory/*.cpp)
+KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/threading/*.cpp) $(wildcard kernel/eventbus/*.cpp) $(wildcard kernel/util/*.cpp) $(wildcard kernel/devices/*.cpp) $(wildcard kernel/devices/ata/*.cpp) $(wildcard kernel/devices/pci/*.cpp) $(wildcard kernel/alloc/*.cpp) $(wildcard kernel/fs/*.cpp) $(wildcard kernel/kstd/*.cpp)  $(wildcard kernel/memory/*.cpp)
 KERNEL_ASM = $(wildcard kernel/*.s)
-HEADERS = $(wildcard kernel/*.h) $(wildcard kernel/util/*.h) $(wildcard kernel/devices/*.h) $(wildcard kernel/devices/ata/*.h) $(wildcard kernel/devices/pci/*.h) $(wildcard kernel/alloc/*.h) $(wildcard kernel/fs/*.h) $(wildcard kernel/kstd/*.h)  $(wildcard kernel/memory/*.h)
+KERNEL_NASM = $(wildcard kernel/*.asm) $(wildcard kernel/threading/*.asm)
+HEADERS = $(wildcard kernel/*.h) $(wildcard kernel/threading/*.h) $(wildcard kernel/eventbus/*.h) $(wildcard kernel/util/*.h) $(wildcard kernel/devices/*.h) $(wildcard kernel/devices/ata/*.h) $(wildcard kernel/devices/pci/*.h) $(wildcard kernel/alloc/*.h) $(wildcard kernel/fs/*.h) $(wildcard kernel/kstd/*.h)  $(wildcard kernel/memory/*.h)
 
 CRTI_OBJ=crti.o
 CRTN_OBJ=crtn.o
@@ -23,7 +24,7 @@ CRTBEGIN_OBJ:=$(shell $(CC) $(CCFLAGS) -print-file-name=crtbegin.o)
 CRTEND_OBJ:=$(shell $(CC) $(CCFLAGS) -print-file-name=crtend.o)
 
 #make a list of all objects, but taking special care of the order of crt* files
-OBJECTS = $(filter-out crti.o crtn.o, $(notdir $(KERNEL_CPP:.cpp=.o)) $(notdir $(KERNEL_ASM:.s=.o)))
+OBJECTS = $(filter-out crti.o crtn.o, $(notdir $(KERNEL_CPP:.cpp=.o)) $(notdir $(KERNEL_ASM:.s=.o))  $(notdir $(KERNEL_NASM:.asm=.o)))
 
 .PHONY: all compile-kernel clean dir libk install install-grub install-headers install-kernel iso
 
@@ -55,6 +56,12 @@ clean:
 
 %.o: kernel/%.s
 	$(CC) -c $< -o build/$@ $(CCFLAGS)
+
+%.o: kernel/%.asm
+	nasm -felf32 $< -o build/$@
+
+%.o: kernel/**/%.asm
+	nasm -felf32 $< -o build/$@
 
 dir:
 	mkdir -p build
