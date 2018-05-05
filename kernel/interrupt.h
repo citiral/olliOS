@@ -13,7 +13,8 @@
 #define INT_ATA_BUS2 47
 #define INT_GENERAL_PROTECTION_VIOLATION 0x0D
 #define INT_PAGE_FAULT 0x0E
-#define INT_WAKEUP 0xFE
+#define INT_TIMER 32
+#define INT_PREEMPT 33
 #define INT_SPURIOUS 0xFF
 
 
@@ -92,7 +93,10 @@ void IdtFlush();
 u32 IdtBase();
 u16 IdtLimit();
 extern Interrupts interrupts;
+extern Idt idt;
+
 extern "C" void __attribute__ ((noinline)) IdtRegisterInterrupts();
 extern "C" void reload_idt(u16 limit, u32 base);
+extern "C" void end_interrupt(u32 irq);
 
 #endif /* end of include guard: __INTERRUPT_H */

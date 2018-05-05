@@ -20,11 +20,14 @@
 #define UNIMPLEMENTED(FUNC, R) FUNC { LOG_UNIMPLEMENTED(); CPU::panic(); return R; }
 #define UNUSED(X) ((void) X)
 
-#define CLI() __asm__("cli")
-#define STI() __asm__("sti")
+#define CLI() __asm__ volatile ("cli")
+#define STI() __asm__ volatile ("sti")
 
 #define SIZEOF_GB 0x40000000
 #define SIZEOF_MB 0x100000
 #define SIZEOF_KB 0x400
+
+// the maximum amount of cores that can occur. This define can be used to define core-local storage.
+#define MAX_CORE_COUNT 16
 
 #endif /* end of include guard: __CDEFS_H */

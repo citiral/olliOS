@@ -8,6 +8,8 @@
 
 extern "C" void cppInt(u32 interrupt);
 
+Interrupts interrupts;
+
 #define GENERATE_INTERRUPT(x) \
 { \
 	u32 address; \
@@ -28,7 +30,7 @@ extern "C" void cppInt(u32 interrupt);
 }
 
 //the IDT that is used by the operating system
-static Idt idt;
+Idt idt;
 
 IdtDescriptor::IdtDescriptor():
 	offsetLow(0),
@@ -120,8 +122,6 @@ u16 IdtLimit()
 	return (u16)(idt.getLength()*8 - 1);
 }
 
-Interrupts interrupts;
-
 void Interrupts::registerIRQ(u32 irq, IRQ handler, void* obj)
 {
 	_callbacks[irq].push_back(handler);
@@ -157,16 +157,20 @@ void Interrupts::callIRQ(u32 irq, void* stack)
 		}
 	}
 
-    if (apic::enabled()) {
-        apic::endInterrupt(irq);
-    } else {
-        endInterrupt(irq - 20);
-    }
+    endInterrupt(irq);
 }
 
 void interrupts_callRawIRQ(u32 irq)
 {
 	interrupts.callIRQ(irq, nullptr);
+}
+
+extern "C" void end_interrupt(u32 irq) {
+	if (apic::enabled()) {
+        apic::endInterrupt(irq);
+    } else {
+        endInterrupt(irq - 20);
+    }
 }
 
 extern "C" void __attribute__ ((noinline)) IdtRegisterInterrupts()
@@ -436,6 +440,6 @@ extern "C" void __attribute__ ((noinline)) IdtRegisterInterrupts()
 	idt.setFunction(INT_ATA_BUS2, &intHandlerAta);
 	idt.setFunction(INT_GENERAL_PROTECTION_VIOLATION, &intHandlerGeneralProtectionViolation);
     idt.setFunction(INT_PAGE_FAULT, &intHandlerPageFault);
-	idt.setFunction(INT_WAKEUP, &intHandlerWakeup);
+	//idt.setFunction(INT_WAKEUP, &intHandlerWakeup);
     idt.setFunction(INT_SPURIOUS, &intHandlerSpurious);
 }

@@ -12,18 +12,33 @@ bool sleepIRQ(u32 irq, void* stack, void* data) {
 }
 
 void apicSleep(uint32_t millisecond) {
+    LOG_UNIMPLEMENTED();
+    return;
+}
+
+void apicHardSleep(uint32_t millisecond) {
     volatile bool woken = false;
-    interrupts.registerIRQ(0xFC, sleepIRQ, (void*)&woken);
-    apic::setSleep((apic::busFrequency/16000) * millisecond , true);
-    while (!woken) {
+
+    apic::registers[APIC_TIMER_CURRENT_COUNT_REGISTER] = 0xFFFFFFFFu;
+    uint32_t target = (apic::busFrequency * millisecond) / 1000;
+    uint32_t current;
+    do {
         __asm__ __volatile ("HLT");
-    }
-    interrupts.unregisterIRQ(0xFC, sleepIRQ, (void*)&woken);
+        current = apic::registers[APIC_TIMER_CURRENT_COUNT_REGISTER];
+    } while (0xFFFFFFFFu - current < target);
 }
 
 void sleep(uint32_t millisecond) {
     if (apic::enabled()) {
         apicSleep(millisecond);
+    } else {
+        LOG_ERROR("No sleeping mechanism found.");
+    }
+}
+
+void hardSleep(uint32_t millisecond) {
+    if (apic::enabled()) {
+        apicHardSleep(millisecond);
     } else {
         LOG_ERROR("No sleeping mechanism found.");
     }

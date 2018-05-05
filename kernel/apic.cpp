@@ -28,6 +28,8 @@ namespace apic {
     std::vector<MADTIoEntry*> ioApics;
     std::vector<MADTLocalEntry*> processors;
     uint64_t busFrequency;
+    // the target entrypoint of the current CPU that is being booted
+    void (*_entrypoint)();
 
     // Whether or not the APIC has been enabled
     bool _enabled = false;
@@ -113,6 +115,10 @@ namespace apic {
         // Now we are going to map all IO interrupts to 0x20 - 0x3F (32 to 64), like they would be mapped with the PIC
         for (uint32_t i = 0 ; i < ioApics.size() ; i++) {
             MADTIoEntry volatile* apic = ioApics[i];
+            
+            // and set their taskpriority to 0
+            ((uint32_t volatile*) apic->apicAddress)[APIC_TASKPRIOR] = 0;
+
             // We get the # of irqs this apic can handle
             apic->apicAddress[APIC_IO_SEL] = APIC_IO_VER_OFFSET;
             unsigned int maxIrqs = ((apic->apicAddress[APIC_IO_WIN] & 0x00FF0000) >> 16) + 1;
@@ -132,7 +138,7 @@ namespace apic {
         // Lastly, we are going to set the timer. First, we initialize the timer
         registers[APIC_TIMER_DIVIDE_REGISTER] = 11;
         registers[APIC_TIMER_INITIAL_COUNT_REGISTER] = 0xFFFFFFFFu;
-        registers[APIC_LAPIC_TIMER_REGISTER] = 0xFC;
+        registers[APIC_LAPIC_TIMER_REGISTER] = INT_TIMER;
 
         // Then we wait until the next second begins
         outb(0x70, 0x00);
@@ -164,20 +170,17 @@ namespace apic {
         smp_page = (PageDirectory*)((char*)&kernelPageDirectory - 0xC0000000);
     }
 
-    void setSleep(uint32_t count, bool onetime) {
-        registers[APIC_LAPIC_TIMER_REGISTER] = 0xFCu | (onetime ? 0 : (1<<17));
+    void setSleep(uint8_t interrupt, uint32_t count, bool onetime) {
+        registers[APIC_LAPIC_TIMER_REGISTER] = interrupt | (onetime ? 0 : 0x20000);
         registers[APIC_TIMER_INITIAL_COUNT_REGISTER] = count;
     }
 
-    void StartAllCpus(void* startAddress) {
+    void StartAllCpus(void (*entrypoint)()) {
         char* test = (char*)0x8000;
-
-        UNUSED(startAddress);
+        _entrypoint = entrypoint;
         u32 startPage = ((size_t)0x8000 / 0x1000) & 0xFF;
         LOG_INFO("Addr: %X", 0x8000);
         LOG_INFO("Startpage: %X", startPage);
-
-        // as a test, enable the keyboard interrupt on all cpus
 
         for (int i = 0 ; i < processors.size() ; i++) {
             // skip processor 0, that's us :)
@@ -193,22 +196,26 @@ namespace apic {
             // Send an init IPI
             registers[APIC_INT_COMMAND2_REGISTER] = processors[i]->apicId << 24;
             registers[APIC_INT_COMMAND1_REGISTER] = (5 << 8) | (1 << 14);
-            sleep(15);
+            hardSleep(15);
 
             // Then send two startup IPIs to actually boot up the other processor
             registers[APIC_INT_COMMAND2_REGISTER] = processors[i]->apicId << 24;
             registers[APIC_INT_COMMAND1_REGISTER] = startPage | (6 << 8) | (1 << 14);
-            sleep(1);
+            hardSleep(1);
 
             // We keep waiting while the other cpu is not ready yet
             while(!_cpuReady) {
-                sleep(100);
+                hardSleep(100);
             }
         }
 
         // and then we divide all interrupts over all processors
         for (uint32_t i = 0 ; i < ioApics.size() ; i++) {
             MADTIoEntry volatile* apic = ioApics[i];
+            
+            // and in the meantime also set its taskpriority to 0
+            ((uint32_t volatile*) apic->apicAddress)[APIC_TASKPRIOR] = 0;
+
             // We get the # of irqs this apic can handle
             apic->apicAddress[APIC_IO_SEL] = APIC_IO_VER_OFFSET;
             unsigned int maxIrqs = ((apic->apicAddress[APIC_IO_WIN] & 0x00FF0000) >> 16) + 1;
@@ -324,6 +331,8 @@ void SmpEntryPoint() {
     registers[APIC_SIV_REGISTER] = 0x1FF;
     
     _cpuReady = true;
+    _entrypoint();
+    LOG_ERROR("CPU %d halted: reached end of execution.", id());
 
     while(true) {
         __asm__("hlt");

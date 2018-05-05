@@ -2,6 +2,11 @@
 #define __THREAD_H_
 
 #include <types.h>
+#include "cdefs.h"
+
+extern "C" void __attribute__ ((noinline)) thread_interrupt();
+extern "C" u32* __attribute__ ((noinline)) get_parent_stack();
+extern "C" bool __attribute__ ((noinline)) is_current_core_in_thread();
 
 namespace threading {
     // We define a thread's stack size to be 16kb, which should be more than enough.
@@ -22,6 +27,13 @@ namespace threading {
 
         void enter();
 
+        u32 pid();
+
+        bool finished();
+
+        bool blocking();
+        void setBlocking(bool blocking);
+
     private:
         char* _stack;
         
@@ -30,10 +42,22 @@ namespace threading {
 
         // If the thread has finished or not
         volatile bool _finished;
+
+        // The ID of the thread
+        u32 _id;
+
+        // Whether or not the current thread is blocking, by for example waiting on a semphore or a mutex
+        bool _blocking;
     };
 
     // Exits the current thread and saves it state, so it can be resumed at a later date.
     void exit();
+
+    // Returns true if the given physical core is currently running a thread
+    bool is_core_in_thread(u8 core);
+
+    // Returns true if the calling physical core is currently running a thread
+    bool is_current_core_in_thread();
 }
 
 #endif

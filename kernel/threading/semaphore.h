@@ -4,6 +4,7 @@
 #include "threading/spinlock.h"
 #include <types.h>
 
+// A semaphore can only be executed inside the context of a thread, since it exits the current thread when having to halt.
 namespace threading {
     class Semaphore {
     public:

@@ -6,4 +6,7 @@
 // Tries to sleep for at least the given amount of milliseconds. It will not be exactly precise, and usually overshoot because of overhead, unless the timer is calibrated wrong.
 void sleep(uint32_t millisecond);
 
+// Tries to sleep for at least the given amount of milliseconds. Blocking the current core until it is done.
+void hardSleep(uint32_t millisecond);
+
 #endif

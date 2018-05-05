@@ -3,8 +3,10 @@
 
 #include "types.h"
 #include "stdint.h"
+#include "interrupt.h"
 
 #define APIC_ID_REGISTER 4
+#define APIC_TASKPRIOR 32
 #define APIC_EOI_REGISTER 44
 #define APIC_LDR_REGISTER 52
 #define APIC_DFR_REGISTER 56
@@ -31,6 +33,7 @@ namespace apic {
     // The frequency of the external bus. This is used for the apic timer, but is exposed for everyone to use.
     extern uint64_t busFrequency;
     extern void* trampoline_code;
+    extern uint32_t volatile* registers;
 
     // Returns true if the apic is enabled (and used). If this is false, the PIC is used instead
     bool enabled();
@@ -39,13 +42,13 @@ namespace apic {
     void endInterrupt(u32 interrupt);
 
     // Starts the sleep timer with the given state
-    void setSleep(uint32_t count, bool onetime);
+    void setSleep(uint8_t interrupt, uint32_t count, bool onetime);
 
     // initializes the apic
     void Init();
 
     // Starts all cpus
-    void StartAllCpus(void* startAddress);
+    void StartAllCpus(void (*entrypoint)());
 
     // Disables an irq
     void disableIrq(u8 irq);
