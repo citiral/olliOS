@@ -4,25 +4,12 @@
 
 using namespace threading;
 
-extern "C" u32 __attribute__ ((noinline)) thread_enter(volatile u32* pEsp, volatile u32* esp);
-extern "C" void __attribute__ ((noinline)) thread_exit(volatile u32* pEsp);
-
 // A generator to create unique pids for each thread
 UniqueGenerator<u32> threading::pidGenerator;
 
 // global values that hold the parent stack pointer of a running thread. Each core will always use his own index.
 u32 parent_stack_pointers[MAX_CORE_COUNT];
 bool in_thread[MAX_CORE_COUNT];
-
-Thread::Thread(void(*entry)()): _finished(false), _id(pidGenerator.next()), _blocking(false) {
-    // A new thread allocates his own stack
-    _stack = new char[THREAD_STACK_SIZE];
-    memset(_stack, 0, THREAD_STACK_SIZE);
-
-    // we first place the entry address, then 36 bytes zero (pushad + pushfd) but those are already zero with memset
-    *(u32*)(_stack + THREAD_STACK_SIZE - 8) = (u32)entry;
-    esp = (u32)(_stack + THREAD_STACK_SIZE - 44);
-}
 
 Thread::Thread(Thread& thread) {
     // Clone the stack of the thread we are copying

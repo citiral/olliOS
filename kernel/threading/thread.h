@@ -10,6 +10,9 @@
 extern "C" void __attribute__ ((noinline)) thread_interrupt();
 extern "C" u32* __attribute__ ((noinline)) get_parent_stack();
 extern "C" bool __attribute__ ((noinline)) is_current_core_in_thread();
+extern "C" u32 __attribute__ ((noinline)) thread_enter(volatile u32* pEsp, volatile u32* esp);
+extern "C" void __attribute__ ((noinline)) thread_exit(volatile u32* pEsp);
+extern "C" void __attribute__ ((noinline)) thread_finished();
 
 namespace threading {
     
@@ -23,7 +26,6 @@ namespace threading {
     // Each thread self-manages his stack, since this is also used during preempting
     class Thread {
     public:
-        Thread(void(*entry)());
         // initializes a thread were the called function gets passed the given arguments
         template<class ... ARGS>
         Thread(void(*entry)(ARGS...), ARGS ... args): _finished(false), _id(pidGenerator.next()), _blocking(false) {
@@ -35,9 +37,15 @@ namespace threading {
             u32 argStackSize = stackSizeOfArguments(args...);
             initializeArguments(argStackSize + 4, args...);
             
-            // and then we place the entry point at esp-X-8. We need to leave 4 bytes empty between the entry point and the arguments if we want them to be correctly placed for C
-            *(u32*)(_stack + THREAD_STACK_SIZE - argStackSize - 12) = (u32)entry;
-            esp = (u32)(_stack + THREAD_STACK_SIZE - argStackSize - 48);
+            // we first place the asm routine the thread will return to when finished
+            *(u32*)(_stack + THREAD_STACK_SIZE - argStackSize - 8) = argStackSize;
+            *(u32*)(_stack + THREAD_STACK_SIZE - argStackSize - 12) = (u32)thread_finished;
+
+            // then we place the entry address
+            *(u32*)(_stack + THREAD_STACK_SIZE - argStackSize - 16) = (u32)entry;
+
+            // then 36 bytes zero (pushad + pushfd) but those are already zero with memset
+            esp = (u32)(_stack + THREAD_STACK_SIZE - argStackSize - 52);
         }
 
         Thread(Thread& thread);

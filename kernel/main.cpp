@@ -135,21 +135,23 @@ void printrec(DirEntry* root) {
     }
 }
 
-extern "C" void tthread1(const char* test, threading::Semaphore* sem) {
-    while (true) {
-        sem->lock();
-        LOG_INFO("%d -> %s", apic::id(), test);
-        sem->release();
-    }
+extern "C" void tthread1(u32 id) {
+    LOG_INFO("%d -> Hello from thread %d!", apic::id(), id);
+}
+
+extern "C" void tthread2() {
+    LOG_INFO("%d -> Hello!", apic::id());
+    threading::exit();
+    LOG_INFO("%d -> Hello2!", apic::id());
 }
 
 void cpu_main() {
     LOG_INFO("enter");
-    apic::setSleep(INT_PREEMPT, apic::busFrequency / (1024*16), false);
+    apic::setSleep(INT_PREEMPT, apic::busFrequency / 1024, false);
 
     while (true) {
-        threading::scheduler->enter();        
-        __asm__ __volatile ("pause");
+        threading::scheduler->enter();
+        //LOG_INFO("WOOP");
     }
 }
 
@@ -176,12 +178,14 @@ extern "C" void main(multiboot_info* multiboot) {
     //interrupts.registerIRQ(INT_PREEMPT, cpu_preempt, (void*)&cpu_preempt);
     idt.getEntry(INT_PREEMPT).setOffset((u32)thread_interrupt);
     
-    threading::Semaphore sem(1);
     threading::scheduler = new threading::Scheduler();
-    threading::scheduler->schedule(new threading::Thread(tthread1, "Hello from thread 1!", &sem));
-    threading::scheduler->schedule(new threading::Thread(tthread1, "Hello from thread 2!", &sem));
-    threading::scheduler->schedule(new threading::Thread(tthread1, "Hello from thread 3!", &sem));
-    threading::scheduler->schedule(new threading::Thread(tthread1, "Hello from thread 4!", &sem));
+
+    //for (u32 i = 0 ; i < 1000 ; i++) {
+
+
+    //threading::scheduler->schedule();
+    //threading::scheduler->schedule();
+    //}
     /*threading::scheduler->schedule(new threading::Thread(tthread1, 2));
     threading::scheduler->schedule(new threading::Thread(tthread1, 2));
     threading::scheduler->schedule(new threading::Thread(tthread1, 4));*/
@@ -196,6 +200,13 @@ extern "C" void main(multiboot_info* multiboot) {
     } else {
         LOG_STARTUP("APIC not supported, skipping. (Threading will not be supported)");
     }
+    threading::Thread* t1 = new threading::Thread(tthread1, 1u);
+    threading::Thread* t2 = new threading::Thread(tthread2);
+    t2->enter();
+    t2->enter();
+    t1->enter();
+    LOG_INFO("DONE");
+    while(true);
 
 	// Initialize the serial driver so that we can output debug messages very early.
 	initSerialDevices();
@@ -216,6 +227,7 @@ extern "C" void main(multiboot_info* multiboot) {
     
     deviceManager.addDevice(new KeyboardDriver());
 	LOG_STARTUP("Keyboard driver initialized.");
+    
 
 	vfs = new VirtualFileSystem();
     LOG_STARTUP("Virtual filesystem created.");

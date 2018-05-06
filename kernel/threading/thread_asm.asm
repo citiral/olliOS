@@ -6,12 +6,12 @@ thread_enter:;(u32* parentESP, u32* threadESP)
 pushfd
 pushad
 
-; save the parent stack pointer somewhere we can access later
+; save the parent stack pointer to parentESP
 mov eax, [esp+40]
 mov [eax], esp
 
 ;;; load the thread
-; restore its stack so we can load from it
+; restore its stack from threadESP so we can load from it
 mov eax, [esp+44]
 mov esp, [eax]
 
@@ -23,13 +23,19 @@ popfd
 sti
 ret
 
-; the thread has finished on its own. the only item on stack now is our parent stack pointer.
-; we can restore the stack like in thread_exit but this time return 0
+global thread_finished:
+thread_finished:
 cli
+
+; the thread has finished on its own. remaining on the stack is a counter of the amount of arguments (in bytes), the arguments themselves, and the parent stack pointer
+; first we remove the arguments using the counter
+pop eax
+add esp, eax
+
+; we can now restore the stack like in thread_exit but this time return 0
 mov eax, [esp]
 mov esp, [eax]
 popad
-pop cs
 popfd
 mov eax, 0
 ret
