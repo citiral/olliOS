@@ -159,7 +159,6 @@ void tthread4() {
 }
 
 void cpu_main() {
-    // let this CPU be woken up twice every millisecond
     LOG_INFO("enter");
     apic::setSleep(INT_PREEMPT, apic::busFrequency / (1024), false);
 

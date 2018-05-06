@@ -176,13 +176,12 @@ namespace apic {
     }
 
     void StartAllCpus(void (*entrypoint)()) {
-        char* test = (char*)0x8000;
         _entrypoint = entrypoint;
         u32 startPage = ((size_t)0x8000 / 0x1000) & 0xFF;
         LOG_INFO("Addr: %X", 0x8000);
         LOG_INFO("Startpage: %X", startPage);
 
-        for (int i = 0 ; i < processors.size() ; i++) {
+        for (u32 i = 0 ; i < processors.size() ; i++) {
             // skip processor 0, that's us :)
             if (processors[i]->processorId == 0)
                 continue;

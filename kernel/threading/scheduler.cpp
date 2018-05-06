@@ -5,7 +5,7 @@ using namespace threading;
 
 Scheduler* threading::scheduler = nullptr;
 
-Scheduler::Scheduler(): _lock(), _threads() {
+Scheduler::Scheduler(): _threads(), _lock() {
 }
 
 void Scheduler::schedule(Thread* thread) {

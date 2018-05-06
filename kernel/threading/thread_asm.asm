@@ -36,7 +36,7 @@ ret
 
 global thread_exit:
 thread_exit:;(u32* parentESP)
-; the thread has preemted or exited. so we save its state. first we save the EIP, then the general registers
+; the thread has exited (but is not done computing). so we save its state. first we save the EIP, then the general registers
 push dword [esp]
 pushfd
 pushad
@@ -73,7 +73,7 @@ cli
 ; make sure that once the thread resumes it instantly executes an iret
 push thread_interrupt_continue
 
-; the thread has preemted or exited. so we save its state.
+; we save the thread state on its stack
 pushfd
 pushad
 

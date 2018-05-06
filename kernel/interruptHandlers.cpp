@@ -16,6 +16,7 @@
 
 void intHandlerWakeup(u32 interrupt)
 {
+	UNUSED(interrupt);
 }
 
 void intHandlerAta(u32 interrupt) {
