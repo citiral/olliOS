@@ -31,6 +31,7 @@
 #include "devices/pci/pci.h"
 
 #include "threading/scheduler.h"
+#include "threading/semaphore.h"
 
 #include "fs/iso9660.h"
 #include "fs/virtualfilesystem.h"
@@ -134,33 +135,17 @@ void printrec(DirEntry* root) {
     }
 }
 
-void tthread1() {
+extern "C" void tthread1(const char* test, threading::Semaphore* sem) {
     while (true) {
-        LOG_INFO("T1 %d", apic::id());
-    }
-}
-
-void tthread2() {
-    while (true) {
-        LOG_INFO("T2 %d", apic::id());
-    }
-}
-
-void tthread3() {
-    while (true) {
-        LOG_INFO("T3 %d", apic::id());
-    }
-}
-
-void tthread4() {
-    while (true) {
-        LOG_INFO("T4 %d", apic::id());
+        sem->lock();
+        LOG_INFO("%d -> %s", apic::id(), test);
+        sem->release();
     }
 }
 
 void cpu_main() {
     LOG_INFO("enter");
-    apic::setSleep(INT_PREEMPT, apic::busFrequency / (1024), false);
+    apic::setSleep(INT_PREEMPT, apic::busFrequency / (1024*16), false);
 
     while (true) {
         threading::scheduler->enter();        
@@ -191,11 +176,15 @@ extern "C" void main(multiboot_info* multiboot) {
     //interrupts.registerIRQ(INT_PREEMPT, cpu_preempt, (void*)&cpu_preempt);
     idt.getEntry(INT_PREEMPT).setOffset((u32)thread_interrupt);
     
+    threading::Semaphore sem(1);
     threading::scheduler = new threading::Scheduler();
-    threading::scheduler->schedule(new threading::Thread(tthread1));
-    threading::scheduler->schedule(new threading::Thread(tthread2));
-    threading::scheduler->schedule(new threading::Thread(tthread3));
-    threading::scheduler->schedule(new threading::Thread(tthread4));
+    threading::scheduler->schedule(new threading::Thread(tthread1, "Hello from thread 1!", &sem));
+    threading::scheduler->schedule(new threading::Thread(tthread1, "Hello from thread 2!", &sem));
+    threading::scheduler->schedule(new threading::Thread(tthread1, "Hello from thread 3!", &sem));
+    threading::scheduler->schedule(new threading::Thread(tthread1, "Hello from thread 4!", &sem));
+    /*threading::scheduler->schedule(new threading::Thread(tthread1, 2));
+    threading::scheduler->schedule(new threading::Thread(tthread1, 2));
+    threading::scheduler->schedule(new threading::Thread(tthread1, 4));*/
 
     // if APIC is supported, switch to it and enable multicore
     cpuid_field features = cpuid(1);

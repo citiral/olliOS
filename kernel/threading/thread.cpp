@@ -1,8 +1,6 @@
 #include "cdefs.h"
 #include "threading/thread.h"
 #include "apic.h"
-#include "util/unique.h"
-#include <string.h>
 
 using namespace threading;
 
@@ -10,7 +8,7 @@ extern "C" u32 __attribute__ ((noinline)) thread_enter(volatile u32* pEsp, volat
 extern "C" void __attribute__ ((noinline)) thread_exit(volatile u32* pEsp);
 
 // A generator to create unique pids for each thread
-UniqueGenerator<u32> pidGenerator;
+UniqueGenerator<u32> threading::pidGenerator;
 
 // global values that hold the parent stack pointer of a running thread. Each core will always use his own index.
 u32 parent_stack_pointers[MAX_CORE_COUNT];
