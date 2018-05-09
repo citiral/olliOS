@@ -1,3 +1,29 @@
+global thread_entry
+thread_entry:
+;;; the entry point of each thread
+; this function will make sure that the stack is correct for leaving the function
+; we remember the stack size, which is saved on top by the thread initialisation.
+; mov ebx, [esp+4]
+; add esp, 8
+mov ebx, [esp+4]
+
+; then we move the stack to such a position that it will look like the current parameters in C
+add esp, 8
+
+; jump to the function
+call [esp-8]
+
+; then we remove all parameters from the stack
+add esp, ebx
+
+; we can now restore the stack like in thread_exit but this time return 0
+mov eax, [esp]
+mov esp, [eax]
+popad
+popfd
+mov eax, 0
+ret
+
 global thread_enter:
 thread_enter:;(u32* parentESP, u32* threadESP)
 

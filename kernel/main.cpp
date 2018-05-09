@@ -136,13 +136,10 @@ void printrec(DirEntry* root) {
 }
 
 extern "C" void tthread1(u32 id) {
-    LOG_INFO("%d -> Hello from thread %d!", apic::id(), id);
-}
-
-extern "C" void tthread2() {
-    LOG_INFO("%d -> Hello!", apic::id());
-    threading::exit();
-    LOG_INFO("%d -> Hello2!", apic::id());
+    while (true) {
+        LOG_INFO("%d -> Oi thread %u!", apic::id(), id);
+        threading::exit();
+    }
 }
 
 void cpu_main() {
@@ -151,7 +148,6 @@ void cpu_main() {
 
     while (true) {
         threading::scheduler->enter();
-        //LOG_INFO("WOOP");
     }
 }
 
@@ -180,16 +176,10 @@ extern "C" void main(multiboot_info* multiboot) {
     
     threading::scheduler = new threading::Scheduler();
 
-    //for (u32 i = 0 ; i < 1000 ; i++) {
-
-
-    //threading::scheduler->schedule();
-    //threading::scheduler->schedule();
-    //}
-    /*threading::scheduler->schedule(new threading::Thread(tthread1, 2));
-    threading::scheduler->schedule(new threading::Thread(tthread1, 2));
-    threading::scheduler->schedule(new threading::Thread(tthread1, 4));*/
-
+    for (u32 i = 0 ; i < 100 ; i++) {
+        threading::scheduler->schedule(new threading::Thread(tthread1, i));
+    }
+    
     // if APIC is supported, switch to it and enable multicore
     cpuid_field features = cpuid(1);
     if ((features.edx & (int)cpuid_feature::EDX_APIC) != 0) {
@@ -200,14 +190,7 @@ extern "C" void main(multiboot_info* multiboot) {
     } else {
         LOG_STARTUP("APIC not supported, skipping. (Threading will not be supported)");
     }
-    threading::Thread* t1 = new threading::Thread(tthread1, 1u);
-    threading::Thread* t2 = new threading::Thread(tthread2);
-    t2->enter();
-    t2->enter();
-    t1->enter();
-    LOG_INFO("DONE");
-    while(true);
-
+    
 	// Initialize the serial driver so that we can output debug messages very early.
 	initSerialDevices();
 	LOG_STARTUP("Serial driver initialized.");

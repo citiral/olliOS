@@ -13,6 +13,12 @@ extern "C" bool __attribute__ ((noinline)) is_current_core_in_thread();
 extern "C" u32 __attribute__ ((noinline)) thread_enter(volatile u32* pEsp, volatile u32* esp);
 extern "C" void __attribute__ ((noinline)) thread_exit(volatile u32* pEsp);
 extern "C" void __attribute__ ((noinline)) thread_finished();
+extern "C" void __attribute__ ((noinline)) thread_entry();
+
+template<u32 SIZE, class ... ARGS>
+void threadingFunctionWrapper(void(*func)(ARGS...), u32 size, ARGS ... args) {
+    func(args...);
+}
 
 namespace threading {
     
@@ -39,10 +45,10 @@ namespace threading {
             
             // we first place the asm routine the thread will return to when finished
             *(u32*)(_stack + THREAD_STACK_SIZE - argStackSize - 8) = argStackSize;
-            *(u32*)(_stack + THREAD_STACK_SIZE - argStackSize - 12) = (u32)thread_finished;
 
             // then we place the entry address
-            *(u32*)(_stack + THREAD_STACK_SIZE - argStackSize - 16) = (u32)entry;
+            *(u32*)(_stack + THREAD_STACK_SIZE - argStackSize - 12) = (u32)entry;
+            *(u32*)(_stack + THREAD_STACK_SIZE - argStackSize - 16) = (u32)thread_entry;
 
             // then 36 bytes zero (pushad + pushfd) but those are already zero with memset
             esp = (u32)(_stack + THREAD_STACK_SIZE - argStackSize - 52);
