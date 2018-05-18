@@ -8,6 +8,8 @@
 #include "devices/ata/atadevice.h"
 #include "cdefs.h"
 
+namespace ata {
+
 class AtaPioDevice: public AtaDevice {
 public:
     AtaPioDevice(u16 port, unsigned short* data, int device);
@@ -43,5 +45,7 @@ private:
 
 	size_t _pointer = 0;
 };
+
+}
 
 #endif //OLLIOS_GIT_ATAPIODEVICE_H

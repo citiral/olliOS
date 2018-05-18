@@ -8,6 +8,7 @@
 #include "devices/ata/atadevice.h"
 #include "cdefs.h"
 
+namespace ata {
 // SCSI command reference
 // http://www.seagate.com/staticfiles/support/disc/manuals/Interface%20manuals/100293068c.pdf
 
@@ -26,10 +27,9 @@ public:
     size_t seek(i32 offset, int position);
 
 private:
-	u16 _port;
-    unsigned short* _data;
-    u8 _drive;
     size_t _lba;
 };
+
+}
 
 #endif //OLLIOS_GIT_ATAPACKETDEVICE_H

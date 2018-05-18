@@ -16,7 +16,7 @@ void intHandlerWakeup(u32 interrupt)
 
 void intHandlerAta(u32 interrupt) {
 	UNUSED(interrupt);
-    ataDriver.notifyInterrupt();
+    ata::driver.notifyInterrupt();
     endInterrupt(interrupt);
 }
 

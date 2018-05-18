@@ -2,6 +2,7 @@
 // Created by Olivier on 24/09/16.
 //
 
+#include "threading/thread.h"
 #include "devices/ata/ata.h"
 #include "devices/ata/atapacketdevice.h"
 #include "devices/ata/atapiodevice.h"
@@ -11,31 +12,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-AtaDriver ataDriver = AtaDriver();
+namespace ata {
 
-AtaDriver::AtaDriver(): _interrupted(false) {
+AtaDriver driver = AtaDriver();
+
+AtaDriver::AtaDriver(): _interrupted(false), _lock(1) {
+
 }
 
 void AtaDriver::initialize() {
+    _lock = threading::Semaphore(1);
 	_interrupted = false;
-
-	if (_scanDefaultAddresses)
-	{
-		// detect each device
-		AtaDevice* device;
-		if ((device = detectDevice(PORT_DEFAULT_PRIMARY, 0)) != nullptr) {
-			LOG_INFO("Found primary master ATA device: '%s'", device->getName().c_str());
-		}
-		if ((device = detectDevice(PORT_DEFAULT_PRIMARY, 1)) != nullptr) {
-			LOG_INFO("Found primary slave ATA device: '%s'", device->getName().c_str());
-		}
-		if ((device = detectDevice(PORT_DEFAULT_SECONDARY, 0)) != nullptr) {
-			LOG_INFO("Found secondary master ATA device: '%s'", device->getName().c_str());
-		}
-		if ((device = detectDevice(PORT_DEFAULT_SECONDARY, 1)) != nullptr) {
-			LOG_INFO("Found secondary slave ATA device: '%s'", device->getName().c_str());
-		}
-	}
 }
 
 void AtaDriver::disableScanDefaultAddresses()
@@ -71,7 +58,6 @@ void AtaDriver::selectDevice(u16 p, int device) {
 		inb(p+PORT_STATUS);
 		inb(p+PORT_STATUS);
 		inb(p+PORT_STATUS);
-
 
 		_lastDevice = device;
 	}
@@ -168,7 +154,7 @@ bool AtaDriver::waitForDataOrError(u16 p) {
 
 void AtaDriver::waitForInterrupt(u16 p) {
     while (_interrupted == false) {
-        asm volatile("pause");        
+        threading::exit();
     }
     _interrupted = false;
 
@@ -176,6 +162,20 @@ void AtaDriver::waitForInterrupt(u16 p) {
     inb(p+PORT_STATUS);
 }
 
+void AtaDriver::clearInterruptFlag() {
+    _interrupted = false;
+}
+
 void AtaDriver::notifyInterrupt() {
     _interrupted = true;
+}
+
+void AtaDriver::grab() {
+    _lock.lock();
+}
+
+void AtaDriver::release() {
+    _lock.release();
+}
+
 }

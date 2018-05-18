@@ -151,6 +151,38 @@ void cpu_main() {
     }
 }
 
+// TODO make most global subsystems threadsafe
+void startup_thread() {
+    ata::driver.initialize();
+    LOG_STARTUP("ATA driver initialized.");
+
+    PCI::init();
+	LOG_STARTUP("PCI driver initialized.");
+
+    deviceManager.addDevice(&vgaDriver);
+    LOG_STARTUP("VGA driver initialized.");
+
+    keyboard::initialize();
+	LOG_STARTUP("Keyboard driver initialized.");
+
+	vfs = new VirtualFileSystem();
+    LOG_STARTUP("Virtual filesystem created.");
+
+    auto storagedevices = deviceManager.getDevices(DeviceType::Storage);
+    for (size_t i =  0; i < storagedevices.size() ; i++) {
+		BlockDevice* device = (BlockDevice*) storagedevices[i];
+        DeviceStorageInfo info;
+        device->getDeviceInfo(&info);
+        char* name = "hdda";
+        name[3] += i;
+        LOG_STARTUP("BINDING %s to %s", info.deviceInfo.name, name);
+        vfs->BindFilesystem(name, new Iso9660FileSystem(device));
+    }
+
+    KernelShell* shell = new KernelShell();
+    shell->enter();
+}
+
 extern "C" void main(multiboot_info* multiboot) {
     // init lowlevel CPU related stuff
     // None of these should be allowed to touch the memory allocator, etc
@@ -173,6 +205,7 @@ extern "C" void main(multiboot_info* multiboot) {
     //set up pre-emptive multithreading
     idt.getEntry(INT_PREEMPT).setOffset((u32)thread_interrupt);    
     threading::scheduler = new threading::Scheduler();
+    threading::scheduler->schedule(new threading::Thread(startup_thread));
     
     // if APIC is supported, switch to it and enable multicore
     cpuid_field features = cpuid(1);
@@ -187,44 +220,10 @@ extern "C" void main(multiboot_info* multiboot) {
     
 	// Initialize the serial driver so that we can output debug messages very early.
 	//initSerialDevices();
-	
-    PCI::init();
-	LOG_STARTUP("PCI driver initialized.");
-
-    ataDriver.initialize();
-    LOG_STARTUP("ATA driver initialized.");
-
-    deviceManager.addDevice(&vgaDriver);
-    LOG_STARTUP("VGA driver initialized.");
-
-    keyboard::initialize();
-	LOG_STARTUP("Keyboard driver initialized.");
-
-    KernelShell shell;
-    threading::scheduler->schedule(new threading::Thread(&KernelShell::enter, &shell));
-    
+        
     LOG_INFO("STARTING");
     cpu_main();
-    
-    
 
-	vfs = new VirtualFileSystem();
-    LOG_STARTUP("Virtual filesystem created.");
-
-    /*auto storagedevices = deviceManager.getDevices(DeviceType::Storage);
-    for (size_t i =  0; i < storagedevices.size() ; i++) {
-		BlockDevice* device = (BlockDevice*) storagedevices[i];
-        DeviceStorageInfo info;
-        device->getDeviceInfo(&info);
-        char* name = "hdda";
-        name[3] += i;
-        LOG_STARTUP("BINDING %s to %s", info.deviceInfo.name, "hdd");
-        vfs->BindFilesystem(name, new Iso9660FileSystem(device));
-    }
-    LOG_STARTUP("Bound filesystems.");*/
-
-    LOG_STARTUP("Welcome to OlliOS!");
-	
 	/*char* mainL = (char*) main;
 	char* physL = (char*) kernelPageDirectory.getPhysicalAddress((void*)mainL);
 	printf("Location of 0x%X = 0x%X\n", mainL, physL);

@@ -7,6 +7,8 @@
 #include "cpu.h"
 #include <string.h>
 
+namespace ata {
+
 AtaPioDevice::AtaPioDevice(u16 port, unsigned short* data, int device): AtaDevice(port, data, device) {
 }
 
@@ -237,4 +239,6 @@ bool AtaPioDevice::write(size_t start, size_t bytes, const char* data)
 size_t AtaPioDevice::toLBA(size_t address)
 {
 	return address / _bytesPerSector;
+}
+
 }

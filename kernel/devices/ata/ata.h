@@ -6,6 +6,7 @@
 #define OLLIOS_GIT_ATA_H
 
 #include "devices/ata/atadevice.h"
+#include "threading/semaphore.h"
 #include "types.h"
 
 /*#define PORT_DATA           0x1F0
@@ -63,6 +64,8 @@
 // IDENTIFY Data structure can be found here on page 91 (129 in PDF)
 // http://www.t13.org/documents/uploadeddocuments/docs2006/d1699r3f-ata8-acs.pdf
 
+namespace ata {
+
 enum class AtaDeviceIndex: u8 {
     MASTER = 0,
     SLAVE = 1,
@@ -109,18 +112,25 @@ public:
     // keeps waiting until interrupted is set to true. This is then set to false.
     void waitForInterrupt(u16 port);
 
+    void clearInterruptFlag();
+
     // notifies the ata driver an interrupt has happened
     void notifyInterrupt();
+
+    // grabs or releases the driver, preventing other threads from using it
+    void grab();
+    void release();
 
 private:
     // This has to be volatile, otherwise codegen might cache it in a register which won't detect changes by interrupt
 	volatile bool _interrupted;
 	bool _scanDefaultAddresses = true;
 	int _lastDevice = -1;
+    threading::Semaphore _lock;
 };
 
+extern AtaDriver driver;
 
-
-extern AtaDriver ataDriver;
+}
 
 #endif //OLLIOS_GIT_ATA_H

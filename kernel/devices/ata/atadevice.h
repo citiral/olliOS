@@ -5,6 +5,8 @@
 #include "cdefs.h"
 #include "kstd/string.h"
 
+namespace ata {
+
 class AtaDevice: public BlockDevice {
 public:
     AtaDevice(u16 port, unsigned short* data, int drive);
@@ -40,6 +42,8 @@ public:
 
 protected:
 	unsigned short* _data;
+	u16 _port;
+    u8 _drive;
 	size_t _bytesPerSector = 512;
 
 private:
@@ -49,10 +53,10 @@ private:
 	u8 readRegisterB(u8 reg);
 	u16 readRegisterW(u8 reg);*/
 
-	u16 _port;
 	std::string _name;
-    u8 _drive;
     u32 _lba28size;
 };
+
+}
 
 #endif

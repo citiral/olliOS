@@ -5,6 +5,8 @@
 
 #define BIT_LBA48 (1<<10)
 
+namespace ata {
+
 AtaDevice::AtaDevice(u16 port, unsigned short* data, int drive) : _data(data), _port(port),_drive(drive)
 {
 	readName();
@@ -64,7 +66,7 @@ int AtaDevice::getDrive()
 
 void AtaDevice::selectDevice()
 {
-	ataDriver.selectDevice(_port, _drive);
+	driver.selectDevice(_port, _drive);
 }
 
 //
@@ -100,4 +102,6 @@ u32 AtaDevice::inL(u16 reg) {
 
 void AtaDevice::inSW(unsigned short int reg, void *addr, unsigned long int count) {
 	insw(_port+reg, addr, count);
+}
+
 }
