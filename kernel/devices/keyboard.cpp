@@ -3,6 +3,7 @@
 #include "io.h"
 #include "cdefs.h"
 #include "interrupt.h"
+#include "devicemanager.h"
 #include "stdio.h"
 
 #define COMMAND_PORT 0x64
@@ -21,6 +22,15 @@
 #define SCANSET_1 1
 #define SCANSET_2 2
 #define SCANSET_3 3
+
+namespace keyboard {
+
+void initialize() {
+	KeyboardDriver* driver = new KeyboardDriver();
+    deviceManager.addDevice(driver);
+	driver->setScanCodeSet(SCANSET_2);
+	driver->setScanCodeTranslation(false);
+}
 
 VirtualKeyEvent::VirtualKeyEvent()
 {
@@ -41,9 +51,6 @@ KeyboardDriver::KeyboardDriver():
 	enableIRQ();
 	outb(COMMAND_PORT, CMD_READ_CONFIG);
 	outb(IO_PORT, 0b00000001);
-	//while (!_commandReturned && !_commandFailed);
-	setScanCodeSet(SCANSET_2);
-	setScanCodeTranslation(false);
 }
 
 KeyboardDriver::~KeyboardDriver()
@@ -51,13 +58,19 @@ KeyboardDriver::~KeyboardDriver()
 
 }
 
-bool irqKeyboard(u32 interrupt, void* stack, void* obj)
-{
-	return ((KeyboardDriver*) obj)->interrupt1(interrupt, stack);
+void intHandlerKeyboard(u32 interrupt) {
+    // send it to the keyboarddriver
+	KeyboardDriver* kb = (KeyboardDriver*) deviceManager.getDevice(DeviceType::Keyboard, 0);
+	if (kb)
+		kb->interrupt1(interrupt);
+
+    // and end the interrupt
+	end_interrupt(interrupt);
 }
 
 void KeyboardDriver::enableIRQ() {
-	interrupts.registerIRQ(0x20+1, &irqKeyboard, this);
+	
+	idt.setFunction(INT_KEYBOARD, intHandlerKeyboard);
 }
 
 void KeyboardDriver::waitForResponse()
@@ -119,9 +132,8 @@ void KeyboardDriver::sendDataKBCommand(u8 command, u8 data)
 	}
 }
 
-bool KeyboardDriver::interrupt1(u32 interrupt, void* stack) {
+bool KeyboardDriver::interrupt1(u32 interrupt) {
 	UNUSED(interrupt);
-	UNUSED(stack);
 	u8 data = inb(IO_PORT);
 	_commandRetValue = data;
 	//printf("INT1 0x%X\n", data);
@@ -147,7 +159,6 @@ bool KeyboardDriver::interrupt1(u32 interrupt, void* stack) {
 	else
 	{
 		_commandReturned = true;
-		//printf("Returned\n");
 	}
 	return true;
 }
@@ -643,3 +654,5 @@ VirtualKeycode scanset2_map2[255] = {
 	VirtualKeycode::INVALID,// 7F
 	VirtualKeycode::INVALID,// 80
 };
+
+}

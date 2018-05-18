@@ -18,8 +18,7 @@ AtaDriver::AtaDriver(): _interrupted(false) {
 
 void AtaDriver::initialize() {
 	_interrupted = false;
-	return;
-	
+
 	if (_scanDefaultAddresses)
 	{
 		// detect each device

@@ -11,7 +11,7 @@ public:
 	InputFormatter();
 
     // "handles" the virtual key. so the buffer is updated.
-    void handleVirtualKeyEvent(VirtualKeyEvent event);
+    void handleVirtualKeyEvent(keyboard::VirtualKeyEvent event);
     // returns true if there is a line ready to be fetched
     bool isLineReady() const;
     // adds a char to the buffer and renders it

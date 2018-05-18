@@ -185,11 +185,11 @@ void KernelShell::enter()
 	while (true)
 	{
 		// read some virtual key events from the keyboard driver
-		VirtualKeyEvent input[10];
-		size_t read = ((KeyboardDriver*) deviceManager.getDevice(DeviceType::Keyboard, 0))->read(input, 10);
+		keyboard::VirtualKeyEvent input[10];
+		size_t read = ((keyboard::KeyboardDriver*) deviceManager.getDevice(DeviceType::Keyboard, 0))->read(input, 10);
 
 		// send them to the input formatter
-		for (size_t i = 0; i < read; i += sizeof(VirtualKeyEvent))
+		for (size_t i = 0; i < read; i += sizeof(keyboard::VirtualKeyEvent))
 		{
 			_input.handleVirtualKeyEvent(input[i]);
 		}

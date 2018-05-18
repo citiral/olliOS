@@ -1,18 +1,13 @@
+#include "interrupt.h"
 #include "interruptHandlers.h"
 #include "devices/ata/ata.h"
 #include "pic.h"
 
-
-/*void intHandlerKeyboard(u32 interrupt) {
-    // get the keyboard button that has been pressed
-	u8 data = inb(0x60);
-
-    // send it to the keyboarddriver
-	((KeyboardDriver*) deviceManager.getDevice(DeviceType::Keyboard, 0))->write(data);
-
-    // and end the interrupt
-	endInterrupt(interrupt - 0x20);
-}*/
+void intHandlerUndefined(u32 interrupt)
+{
+	LOG_ERROR("Unhandled interrupt %d", interrupt);
+	end_interrupt(interrupt);
+}
 
 void intHandlerWakeup(u32 interrupt)
 {

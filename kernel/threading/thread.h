@@ -15,7 +15,7 @@ extern "C" void __attribute__ ((noinline)) thread_exit(volatile u32* pEsp);
 extern "C" void __attribute__ ((noinline)) thread_finished();
 extern "C" void __attribute__ ((noinline)) thread_entry();
 
-        template<class T, class ... ARGS>
+template<class T, class ... ARGS>
 void threadingFunctionWrapper(void(T::*func)(ARGS...), T* c, ARGS ... args) {
     (c->*func)(args...);
 }

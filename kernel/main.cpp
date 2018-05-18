@@ -145,9 +145,9 @@ extern "C" void tthread1(u32 id) {
 void cpu_main() {
     LOG_INFO("enter");
     apic::setSleep(INT_PREEMPT, apic::busFrequency / 1024, false);
-
     while (true) {
         threading::scheduler->enter();
+        __asm__ ("pause");
     }
 }
 
@@ -171,14 +171,8 @@ extern "C" void main(multiboot_info* multiboot) {
     acpi::init();
 
     //set up pre-emptive multithreading
-    //interrupts.registerIRQ(INT_PREEMPT, cpu_preempt, (void*)&cpu_preempt);
-    idt.getEntry(INT_PREEMPT).setOffset((u32)thread_interrupt);
-    
+    idt.getEntry(INT_PREEMPT).setOffset((u32)thread_interrupt);    
     threading::scheduler = new threading::Scheduler();
-
-    for (u32 i = 0 ; i < 100 ; i++) {
-        threading::scheduler->schedule(new threading::Thread(tthread1, i));
-    }
     
     // if APIC is supported, switch to it and enable multicore
     cpuid_field features = cpuid(1);
@@ -192,24 +186,26 @@ extern "C" void main(multiboot_info* multiboot) {
     }
     
 	// Initialize the serial driver so that we can output debug messages very early.
-	initSerialDevices();
-	LOG_STARTUP("Serial driver initialized.");
-	// Initialize the PCI driver
-	//PCI::init();
+	//initSerialDevices();
+	
+    PCI::init();
 	LOG_STARTUP("PCI driver initialized.");
-	// initialize the ATA driver
+
     ataDriver.initialize();
     LOG_STARTUP("ATA driver initialized.");
 
-    // and register the default vga and and keyboard driver
     deviceManager.addDevice(&vgaDriver);
-	LOG_STARTUP("VGA driver initialized.");
+    LOG_STARTUP("VGA driver initialized.");
+
+    keyboard::initialize();
+	LOG_STARTUP("Keyboard driver initialized.");
+
+    KernelShell shell;
+    threading::scheduler->schedule(new threading::Thread(&KernelShell::enter, &shell));
     
     LOG_INFO("STARTING");
     cpu_main();
     
-    deviceManager.addDevice(new KeyboardDriver());
-	LOG_STARTUP("Keyboard driver initialized.");
     
 
 	vfs = new VirtualFileSystem();
@@ -299,7 +295,4 @@ extern "C" void main(multiboot_info* multiboot) {
 		Serial* dev = (Serial*) serialDevices[i];
 		dev->write("Hello, world!\n");
 	}*/
-    
-    KernelShell shell;
-    shell.enter();
 }

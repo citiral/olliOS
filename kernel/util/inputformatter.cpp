@@ -4,6 +4,8 @@
 #include "devices/keyboard.h"
 #include "stdio.h"
 
+using namespace keyboard;
+
 InputFormatter::InputFormatter():
     _lineReady(0)
 {
