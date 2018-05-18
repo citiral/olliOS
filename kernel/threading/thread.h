@@ -15,9 +15,9 @@ extern "C" void __attribute__ ((noinline)) thread_exit(volatile u32* pEsp);
 extern "C" void __attribute__ ((noinline)) thread_finished();
 extern "C" void __attribute__ ((noinline)) thread_entry();
 
-template<u32 SIZE, class ... ARGS>
-void threadingFunctionWrapper(void(*func)(ARGS...), u32 size, ARGS ... args) {
-    func(args...);
+        template<class T, class ... ARGS>
+void threadingFunctionWrapper(void(T::*func)(ARGS...), T* c, ARGS ... args) {
+    (c->*func)(args...);
 }
 
 namespace threading {
@@ -48,6 +48,28 @@ namespace threading {
 
             // then we place the entry address
             *(u32*)(_stack + THREAD_STACK_SIZE - argStackSize - 12) = (u32)entry;
+            *(u32*)(_stack + THREAD_STACK_SIZE - argStackSize - 16) = (u32)thread_entry;
+
+            // then 36 bytes zero (pushad + pushfd) but those are already zero with memset
+            esp = (u32)(_stack + THREAD_STACK_SIZE - argStackSize - 52);
+        }
+
+        // initializes a thread were the called function gets passed the given arguments
+        template<class T, class ... ARGS>
+        Thread(void(T::*entry)(ARGS...), T* c, ARGS ... args): _finished(false), _id(pidGenerator.next()), _blocking(false) {
+            // A new thread allocates his own stack
+            _stack = new char[THREAD_STACK_SIZE];
+            memset(_stack, 0, THREAD_STACK_SIZE);
+
+            // we want the arguments to be placed below the entry address, so starting from esp-8 to esp-X
+            u32 argStackSize = stackSizeOfArguments(entry, c, args...);
+            initializeArguments(argStackSize + 4, entry, c, args...);
+            
+            // we first place the asm routine the thread will return to when finished
+            *(u32*)(_stack + THREAD_STACK_SIZE - argStackSize - 8) = argStackSize;
+
+            // then we place the entry address
+            *(u32*)(_stack + THREAD_STACK_SIZE - argStackSize - 12) = (u32)threadingFunctionWrapper<T, ARGS...>;
             *(u32*)(_stack + THREAD_STACK_SIZE - argStackSize - 16) = (u32)thread_entry;
 
             // then 36 bytes zero (pushad + pushfd) but those are already zero with memset
