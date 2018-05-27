@@ -1,4 +1,5 @@
 #include "acpi.h"
+#include "linker.h"
 #include "apic.h"
 #include "gdt.h"
 #include "interrupt.h"
@@ -49,7 +50,7 @@ namespace apic {
     void Init() {
         // First memory map the registers physical page to a virtual page
         physicalMemoryManager.reservePhysicalMemory((void*)0xFEE00000, 0x1000);
-        registers = (uint32_t*)kernelPageDirectory.bindPhysicalPage((void*)0xFEE00000);
+        registers = (uint32_t*)kernelPageDirectory.bindPhysicalPage((void*)0xFEE00000, KERNEL_END_VIRTUAL);
 
         // We remap the PIC , so they don't overlap with our PICs, which will replace them
         mapPics(0xE9, 0xF7);
@@ -90,7 +91,7 @@ namespace apic {
                     ioentry->apicAddress = (uint32_t*)kernelPageDirectory.getVirtualAddress(ioentry->apicAddress);
                 } else {
                     physicalMemoryManager.reservePhysicalMemory(ioentry->apicAddress, 8);
-                    ioentry->apicAddress = (uint32_t*)kernelPageDirectory.bindPhysicalPage(ioentry->apicAddress);
+                    ioentry->apicAddress = (uint32_t*)kernelPageDirectory.bindPhysicalPage(ioentry->apicAddress, KERNEL_END_VIRTUAL);
                 }
                 LOG_INFO("found IO APIC %d", ((MADTIoEntry*)entry)->apicId);
             } else if (entry->type == 4) {

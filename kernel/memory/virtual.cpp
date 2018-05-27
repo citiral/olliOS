@@ -194,10 +194,9 @@ void PageDirectory::bindVirtualPage(void* page) {
 }
 
 // makes sure the given physical 4kb space is bound to some random virtual memory
-void* PageDirectory::bindPhysicalPage(void* physical) {
-	void* page = (void*)0;
-	
+void* PageDirectory::bindPhysicalPage(void* physical, void* page) {	
 	// we keep looping from this page until we find one that is free, or until we reach the end of the address space. We also don't want to allocate the last 4MB.
+	page = (void*)((u32)page + ((u32)page % 0x1000 == 0 ? 0 : (0x1000 - ((u32)page % 0x1000))));
 	int dirindex;
 	do {
 		// we get the indexes related to that page

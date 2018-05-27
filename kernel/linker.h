@@ -5,6 +5,8 @@
 #ifndef OLLIOS_GIT_LINKER_H
 #define OLLIOS_GIT_LINKER_H
 
+#include "types.h"
+
 // two sentinels defined by the linker script
 // these are the start and end positions of the kernel in virtual memory
 // (the values are 0xC0000000+ but the kernel starts from 0x00000000)
