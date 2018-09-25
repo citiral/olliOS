@@ -405,8 +405,8 @@ VirtualKeycode scanset2_map1[255] = {
 	VirtualKeycode::F8,		// 0A
 	VirtualKeycode::F6,
 	VirtualKeycode::F4, 	// 0C
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
+	VirtualKeycode::TAB,
+	VirtualKeycode::TILDE,
 	VirtualKeycode::INVALID,// 0F
 	VirtualKeycode::INVALID,// 10
 	VirtualKeycode::INVALID,
@@ -470,20 +470,20 @@ VirtualKeycode scanset2_map1[255] = {
 	VirtualKeycode::L,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::P,
-	VirtualKeycode::INVALID,
+	VirtualKeycode::T_10,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,// 50
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
+	VirtualKeycode::OPEN_SQUARE,
+	VirtualKeycode::T_11,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
+	VirtualKeycode::CAPS_LOCK,
 	VirtualKeycode::RSHIFT,
 	VirtualKeycode::ENTER,
-	VirtualKeycode::INVALID,
+	VirtualKeycode::CLOSE_SQUARE,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,

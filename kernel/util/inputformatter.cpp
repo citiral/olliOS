@@ -39,8 +39,26 @@ void InputFormatter::handleVirtualKeyEvent(VirtualKeyEvent event)
             char key = (u8)event.vkey - (u8)VirtualKeycode::A;
             addChar('a' + key);
         }
-    } else if (event.vkey >= VirtualKeycode::T_0 && event.vkey <= VirtualKeycode::T_9) {
-        addChar('0' + ((u8)event.vkey - (u8)VirtualKeycode::T_0));
+    } else if (event.vkey == VirtualKeycode::TAB) {
+        addChar('\t');
+    } else if (event.vkey == VirtualKeycode::OPEN_SQUARE) {
+        addChar(event.status & 0b00000010 ? '{' : '[');  
+    } else if (event.vkey == VirtualKeycode::CLOSE_SQUARE) {
+        addChar(event.status & 0b00000010 ? '}' : ']');  
+    } else if (event.vkey == VirtualKeycode::TILDE) {
+        addChar(event.status & 0b00000010 ? '~' : '`');  
+    } else if (event.vkey >= VirtualKeycode::T_0 && event.vkey <= VirtualKeycode::T_11) {
+        if (event.status & 0b00000010) {
+            const char* keys = "!@#$%^&*()_+";
+            addChar(keys[((u8)event.vkey - (u8)VirtualKeycode::T_0)]);
+        } else {
+            if (event.vkey == VirtualKeycode::T_10)
+                addChar('-');
+            else if (event.vkey == VirtualKeycode::T_11)
+                addChar('=');
+            else
+                addChar('0' + ((u8)event.vkey - (u8)VirtualKeycode::T_0));
+        }
     }else if (event.vkey == VirtualKeycode::SPACE) {
         addChar(' ');
     } else if (event.vkey == VirtualKeycode::N_SLASH) {
