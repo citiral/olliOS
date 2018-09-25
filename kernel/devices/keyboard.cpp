@@ -394,8 +394,8 @@ VirtualKeycode KeyboardDriver::convertBreakScancodeToKeycode() {
 VirtualKeycode scanset2_map1[255] = {
 	VirtualKeycode::INVALID,
 	VirtualKeycode::F9,		// 01
-	VirtualKeycode::F5,
 	VirtualKeycode::INVALID,
+	VirtualKeycode::F5,
 	VirtualKeycode::F3,
 	VirtualKeycode::F1,
 	VirtualKeycode::F2,		// 06
@@ -414,7 +414,7 @@ VirtualKeycode scanset2_map1[255] = {
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::Q,
-	VirtualKeycode::INVALID,
+	VirtualKeycode::T_1,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,// 19
@@ -422,15 +422,15 @@ VirtualKeycode scanset2_map1[255] = {
 	VirtualKeycode::S,
 	VirtualKeycode::A,		// 1C
 	VirtualKeycode::W,
-	VirtualKeycode::INVALID,
+	VirtualKeycode::T_2,
 	VirtualKeycode::INVALID,// 1F
 	VirtualKeycode::INVALID,// 20
 	VirtualKeycode::C,
 	VirtualKeycode::X,
 	VirtualKeycode::D,
 	VirtualKeycode::E,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
+	VirtualKeycode::T_4,
+	VirtualKeycode::T_3,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::SPACE,
@@ -438,7 +438,7 @@ VirtualKeycode scanset2_map1[255] = {
 	VirtualKeycode::F,
 	VirtualKeycode::T,
 	VirtualKeycode::R,
-	VirtualKeycode::INVALID,
+	VirtualKeycode::T_5,
 	VirtualKeycode::INVALID,// 2F
 	VirtualKeycode::INVALID,// 30
 	VirtualKeycode::N,
@@ -446,23 +446,23 @@ VirtualKeycode scanset2_map1[255] = {
 	VirtualKeycode::H,
 	VirtualKeycode::G,
 	VirtualKeycode::Y,
-	VirtualKeycode::INVALID,
+	VirtualKeycode::T_6,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::M,
 	VirtualKeycode::J,
 	VirtualKeycode::U,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
+	VirtualKeycode::T_7,
+	VirtualKeycode::T_8,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,// 40
 	VirtualKeycode::INVALID,
 	VirtualKeycode::K,
 	VirtualKeycode::I,
 	VirtualKeycode::O,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
+	VirtualKeycode::T_0,
+	VirtualKeycode::T_9,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,

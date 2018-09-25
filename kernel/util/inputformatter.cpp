@@ -39,7 +39,9 @@ void InputFormatter::handleVirtualKeyEvent(VirtualKeyEvent event)
             char key = (u8)event.vkey - (u8)VirtualKeycode::A;
             addChar('a' + key);
         }
-    } else if (event.vkey == VirtualKeycode::SPACE) {
+    } else if (event.vkey >= VirtualKeycode::T_0 && event.vkey <= VirtualKeycode::T_9) {
+        addChar('0' + ((u8)event.vkey - (u8)VirtualKeycode::T_0));
+    }else if (event.vkey == VirtualKeycode::SPACE) {
         addChar(' ');
     } else if (event.vkey == VirtualKeycode::N_SLASH) {
         addChar('/');

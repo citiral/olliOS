@@ -66,7 +66,27 @@ namespace keyboard {
 		D_ARROW,
 		R_ARROW,
 		HOME,
-		END
+		END,
+        T_0,
+        T_1,
+        T_2,
+        T_3,
+        T_4,
+        T_5,
+        T_6,
+        T_7,
+        T_8,
+        T_9,
+        N_0,
+        N_1,
+        N_2,
+        N_3,
+        N_4,
+        N_5,
+        N_6,
+        N_7,
+        N_8,
+        N_9
 	};
 
 	void initialize();
