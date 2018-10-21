@@ -19,7 +19,7 @@ extern "C" void end_smp_trampoline_entry();
 extern u16 smp_gdt_size;
 extern u32 smp_gdt_offset;
 extern void* smp_stack;
-extern PageDirectory* smp_page;
+extern memory::PageDirectory* smp_page;
 
 using namespace acpi;
 
@@ -49,8 +49,8 @@ namespace apic {
 
     void Init() {
         // First memory map the registers physical page to a virtual page
-        physicalMemoryManager.reservePhysicalMemory((void*)0xFEE00000, 0x1000);
-        registers = (uint32_t*)kernelPageDirectory.bindPhysicalPage((void*)0xFEE00000, KERNEL_END_VIRTUAL);
+        memory::physicalMemoryManager.reservePhysicalMemory((void*)0xFEE00000, 0x1000);
+        registers = (uint32_t*)memory::kernelPageDirectory.bindPhysicalPage((void*)0xFEE00000, KERNEL_END_VIRTUAL);
 
         // We remap the PIC , so they don't overlap with our PICs, which will replace them
         mapPics(0xE9, 0xF7);
@@ -87,11 +87,11 @@ namespace apic {
                 MADTIoEntry* ioentry = (MADTIoEntry*)entry;
                 ioApics.push_back(ioentry);
                 // We also make sure that the registers are addressable
-                if (kernelPageDirectory.getVirtualAddress(ioentry->apicAddress) != 0) {
-                    ioentry->apicAddress = (uint32_t*)kernelPageDirectory.getVirtualAddress(ioentry->apicAddress);
+                if (memory::kernelPageDirectory.getVirtualAddress(ioentry->apicAddress) != 0) {
+                    ioentry->apicAddress = (uint32_t*)memory::kernelPageDirectory.getVirtualAddress(ioentry->apicAddress);
                 } else {
-                    physicalMemoryManager.reservePhysicalMemory(ioentry->apicAddress, 8);
-                    ioentry->apicAddress = (uint32_t*)kernelPageDirectory.bindPhysicalPage(ioentry->apicAddress, KERNEL_END_VIRTUAL);
+                    memory::physicalMemoryManager.reservePhysicalMemory(ioentry->apicAddress, 8);
+                    ioentry->apicAddress = (uint32_t*)memory::kernelPageDirectory.bindPhysicalPage(ioentry->apicAddress, KERNEL_END_VIRTUAL);
                 }
                 LOG_INFO("found IO APIC %d", ((MADTIoEntry*)entry)->apicId);
             } else if (entry->type == 4) {
@@ -168,7 +168,7 @@ namespace apic {
         // and we initialize the gdt offset in the smp trampoline to our gdt
         smp_gdt_size = GdtSize();
         smp_gdt_offset = GdtOffset();
-        smp_page = (PageDirectory*)((char*)&kernelPageDirectory - 0xC0000000);
+        smp_page = (memory::PageDirectory*)((char*)&memory::kernelPageDirectory - 0xC0000000);
     }
 
     void setSleep(uint8_t interrupt, uint32_t count, bool onetime) {

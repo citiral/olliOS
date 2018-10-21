@@ -8,179 +8,195 @@
 #include "devices/keyboard.h"
 #include "fs/filesystem.h"
 #include "fs/virtualfilesystem.h"
+#include "threading/process.h"
 #include "apic.h"
 #include <string.h>
 #include "stdio.h"
 
-KernelShell::KernelShell(): _commands(), _env()
+#if __KERNEL_ALLOCATOR == __KERNEL_ALLOCATOR_BUCKET
+void allocinfo(KernelShell* shell, std::vector<std::string>* args)
+{
+	UNUSED(shell);
+	kernelAllocator.printStatistics();
+	printf("\n");
+	delete args;
+}
+
+void allocmerge(KernelShell* shell, std::vector<std::string>* args)
+{
+	UNUSED(shell);
+	kernelAllocator.merge();
+	delete args;
+}
+#endif
+
+void devicesinfo(KernelShell* shell, std::vector<std::string>* args)
+{
+	UNUSED(shell);
+	/*const char* names[] = {"Keyboard", "Screen", "Storage"};
+
+	for (u8 i = 0 ; i < 3 ; i++) {
+		DeviceType type = (DeviceType)i;
+		printf("%s: ", names[i]);
+
+		for (int i = 0 ; i + 1 < deviceManager.getDevices(type).size() ; i++) {
+			printf("%s, ", deviceManager.getDevices(type)[i]->getDeviceName());
+		}
+		if (deviceManager.getDevices(type).size() > 0)
+			printf("%s", deviceManager.getDevices(type).back()->getDeviceName());
+		printf("\n");
+	}*/
+	delete args;
+}
+
+void cat(KernelShell* shell, std::vector<std::string>* args)
+{
+	UNUSED(shell);
+	if (args->size() < 2) {
+		printf("Please specify a directory.");
+		return;
+	}
+
+	BlockDevice* file = vfs->openFile(args->at(1).c_str());
+
+	if (!file) {
+		printf("Invalid file: %s\n", args->at(1).c_str());
+		return;
+	}
+
+	while (true) {
+		char data;
+		bool read = file->read(&data, 1);
+
+		if (read) {
+			printf("%c", data);
+		} else {
+			break;
+		}
+	}
+
+	delete file;
+	delete args;
+}
+
+void ls(KernelShell* shell, std::vector<std::string>* args)
+{
+	//LOG_DEBUG("pwd: %s", threading::currentProcess()->env.get("pwd").c_str());
+	UNUSED(shell);
+	DirEntry* dir;
+	if (args->size() > 1)
+	{
+		dir = vfs->fromPath(args->at(1).c_str());
+	}
+	else
+	{
+		dir = vfs->fromPath("/");
+	}
+
+	if (!dir && args->size() == 2) {
+		printf("Invalid directory: %s\n", args->at(1).c_str());
+		return;
+	}
+
+	if (dir) {
+		while (dir->valid()) {
+			printf("%s\n", dir->name().c_str());
+			dir->advance();
+		}
+
+		delete dir;
+	}
+	delete args;
+}
+/*
+void cd(KernelShell* shell, std::vector<std::string>* args)
+{
+	UNUSED(shell);
+	if (args->size() <= 1)
+		threading::currentProcess()->parent->env.set("pwd", Files::normalize(threading::currentProcess()->env.get("home")));
+	else
+		threading::currentProcess()->parent->env.set("pwd", Files::getPath(threading::currentProcess()->env, args->at(1).c_str()));
+	delete args;
+}*/
+
+void help(KernelShell* shell, std::vector<std::string>* args)
+{
+	UNUSED(args);
+	printf("Possible commands: ");
+
+	for (size_t i = 0; i + 1 < shell->commands().size(); i++)
+	{
+		printf("%s, ", shell->commands()[i].first);
+	}
+
+	if (shell->commands().size() > 0)
+	{
+		printf("%s", shell->commands().back().first);
+	};
+	printf("\n");
+	delete args;
+}
+/*
+void set(KernelShell* shell, std::vector<std::string>* args)
+{
+	UNUSED(shell);
+	if (args->size() == 2)
+	{
+		const std::string var = args->at(1);
+		if (threading::currentProcess()->env.isset(var))
+			printf("%s=%s\n", var.data(), threading::currentProcess()->env.get(var).data());
+		else
+			printf("%s is not set\n", var.data());
+	}
+	else if (args->size() == 3)
+	{
+		const std::string var = args->at(1);
+		const std::string val = args->at(2);
+		threading::currentProcess()->env.set(var, val);
+	}
+	delete args;
+}
+
+void unset(KernelShell* shell, std::vector<std::string>* args)
+{
+	UNUSED(shell);
+	if (args->size() == 2)
+	{
+		const std::string var = args->at(1);
+		if (threading::currentProcess()->env.isset(var))
+			threading::currentProcess()->env.unset(var);
+		else
+			printf("%s was not set\n", var.data());
+	}
+	delete args;
+}*/
+
+KernelShell::KernelShell(): _commands()
 {
 #if __KERNEL_ALLOCATOR == __KERNEL_ALLOCATOR_BUCKET
-	_commands.push_back(std::pair<const char *, CommandFunction>("allocinfo", &KernelShell::allocinfo));
-	_commands.push_back(std::pair<const char *, CommandFunction>("allocmerge", &KernelShell::allocmerge));
+	_commands.push_back(std::pair<const char *, CommandFunction>("allocinfo", &allocinfo));
+	_commands.push_back(std::pair<const char *, CommandFunction>("allocmerge", &allocmerge));
 #endif
-    _commands.push_back(std::pair<const char*, CommandFunction>("devicesinfo", &KernelShell::devicesinfo));
-    _commands.push_back(std::pair<const char*, CommandFunction>("help", &KernelShell::help));
-    _commands.push_back(std::pair<const char*, CommandFunction>("ls", &KernelShell::ls));
-	/*_commands.push_back(std::pair<const char*, CommandFunction>("cat", &KernelShell::cat));
-	_commands.push_back(std::pair<const char*, CommandFunction>("cd", &KernelShell::cd));
-	_commands.push_back(std::pair<const char*, CommandFunction>("set", &KernelShell::set));
-	_commands.push_back(std::pair<const char*, CommandFunction>("unset", &KernelShell::unset));
+    _commands.push_back(std::pair<const char*, CommandFunction>("devicesinfo", &devicesinfo));
+    _commands.push_back(std::pair<const char*, CommandFunction>("help", &help));
+    _commands.push_back(std::pair<const char*, CommandFunction>("ls", &ls));
+	_commands.push_back(std::pair<const char*, CommandFunction>("cat", &cat));
+	//_commands.push_back(std::pair<const char*, CommandFunction>("cd", &cd));
+	/*_commands.push_back(std::pair<const char*, CommandFunction>("set", &set));
+	_commands.push_back(std::pair<const char*, CommandFunction>("unset", &unset));
 	_env.set("pwd", "/");
 	_env.set("home", "/");*/
 }
 
-#if __KERNEL_ALLOCATOR == __KERNEL_ALLOCATOR_BUCKET
-void KernelShell::allocinfo(Environment& env, std::vector<std::string> args)
-{
-	UNUSED(env);
-	UNUSED(args);
-	kernelAllocator.printStatistics();
-	printf("\n");
-}
-
-void KernelShell::allocmerge(Environment& env, std::vector<std::string> args)
-{
-	UNUSED(env);
-	UNUSED(args);
-	kernelAllocator.merge();
-}
-#endif
-
-void KernelShell::devicesinfo(Environment& env, std::vector<std::string> args)
-{
-	UNUSED(env);
-	UNUSED(args);
-	/*const char* names[] = {"Keyboard", "Screen", "Storage"};
-
-    for (u8 i = 0 ; i < 3 ; i++) {
-        DeviceType type = (DeviceType)i;
-        printf("%s: ", names[i]);
-
-        for (int i = 0 ; i + 1 < deviceManager.getDevices(type).size() ; i++) {
-            printf("%s, ", deviceManager.getDevices(type)[i]->getDeviceName());
-        }
-        if (deviceManager.getDevices(type).size() > 0)
-            printf("%s", deviceManager.getDevices(type).back()->getDeviceName());
-        printf("\n");
-    }*/
-}
-
-void KernelShell::cat(Environment& env, std::vector<std::string> args)
-{
-    if (args.size() < 2) {
-        printf("Please specify a directory.");
-        return;
-    }
-
-    BlockDevice* file = vfs->openFile(Files::getPath(env, args[1]).c_str());
-
-    if (!file) {
-        printf("Invalid file: %s\n", args[1].c_str());
-        return;
-    }
-
-    while (true) {
-        char data;
-        bool read = file->read(&data, 1);
-
-        if (read) {
-            printf("%c", data);
-        } else {
-            break;
-        }
-    }
-
-    delete file;
-}
-
-void KernelShell::ls(Environment& env, std::vector<std::string> args)
-{
-	DirEntry* dir;
-	if (args.size() > 1)
-	{
-		dir = vfs->fromPath(Files::getPath(env, args[1].c_str()).c_str());
-	}
-	else
-	{
-		dir = vfs->fromPath(env.get("pwd").c_str());
-	}
-
-    if (!dir && args.size() == 2) {
-        printf("Invalid directory: %s\n", args[1].c_str());
-        return;
-    }
-
-    if (dir) {
-        while (dir->valid()) {
-            printf("%s\n", dir->name().c_str());
-            dir->advance();
-        }
-
-        delete dir;
-    }
-}
-
-void KernelShell::cd(Environment& env, std::vector<std::string> args)
-{
-	UNUSED(env);
-	if (args.size() <= 1)
-		env.set("pwd", Files::normalize(env.get("home")));
-	else
-		env.set("pwd", Files::getPath(env, args[1].c_str()));
-}
-
-void KernelShell::help(Environment& env, std::vector<std::string> args)
-{
-	UNUSED(env);
-	UNUSED(args);
-	printf("Possible commands: ");
-
-	for (size_t i = 0; i + 1 < _commands.size(); i++)
-	{
-		printf("%s, ", _commands[i].first);
-	}
-
-	if (_commands.size() > 0)
-	{
-		printf("%s", _commands.back().first);
-	};
-	printf("\n");
-}
-
-void KernelShell::set(Environment& env, std::vector<std::string> args)
-{
-	if (args.size() == 2)
-	{
-		const std::string var = args[1];
-		if (env.isset(var))
-			printf("%s=%s\n", var.data(), env.get(var).data());
-		else
-			printf("%s is not set\n", var.data());
-	}
-	else if (args.size() == 3)
-	{
-		const std::string var = args[1];
-		const std::string val = args[2];
-		env.set(var, val);
-	}
-}
-
-void KernelShell::unset(Environment& env, std::vector<std::string> args)
-{
-	if (args.size() == 2)
-	{
-		const std::string var = args[1];
-		if (env.isset(var))
-			env.unset(var);
-		else
-			printf("%s was not set\n", var.data());
+void print(int c) {
+	while (true) {
+		for (volatile int i = 0 ; i < 1000000 ; i++);
+		//LOG_DEBUG("p: %d", c);
 	}
 }
 
 void KernelShell::enter()
 {
-	printf("%s$ ", _env.get("pwd").data());
-
 	// keep in the shell forever (unless we tell it to exit)
 	while (true)
 	{
@@ -197,21 +213,26 @@ void KernelShell::enter()
 		// if there is a line, fetch it (for now use a std::vector<char> since we don't have strings yet)
 		if (_input.isLineReady())
 		{
+			static int i = 1;
+			threading::spawnProcess(print, i++);
+
 			std::string line = _input.getNextLine();
 
 			// find the first matching command and call it
 			bool notFound = true;
 
-			std::vector<std::string> split = splitCommand(line);
+			std::vector<std::string>* split = new std::vector<std::string>();
+			*split = splitCommand(line);
 
-			if (split.size() > 0)
+			if (split->size() > 0)
 			{
 				for (size_t i = 0; i < _commands.size(); i++)
 				{
-					if (split[0] == _commands[i].first)
+					if (split->at(0) == _commands[i].first)
 					{
 						notFound = false;
-						(this->*_commands[i].second)(_env, split);
+						threading::Process* p = threading::spawnProcess(this->_commands[i].second, this, split);
+						u32 id = p->pid;
 						break;
 					}
 				}
@@ -221,9 +242,12 @@ void KernelShell::enter()
 					printf("Unknown command: %s\n", line.data());
 				}
 			}
-			printf("%s$ ", _env.get("pwd").data());
 		}
 	}
+}
+
+std::vector<std::pair<const char*, KernelShell::CommandFunction>>& KernelShell::commands() {
+	return _commands;
 }
 
 std::vector<std::string> KernelShell::splitCommand(std::string cmd)

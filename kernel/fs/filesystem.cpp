@@ -94,7 +94,7 @@ namespace Files
 		return parts;
 	}
 
-	std::string getPath(Environment& env, const char* path)
+	/*std::string getPath(const char* path)
 	{
 		if (path[0] == '/')
 			return path;
@@ -108,8 +108,8 @@ namespace Files
 		}
 	}
 
-	std::string getPath(Environment& env, const std::string& path)
+	std::string getPath(const std::string& path)
 	{
-		return getPath(env, path.c_str());
-	}
+		return getPath(path.c_str());
+	}*/
 }

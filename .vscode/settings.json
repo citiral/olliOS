@@ -38,6 +38,11 @@
         "stdexcept": "cpp",
         "streambuf": "cpp",
         "tuple": "cpp",
-        "type_traits": "cpp"
+        "type_traits": "cpp",
+        "thread": "cpp",
+        "condition_variable": "cpp",
+        "memory": "cpp",
+        "mutex": "cpp",
+        "sstream": "cpp"
     }
 }

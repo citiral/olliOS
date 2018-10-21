@@ -1,5 +1,6 @@
-#include "cdefs.h"
 #include "threading/thread.h"
+#include "threading/process.h"
+#include "cdefs.h"
 #include "apic.h"
 
 using namespace threading;
@@ -9,7 +10,7 @@ UniqueGenerator<u32> threading::pidGenerator;
 
 // global values that hold the parent stack pointer of a running thread. Each core will always use his own index.
 u32 parent_stack_pointers[MAX_CORE_COUNT];
-bool in_thread[MAX_CORE_COUNT];
+Thread* running_thread[MAX_CORE_COUNT];
 
 Thread::Thread(Thread& thread) {
     // Clone the stack of the thread we are copying
@@ -69,19 +70,34 @@ void Thread::enter() {
         // this way the child stack can access it when it finishes on its own.
         CLI();
         
-        in_thread[apic::id()] = true;
+        // keep track that we are in a thread
+        running_thread[apic::id()] = this;
+
+        // prepare the thread stack for entering
         volatile u32* parent_pointer = parent_stack_pointers + apic::id();
         *(volatile u32*)(_stack + THREAD_STACK_SIZE - 4) = (u32)parent_pointer;
+
+        // Load the process pagetable
+        ((memory::PageDirectory*)memory::kernelPageDirectory.getPhysicalAddress(parent->pageDirectory))->use();
+
+        // enter the process
         volatile u32 status = thread_enter(parent_pointer, &esp);
+
+        // load the kernel pagetable again
+        ((memory::PageDirectory*)memory::kernelPageDirectory.getPhysicalAddress(&memory::kernelPageDirectory))->use();
+
+        // check if the thread quit because it finished
         if (status == 0)
             _finished = true;
-        in_thread[apic::id()] = false;
+        
+        // keep track that we are not in a thread anymore
+        running_thread[apic::id()] = nullptr;
 
         STI();
     }
 }
 
-u32 Thread::pid() {
+u32 Thread::id() {
     return _id;
 }
 
@@ -97,6 +113,10 @@ void Thread::setBlocking(bool blocking) {
     _blocking = blocking;
 }
 
+void Thread::kill() {
+    _finished = true;
+}
+
 void threading::exit() {
     CLI();
     if (is_current_core_in_thread()) {
@@ -106,7 +126,7 @@ void threading::exit() {
 }
 // Returns true if the given physical core is currently running a thread
 bool threading::is_core_in_thread(u8 core) {
-    return in_thread[core];
+    return running_thread[core] != nullptr;
 }
 
 extern "C" u32* __attribute__ ((noinline)) get_parent_stack() {
@@ -120,4 +140,8 @@ bool threading::is_current_core_in_thread() {
 
 extern "C" bool __attribute__ ((noinline)) is_current_core_in_thread() {
     return threading::is_current_core_in_thread();
+}
+
+Thread* threading::currentThread() {
+    return running_thread[apic::id()];
 }

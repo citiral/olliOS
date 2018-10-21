@@ -100,7 +100,7 @@ namespace keyboard {
 
 	//a single event in the world of virtual keys.
 	//the status register is as follows:
-	// [0-5: UNUSED | 6: shift | 7: pressed]
+	// [0-4: UNUSED | 5: ctrl | 6: shift | 7: pressed]
 	// make: 1 if the key is pressed, 0 if the key is released
 	typedef struct __attribute__ ((__packed__))  VirtualKeyEvent {
 		VirtualKeycode vkey;

@@ -46,6 +46,10 @@ _Cxx_hashtable_define_trivial_hash(char);
 _Cxx_hashtable_define_trivial_hash(int);
 _Cxx_hashtable_define_trivial_hash(short);
 _Cxx_hashtable_define_trivial_hash(long);
+_Cxx_hashtable_define_trivial_hash(unsigned char);
+_Cxx_hashtable_define_trivial_hash(unsigned int);
+_Cxx_hashtable_define_trivial_hash(unsigned short);
+_Cxx_hashtable_define_trivial_hash(unsigned long);
 }
 
 #endif

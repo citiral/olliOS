@@ -3,6 +3,7 @@
 #include "string.h"
 #include "kstd/string.h"
 #include "kstd/new.h"
+#include "kstd/unordered_map.h"
 #include "stdlib.h"
 #include "acpi.h"
 
@@ -30,6 +31,7 @@
 #include "devices/ata/ata.h"
 #include "devices/pci/pci.h"
 
+#include "threading/process.h"
 #include "threading/scheduler.h"
 #include "threading/semaphore.h"
 
@@ -70,7 +72,7 @@ void initCpu() {
 
 void initMemory(multiboot_info* multiboot) {
     // We initialise the state of the physical memory allocator
-    physicalMemoryManager.init();
+    memory::physicalMemoryManager.init();
 
     // use the multiboot header to discover valid memory regions
     if ((multiboot->flags & (1 << 6)) == 0) {
@@ -79,7 +81,7 @@ void initMemory(multiboot_info* multiboot) {
         kernelAllocator.init((void*)KERNEL_END_VIRTUAL, 0xFFFFFFFF - (size_t)KERNEL_END_VIRTUAL);
 
         // set up the physical memory allocator from the end of the kernel to the end of the address space
-        physicalMemoryManager.registerAvailableMemory(KERNEL_END_PHYSICAL, 0xFFFFFFFF);
+        memory::physicalMemoryManager.registerAvailableMemory(KERNEL_END_PHYSICAL, 0xFFFFFFFF);
     } else {
         // loop over each mmap descriptor, these are of variable size so the loop is special
         for (multiboot_memory_map_t* mmap = (multiboot_memory_map_t*)multiboot->mmap_addr;
@@ -112,12 +114,12 @@ void initMemory(multiboot_info* multiboot) {
             // we have to round it up the the nearest page though
             u32 offset = (0x1000 - (u32)addr % 0x1000);
             LOG_INFO("reserving %X bytes starting at %X.", length - offset, (size_t) addr + offset);
-            physicalMemoryManager.registerAvailableMemory((void*) ((size_t) addr + offset), length - offset);
+            memory::physicalMemoryManager.registerAvailableMemory((void*) ((size_t) addr + offset), length - offset);
         }
     }
 
     // Now that we can allocate physical memory, initialize the paging. This should set up a valid not 4MB pagetable, with only the KERNEL_BEGIN_PHYSICAL to KERNEL_END_PHYSICAL mapped to the higher half, and nothing more.
-    PageInit();
+    memory::initializePaging();
     LOG_STARTUP("Paging initialized.");
 }
 
@@ -144,7 +146,7 @@ extern "C" void tthread1(u32 id) {
 
 void cpu_main() {
     LOG_INFO("enter");
-    apic::setSleep(INT_PREEMPT, apic::busFrequency / 1024, false);
+    apic::setSleep(INT_PREEMPT, apic::busFrequency / 100, false);
     while (true) {
         threading::scheduler->enter();
         __asm__ ("pause");
@@ -152,7 +154,7 @@ void cpu_main() {
 }
 
 // TODO make most global subsystems threadsafe
-void startup_thread() {
+void startup_thread(std::vector<int>* test) {
     ata::driver.initialize();
     LOG_STARTUP("ATA driver initialized.");
 
@@ -205,7 +207,10 @@ extern "C" void main(multiboot_info* multiboot) {
     //set up pre-emptive multithreading
     idt.getEntry(INT_PREEMPT).setOffset((u32)thread_interrupt);    
     threading::scheduler = new threading::Scheduler();
-    threading::scheduler->schedule(new threading::Thread(startup_thread));
+    //threading::scheduler->schedule(new threading::Thread(startup_thread));
+    std::vector<int> test;
+    test.push_back(2);
+    threading::Process* startup = threading::spawnProcess(startup_thread, &test);
     
     // if APIC is supported, switch to it and enable multicore
     cpuid_field features = cpuid(1);

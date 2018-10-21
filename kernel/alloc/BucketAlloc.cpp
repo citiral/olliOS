@@ -67,7 +67,7 @@ void* BucketAlloc::malloc(size_t size) {
             allocsize += 0x1000;
 
         // then we allocate the virtual memory
-        void* page = kernelPageDirectory.bindFirstFreeVirtualPages(KERNEL_END_VIRTUAL, allocsize / 0x1000);
+        void* page = memory::kernelPageDirectory.bindFirstFreeVirtualPages(KERNEL_END_VIRTUAL, allocsize / 0x1000);
         
         // give it the the allocator, and try to allocate some memory
         if (page != nullptr) {

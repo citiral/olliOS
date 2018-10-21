@@ -325,6 +325,10 @@ void KeyboardDriver::updateStatus(VirtualKeyEvent code) {
 		_status &= 0b11111101;
 		_status |= ((code.status & 0b00000001) << 1);
 	}
+	else if (code.vkey == VirtualKeycode::LCTRL || code.vkey == VirtualKeycode::RCTRL) {
+		_status &= 0b11111011;
+		_status |= ((code.status & 0b00000001) << 2);
+	}
 }
 
 VirtualKeyEvent KeyboardDriver::popBuffer()
@@ -412,7 +416,7 @@ VirtualKeycode scanset2_map1[255] = {
 	VirtualKeycode::INVALID,
 	VirtualKeycode::LSHIFT,
 	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
+	VirtualKeycode::LCTRL,
 	VirtualKeycode::Q,
 	VirtualKeycode::T_1,
 	VirtualKeycode::INVALID,
@@ -545,7 +549,7 @@ VirtualKeycode scanset2_map2[255] = {
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
+	VirtualKeycode::RCTRL,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,

@@ -8,7 +8,6 @@
 #include "devices/blockdevice.h"
 #include "kstd/vector.h"
 #include "kstd/string.h"
-#include "environment.h"
 
 enum DirEntryType {
     Folder,
@@ -47,8 +46,8 @@ namespace Files
 	// Note that the first .. will not be removed.
 	std::string normalize(const char* path);
 	std::string normalize(const std::string& path);
-	std::string getPath(Environment& env, const char* path);
-	std::string getPath(Environment& env, const std::string& path);
+	std::string getPath(const char* path);
+	std::string getPath(const std::string& path);
 	std::vector<std::string> split(const char* path);
 }
 
