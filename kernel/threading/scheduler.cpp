@@ -1,5 +1,6 @@
 #include "scheduler.h"
 #include "cdefs.h"
+#include "apic.h"
 
 using namespace threading;
 

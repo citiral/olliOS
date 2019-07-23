@@ -16,7 +16,7 @@ void Spinlock::lock() {
 }
 
 bool Spinlock::try_lock() {
-    volatile register u8 v = 0;
+    volatile register u8 v = 1;
     // exchange the current value with v. if the spinlock was free, v is now 0
     __asm__ ("xchg %0, %1; pause " : "+m"(_value), "=a" (v) : "1" (v));
 

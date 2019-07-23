@@ -111,8 +111,8 @@ pushad
 
 ; if we are not actually in a thread, leave the routine
 call is_current_core_in_thread
-cmp eax, 1
-jne end
+cmp eax, 0
+je end
 
 ; get the parent stack so we can load it
 call get_parent_stack

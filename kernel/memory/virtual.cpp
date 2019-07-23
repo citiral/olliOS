@@ -65,11 +65,11 @@ namespace memory {
 
 		// and finally we can use the directory
 		((PageDirectory*)(((char*)&kernelPageDirectory) - 0xC0000000))->use();
-
+/*
 		// we also make sure a directory is allocated for the kernel (last gb)
 		for (int i = 256*2; i < 256*3; i++) {
 			kernelPageDirectory.allocateEntry(i);
-		}
+		}*/
 	}
 
 	void enablePaging()
@@ -430,7 +430,7 @@ namespace memory {
 		PageTableEntry* page = getReadableTablePointer(pdIndex, ptIndex);
 		return (void*) ((size_t) page->getAddress() + ((size_t) virt & (size_t)(4095)));
 	}
-
+/*
 	PageDirectory* PageDirectory::clone() {
 		PageDirectory* dir = memory::allocatePageDirectory();
 		*dir = *this;
@@ -449,5 +449,5 @@ namespace memory {
 
 	void freePageDirectory(PageDirectory* page) {
 		kernelPageDirectory.unbindVirtualPage(page);
-	}
+	}*/
 }

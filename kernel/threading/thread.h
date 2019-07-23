@@ -8,7 +8,6 @@
 #include <string.h>
 
 extern "C" void __attribute__ ((noinline)) thread_interrupt();
-extern "C" u32* __attribute__ ((noinline)) get_parent_stack();
 extern "C" bool __attribute__ ((noinline)) is_current_core_in_thread();
 extern "C" u32 __attribute__ ((noinline)) thread_enter(volatile u32* pEsp, volatile u32* esp);
 extern "C" void __attribute__ ((noinline)) thread_exit(volatile u32* pEsp);
@@ -21,8 +20,6 @@ void threadingFunctionWrapper(void(T::*func)(ARGS...), T* c, ARGS ... args) {
 }
 
 namespace threading {
-
-    class Process;
     
     extern UniqueGenerator<u32> pidGenerator;
 
@@ -36,7 +33,7 @@ namespace threading {
     public:
         // initializes a thread were the called function gets passed the given arguments
         template<class ... ARGS>
-        Thread(Process* parent, void(*entry)(ARGS...), ARGS ... args): parent(parent), _finished(false), _id(pidGenerator.next()), _blocking(false) {
+        Thread(void(*entry)(ARGS...), ARGS ... args): _finished(false), _id(pidGenerator.next()), _blocking(false) {
             // A new thread allocates his own stack
             _stack = new char[THREAD_STACK_SIZE];
             memset(_stack, 0, THREAD_STACK_SIZE);
@@ -58,7 +55,7 @@ namespace threading {
 
         // initializes a thread were the called function gets passed the given arguments
         template<class T, class ... ARGS>
-        Thread(Process* parent, void(T::*entry)(ARGS...), T* c, ARGS ... args): parent(parent), _finished(false), _id(pidGenerator.next()), _blocking(false) {
+        Thread(void(T::*entry)(ARGS...), T* c, ARGS ... args): _finished(false), _id(pidGenerator.next()), _blocking(false) {
             // A new thread allocates his own stack
             _stack = new char[THREAD_STACK_SIZE];
             memset(_stack, 0, THREAD_STACK_SIZE);
@@ -96,9 +93,6 @@ namespace threading {
 
         // Kills the thread by setting finished to true. If the thread is still running, it will only be shut down next time it is scheduled.
         void kill();
-
-        // The parent process of the thread
-        Process* parent;
 
     private:
         void initializeArguments(u32) {

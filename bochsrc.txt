@@ -5,7 +5,7 @@ vga: extension=vbe, update_freq=15
 
 log: bochsout.txt
 mouse: enabled=0
-cpu: ips=15000000, count=4
+cpu: ips=15000000, count=1
 clock: sync=slowdown
 
 ata0: enabled=1, ioaddr1=0x1f0, ioaddr2=0x3f0, irq=14

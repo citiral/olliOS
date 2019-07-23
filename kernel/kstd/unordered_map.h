@@ -230,8 +230,8 @@ namespace std {
 			{
 				for (size_t i = 0; i < _used[bucket]; i++)
 				{
-					_values[bucket][i] = map._values[bucket][i];
-					_keys[bucket][i] = map._keys[bucket][i];
+					new (&_values[bucket][i]) V(map._values[bucket][i]);
+					new (&_keys[bucket][i]) K(map._keys[bucket][i]);
 				}
 			}
 		}

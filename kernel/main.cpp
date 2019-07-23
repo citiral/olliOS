@@ -13,7 +13,6 @@
 #include "sleep.h"
 
 #include "eventbus/eventbus.h"
-#include "eventbus/eventbustest.h"
 
 #include "pic.h"
 #include "apic.h"
@@ -31,7 +30,6 @@
 #include "devices/ata/ata.h"
 #include "devices/pci/pci.h"
 
-#include "threading/process.h"
 #include "threading/scheduler.h"
 #include "threading/semaphore.h"
 
@@ -145,16 +143,22 @@ extern "C" void tthread1(u32 id) {
 }
 
 void cpu_main() {
-    LOG_INFO("enter");
-    apic::setSleep(INT_PREEMPT, apic::busFrequency / 100, false);
+    LOG_INFO("entering from cpu main %d", apic::id());
+    apic::setSleep(INT_PREEMPT, apic::busFrequency / 1024, false);
     while (true) {
         threading::scheduler->enter();
         __asm__ ("pause");
     }
 }
 
+void print(int c) {
+	while (true)
+	LOG_DEBUG("p: %d, from core %d", c, apic::id());
+}
+
+
 // TODO make most global subsystems threadsafe
-void startup_thread(std::vector<int>* test) {
+void startup_thread() {
     ata::driver.initialize();
     LOG_STARTUP("ATA driver initialized.");
 
@@ -181,6 +185,15 @@ void startup_thread(std::vector<int>* test) {
         vfs->BindFilesystem(name, new Iso9660FileSystem(device));
     }
 
+    int k = 0;
+    while (true) {
+        k++;
+        for (volatile int i = 0 ; i < 1000000 ; i++) {
+        }
+        threading::Thread* t = new threading::Thread(print, k++);
+        threading::scheduler->schedule(t);
+    }
+
     KernelShell* shell = new KernelShell();
     shell->enter();
 }
@@ -205,12 +218,12 @@ extern "C" void main(multiboot_info* multiboot) {
     acpi::init();
 
     //set up pre-emptive multithreading
-    idt.getEntry(INT_PREEMPT).setOffset((u32)thread_interrupt);    
+    idt.getEntry(INT_PREEMPT).setOffset((u32)thread_interrupt);
     threading::scheduler = new threading::Scheduler();
-    //threading::scheduler->schedule(new threading::Thread(startup_thread));
-    std::vector<int> test;
+    threading::scheduler->schedule(new threading::Thread(startup_thread));
+    /*std::vector<int> test;
     test.push_back(2);
-    threading::Process* startup = threading::spawnProcess(startup_thread, &test);
+    threading::Process* startup = threading::spawnProcess(startup_thread, &test);*/
     
     // if APIC is supported, switch to it and enable multicore
     cpuid_field features = cpuid(1);

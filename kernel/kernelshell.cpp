@@ -8,7 +8,8 @@
 #include "devices/keyboard.h"
 #include "fs/filesystem.h"
 #include "fs/virtualfilesystem.h"
-#include "threading/process.h"
+#include "threading/thread.h"
+#include "threading/scheduler.h"
 #include "apic.h"
 #include <string.h>
 #include "stdio.h"
@@ -187,14 +188,6 @@ KernelShell::KernelShell(): _commands()
 	_env.set("pwd", "/");
 	_env.set("home", "/");*/
 }
-
-void print(int c) {
-	while (true) {
-		for (volatile int i = 0 ; i < 1000000 ; i++);
-		//LOG_DEBUG("p: %d", c);
-	}
-}
-
 void KernelShell::enter()
 {
 	// keep in the shell forever (unless we tell it to exit)
@@ -213,9 +206,6 @@ void KernelShell::enter()
 		// if there is a line, fetch it (for now use a std::vector<char> since we don't have strings yet)
 		if (_input.isLineReady())
 		{
-			static int i = 1;
-			threading::spawnProcess(print, i++);
-
 			std::string line = _input.getNextLine();
 
 			// find the first matching command and call it
@@ -231,8 +221,8 @@ void KernelShell::enter()
 					if (split->at(0) == _commands[i].first)
 					{
 						notFound = false;
-						threading::Process* p = threading::spawnProcess(this->_commands[i].second, this, split);
-						u32 id = p->pid;
+						threading::Thread* p = new threading::Thread(this->_commands[i].second, this, split);
+						threading::scheduler->schedule(p);
 						break;
 					}
 				}

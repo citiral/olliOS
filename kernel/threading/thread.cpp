@@ -1,5 +1,4 @@
 #include "threading/thread.h"
-#include "threading/process.h"
 #include "cdefs.h"
 #include "apic.h"
 
@@ -77,14 +76,8 @@ void Thread::enter() {
         volatile u32* parent_pointer = parent_stack_pointers + apic::id();
         *(volatile u32*)(_stack + THREAD_STACK_SIZE - 4) = (u32)parent_pointer;
 
-        // Load the process pagetable
-        ((memory::PageDirectory*)memory::kernelPageDirectory.getPhysicalAddress(parent->pageDirectory))->use();
-
-        // enter the process
+        // enter the thread
         volatile u32 status = thread_enter(parent_pointer, &esp);
-
-        // load the kernel pagetable again
-        ((memory::PageDirectory*)memory::kernelPageDirectory.getPhysicalAddress(&memory::kernelPageDirectory))->use();
 
         // check if the thread quit because it finished
         if (status == 0)
