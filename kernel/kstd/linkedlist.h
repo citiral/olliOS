@@ -8,7 +8,7 @@
 template<class T>
 class LinkedList {
 public:
-    class Node {
+    struct Node {
         Node* next;
         T t;
     };
@@ -21,12 +21,12 @@ public:
         // If this is the first node, put it as last, and have it point to itself
         if (_last == NULL) {
             _last = node;
-            _last.next = node;
+            _last->next = node;
             return;
         // Otherwise put it after the last one, making it the first, and having it point to the old first (now second) node.
         } else {
-            node.next = _last.next;
-            _last.next = node;
+            node->next = _last->next;
+            _last->next = node;
         }
     }
 
@@ -37,8 +37,8 @@ public:
             return nullptr;
         }
         
-        node = _last.next;
-        _last.next = node.next;
+        node = _last->next;
+        _last->next = node->next;
 
         if (node == _last) {
             _last = nullptr;
@@ -49,7 +49,7 @@ public:
 
     Node* peek() {
         if (_last != nullptr) {
-            return _last.next;
+            return _last->next;
         } else {
             return nullptr;
         }

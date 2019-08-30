@@ -156,9 +156,8 @@ void print(int c) {
 	LOG_DEBUG("p: %d, from core %d", c, apic::id());
 }
 
-
-// TODO make most global subsystems threadsafe
-void startup_thread() {
+void startup_listener(void* context, u32 type, u32 source, u32 destination, u32 size, void* data)
+{
     ata::driver.initialize();
     LOG_STARTUP("ATA driver initialized.");
 
@@ -185,18 +184,10 @@ void startup_thread() {
         vfs->BindFilesystem(name, new Iso9660FileSystem(device));
     }
 
-    int k = 0;
-    while (true) {
-        k++;
-        for (volatile int i = 0 ; i < 1000000 ; i++) {
-        }
-        threading::Thread* t = new threading::Thread(print, k++);
-        threading::scheduler->schedule(t);
-    }
-
     KernelShell* shell = new KernelShell();
     shell->enter();
 }
+
 
 extern "C" void main(multiboot_info* multiboot) {
     // init lowlevel CPU related stuff
@@ -220,10 +211,10 @@ extern "C" void main(multiboot_info* multiboot) {
     //set up pre-emptive multithreading
     idt.getEntry(INT_PREEMPT).setOffset((u32)thread_interrupt);
     threading::scheduler = new threading::Scheduler();
-    threading::scheduler->schedule(new threading::Thread(startup_thread));
-    /*std::vector<int> test;
-    test.push_back(2);
-    threading::Process* startup = threading::spawnProcess(startup_thread, &test);*/
+
+    // Create an event bus
+    EventBus eventbus;
+    eventbus.registerListener(EVENT_TYPE_STARTUP, EVENT_TARGET_MAIN, EVENT_TARGET_MAIN, nullptr, startup_listener);
     
     // if APIC is supported, switch to it and enable multicore
     cpuid_field features = cpuid(1);
@@ -238,8 +229,8 @@ extern "C" void main(multiboot_info* multiboot) {
     
 	// Initialize the serial driver so that we can output debug messages very early.
 	//initSerialDevices();
-        
     LOG_INFO("STARTING");
+    eventbus.pushEvent(EVENT_TYPE_STARTUP, EVENT_TARGET_MAIN, EVENT_TARGET_MAIN, 0, nullptr);
     cpu_main();
 
 	/*char* mainL = (char*) main;

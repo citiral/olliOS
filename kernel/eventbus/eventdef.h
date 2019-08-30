@@ -1,10 +1,12 @@
 #ifndef __OLLIOS_EVENTDEF_H
 #define __OLLIOS_EVENTDEF_H
 
-typedef unsigned int EventType;
-typedef unsigned int EventTarget;
+#include "types.h"
 
-#define TARGET_ANY 0x00000000
-#define TARGET_ALL 0xFFFFFFFF
+#define EVENT_TARGET_ANY 0x00000000
+#define EVENT_TARGET_MAIN 0x00000001
+#define EVENT_TARGET_ALL 0xFFFFFFFF
+
+#define EVENT_TYPE_STARTUP  1
 
 #endif
