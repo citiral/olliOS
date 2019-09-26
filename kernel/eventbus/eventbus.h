@@ -17,6 +17,7 @@ public:
 	u32 destinationMask;
 	void (*callback)(void* context, u32 type, u32 source, u32 destination, u32 size, void* data);
 	void* context;
+	EventListener *next;
 };
 
 
@@ -30,8 +31,8 @@ private:
 	void eventEntry(u32 type, u32 source, u32 destination, u32 size, void* data);
 
 private:
-	std::unordered_map<u32, std::vector<EventListener>> listeners;
-	threading::Spinlock eventlock;
+	EventListener *listeners;
+	EventListener *listeners_last;
 };
 
 #endif

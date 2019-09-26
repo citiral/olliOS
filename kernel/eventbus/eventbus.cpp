@@ -1,9 +1,9 @@
 #include "eventbus.h"
 #include "threading/scheduler.h"
 
-EventBus::EventBus()
+EventBus::EventBus(): listeners(nullptr), listeners_last(nullptr)
 {
-
+    
 }
 
 void EventBus::pushEvent(u32 type, u32 source, u32 destination, u32 size, void* data)
@@ -14,27 +14,30 @@ void EventBus::pushEvent(u32 type, u32 source, u32 destination, u32 size, void* 
 
 void EventBus::registerListener(u32 type, u32 sourceMask, u32 destinationMask, void* context, decltype(EventListener::callback) callback)
 {
-    eventlock.lock();
-    listeners[type].push_back(EventListener {
-        .type = type,
-        .sourceMask = sourceMask,
-        .destinationMask = destinationMask,
-        .callback = callback,
-        .context = context,
-    });
-    eventlock.release();
+    EventListener* listener = new EventListener;
+    listener->type = type;
+    listener->sourceMask = sourceMask;
+    listener->destinationMask = destinationMask;
+    listener->callback = callback;
+    listener->context = context;
+    listener->next = nullptr;
+
+    if (listeners_last == nullptr) {
+        listeners = listener;
+        listeners_last = listener;       
+    } else {
+        listeners_last->next = listener;
+        listeners_last = listener;
+    }
 }
 
 void EventBus::eventEntry(u32 type, u32 source, u32 destination, u32 size, void* data)
 {
-    eventlock.lock();
-    std::vector<EventListener> typelisteners = listeners[type];
-    int count = typelisteners.size();
-    eventlock.release();
+    EventListener *listener = listeners;
 
-    for (int i = 0 ; i < count ; i++) {
-        if (((typelisteners[i].sourceMask & source) != 0) && ((typelisteners[i].destinationMask & destination) != 0)) {
-            typelisteners[i].callback(typelisteners[i].context, type, source, destination, size, data);
+    while (listener != nullptr) {
+        if (((listener->sourceMask & source) != 0) && ((listener->destinationMask & destination) != 0)) {
+            listener->callback(listener->context, type, source, destination, size, data);
         }
     }
 }
