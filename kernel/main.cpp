@@ -40,6 +40,7 @@
 #include "multiboot.h"
 #include "kernelshell.h"
 #include "cpuid.h"
+#include "elf.h"
 
 #include "util/unique.h"
 
@@ -184,6 +185,7 @@ void startup_listener(void* context, u32 type, u32 source, u32 destination, u32 
         vfs->BindFilesystem(name, new Iso9660FileSystem(device));
     }
 
+
     KernelShell* shell = new KernelShell();
     shell->enter();
 }
@@ -226,6 +228,19 @@ extern "C" void main(multiboot_info* multiboot) {
     } else {
         LOG_STARTUP("APIC not supported, skipping. (Threading will not be supported)");
     }
+    printf("Flags: %X\n", multiboot->flags);
+    printf("mods count: %d\n", multiboot->mods_count);
+    multiboot_module_t *mod = (multiboot_module_t*) multiboot->mods_addr;
+
+    for (int i = 0 ; i < multiboot->mods_count ; i++) {
+        printf("mod %d is at %X\n", i, mod->mod_start);
+        u8* c = (u8*) mod->mod_start;
+
+        elf::dump_elf(c);
+
+        mod++;
+    }
+     
     
 	// Initialize the serial driver so that we can output debug messages very early.
 	//initSerialDevices();
