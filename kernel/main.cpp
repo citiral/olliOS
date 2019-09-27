@@ -40,6 +40,7 @@
 #include "multiboot.h"
 #include "kernelshell.h"
 #include "cpuid.h"
+#include "symbolmap.h"
 #include "elf.h"
 
 #include "util/unique.h"
@@ -232,14 +233,21 @@ extern "C" void main(multiboot_info* multiboot) {
     printf("mods count: %d\n", multiboot->mods_count);
     multiboot_module_t *mod = (multiboot_module_t*) multiboot->mods_addr;
 
-    for (int i = 0 ; i < multiboot->mods_count ; i++) {
+    printf("elf: %d\n", multiboot->u.elf_sec.size);
+
+    SymbolMap map((const char*) mod->mod_start);
+    mod++;
+
+    for (int i = 1 ; i < multiboot->mods_count ; i++) {
         printf("mod %d is at %X\n", i, mod->mod_start);
         u8* c = (u8*) mod->mod_start;
 
-        elf::dump_elf(c);
+        elf::dump_elf(c, map);
 
         mod++;
     }
+
+    while(1);
      
     
 	// Initialize the serial driver so that we can output debug messages very early.

@@ -10,7 +10,7 @@ OUTPUT=ollios.bin
 
 INCLUDE = -I $(ROOT)usr/include
 CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O0 -Wall -Wextra -fno-exceptions -fno-rtti $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -nostdlib -fno-threadsafe-statics -Werror=return-type -m32 -g -mgeneral-regs-only
-LDFLAGS = -ffreestanding -O0 -nostdlib -lgcc
+LDFLAGS = -ffreestanding -O0 -nostdlib -lgcc -Wl,-Map -Wl,mapfile -Wl,--cref
 LIBS = $(ROOT)/usr/lib/libk.a
 
 KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/threading/*.cpp) $(wildcard kernel/eventbus/*.cpp) $(wildcard kernel/util/*.cpp) $(wildcard kernel/devices/*.cpp) $(wildcard kernel/devices/ata/*.cpp) $(wildcard kernel/devices/pci/*.cpp) $(wildcard kernel/alloc/*.cpp) $(wildcard kernel/fs/*.cpp) $(wildcard kernel/kstd/*.cpp)  $(wildcard kernel/memory/*.cpp)
@@ -40,6 +40,7 @@ kernel: dir install-headers compile-kernel install-kernel install-grub iso
 
 compile-kernel: $(CRTI_OBJ) $(OBJECTS) $(CRTN_OBJ)
 	$(CC) -T kernel/linker.ld -o build/$(OUTPUT) $(CFLAGS) $(addprefix build/, $(CRTI_OBJ)) $(CRTBEGIN_OBJ) $(addprefix build/,$(OBJECTS)) $(CRTEND_OBJ) $(addprefix build/, $(CRTN_OBJ)) $(LDFLAGS) $(LIBS)
+	nm build/$(OUTPUT) > build/ollios.sym
 
 clean:
 	rm -fr build root
@@ -90,6 +91,7 @@ install-headers:
 
 install-kernel: libk compile-kernel
 	cp -RTv build/$(OUTPUT) $(ROOT)boot/$(OUTPUT)
+	cp -RTv build/ollios.sym $(ROOT)boot/ollios.sym
 
 qemu: all
 	./qemu.sh

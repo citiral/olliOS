@@ -3,3 +3,5 @@ timeout 0
 
 title   Ollios
 kernel  /boot/ollios.bin
+module /boot/ollios.sym
+module /boot/test.so

@@ -1,0 +1,7 @@
+set default=0
+set timeout=0
+
+menuentry "OlliOS" {
+        module /boot/test.txt
+        multiboot /boot/ollios.bin /boot/test.txt
+}
