@@ -1,6 +1,7 @@
 #ifndef OLLIOS_GIT_UNORDERED_MAP
 #define OLLIOS_GIT_UNORDERED_MAP
 
+#include "stdlib.h"
 #include "functional.h"
 #include "new.h"
 
@@ -151,8 +152,8 @@ namespace std {
 
 			for (size_t i = 0; i < _numBuckets; i++)
 			{
-				_values[i] = new V[_bucketSize];
-				_keys[i] = new K[_bucketSize];
+				_values[i] = (V*) malloc(sizeof(V) * _bucketSize);
+				_keys[i] = (K*) malloc(sizeof(K) * _bucketSize);
 				_used[i] = 0;
 			}
 		}
@@ -208,8 +209,8 @@ namespace std {
 					oldKeys[bucket][i].~K();
 				}
 
-				delete[] oldValues[bucket];
-				delete[] oldKeys[bucket];
+				free(oldValues[bucket]);
+				free(oldKeys[bucket]);
 			}
 			delete[] oldValues;
 			delete[] oldKeys;
