@@ -30,6 +30,7 @@ enum class section_type: u32 {
 };
 
 enum class relocation_type: u32 {
+    R_386_32 = 1,
     R_386_PC32 = 2,
     R_386_PLT32 = 4,
     R_386_GOTOFF = 9,

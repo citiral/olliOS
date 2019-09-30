@@ -93,6 +93,8 @@ static int relocate_entry(elf_header* elf, section_header* section, elf_rel relo
 
         // https://docs.oracle.com/cd/E19683-01/816-7529/chapter6-26/index.html
         switch((u8) relocation.info) {
+            case (int) relocation_type::R_386_32:
+                *ref = symval + *ref;
             case (int) relocation_type::R_386_PC32:
             case (int) relocation_type::R_386_PLT32:
                 *ref = symval + *ref - (u32)ref;
