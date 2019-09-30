@@ -4,7 +4,7 @@
 #include "types.h"
 #include "symbolmap.h"
 
-#define ELF_GOT_SIZE 2048
+#define ELF_GOT_SIZE 1024
 
 namespace elf {
 

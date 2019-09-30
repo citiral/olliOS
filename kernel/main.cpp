@@ -242,11 +242,6 @@ extern "C" void main(multiboot_info* multiboot) {
     printf("Flags: %X\n", multiboot->flags);
     printf("mods count: %d\n", multiboot->mods_count);
     multiboot_module_t *mod = (multiboot_module_t*) multiboot->mods_addr;
-    for (int i = 1 ; i < multiboot->mods_count ; i++) {
-        u8* c = (u8*) mod->mod_start;
-        memory::physicalMemoryManager.reservePhysicalMemory((void*) mod->mod_start, mod->mod_end - mod->mod_start);
-    }
-
 
     printf("elf: %d\n", multiboot->u.elf_sec.size);
 

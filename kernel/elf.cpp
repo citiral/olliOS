@@ -103,10 +103,11 @@ static int relocate_entry(elf* e, elf_header* elf, section_header* section, elf_
                 *ref = symval + *ref - (u32)got;
                 break;
             case (int) relocation_type::R_386_GOT32:
-                if (e->_got_count == ELF_GOT_SIZE - 1) {
+                if (e->_got_count + 1 >= ELF_GOT_SIZE) {
                     printf("GOT overflow\n");
                     return -1;
                 }
+
                 e->_got_count++;
                 e->_GOT[e->_got_count] = symval;
                 *ref = e->_got_count*4 + *ref;
