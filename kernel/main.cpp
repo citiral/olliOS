@@ -241,8 +241,18 @@ extern "C" void main(multiboot_info* multiboot) {
     for (int i = 1 ; i < multiboot->mods_count ; i++) {
         printf("mod %d is at %X\n", i, mod->mod_start);
         u8* c = (u8*) mod->mod_start;
+        
+        elf::elf e = elf::elf(c);
+        if (e.link(map) != 0) {
+            printf("failed linking elf\n");
+        } else {
+            int (*module_load)();
+            e.get_symbol_value("module_load", (u32*) &module_load);
+            module_load();
+        }
 
-        elf::dump_elf(c, map);
+
+        //elf::dump_elf(c, map);
 
         mod++;
     }
