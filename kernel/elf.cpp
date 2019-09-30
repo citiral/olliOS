@@ -5,6 +5,7 @@
 namespace elf {
 
 #define MAGIC_NUMBER 0x464C457F
+#define MAX_GOT 8192
 
 enum class section_type: u32 {
     SNULL = 0,
@@ -30,6 +31,8 @@ enum class section_type: u32 {
 enum class relocation_type: u32 {
     R_386_PC32 = 2,
     R_386_PLT32 = 4,
+    R_386_GOTOFF = 9,
+    R_386_GOTPC = 10,
 };
 
 struct program_header {
@@ -128,7 +131,11 @@ void allocate_nobits(section_header* section)
         return;
     }
 
-    printf("TODO: implement nobits allocation");
+    if (section->flags & 0x02) {
+        void* mem = malloc(section->size);
+        memset(mem, 0, section->size);
+        section->offset = (u32)mem - (u32)section;
+    }
 }
 
 u32 get_symbol_value(elf_header* elf, section_header* section, u32 symbol_index, SymbolMap& map)
@@ -177,7 +184,7 @@ u32 find_symbol_value(elf_header* elf, section_header* section, const char *symb
     return 0;
 }
 
-void relocate_entry(elf_header* elf, section_header* section, elf_rel relocation, SymbolMap& map)
+void relocate_entry(elf_header* elf, section_header* section, elf_rel relocation, SymbolMap& map, u32* got)
 {
     section_header* target = get_section_header(elf, section->info);
     //printf("relocation target is %s\n", get_section_name(elf, section->info));
@@ -194,20 +201,27 @@ void relocate_entry(elf_header* elf, section_header* section, elf_rel relocation
         switch((u8) relocation.info) {
             case (int) relocation_type::R_386_PC32:
             case (int) relocation_type::R_386_PLT32:
-                *ref =  symval + *ref - (u32)ref;
+                *ref = symval + *ref - (u32)ref;
+                break;
+            case (int) relocation_type::R_386_GOTPC:
+                *ref = (u32)got + *ref - (u32)ref;
+                break;
+            case (int) relocation_type::R_386_GOTOFF:
+                *ref = symval + *ref - (u32)got;
+                break;
             default:
                 printf("Unhandled relocation type\n");
         }
     }
 }
 
-void relocate_section(elf_header* elf, section_header* section, SymbolMap& map)
+void relocate_section(elf_header* elf, section_header* section, SymbolMap& map, u32* got)
 {
     elf_rel* relocation = (elf_rel*) (((u8*)elf) + section->offset);
 
     for (size_t i = 0 ; i < section->size / sizeof(elf_rel) ; i += 1) {
         printf("relocating..\n");
-        relocate_entry(elf, section, relocation[i], map);
+        relocate_entry(elf, section, relocation[i], map, got);
     }
 }
 
@@ -243,6 +257,9 @@ void dump_elf(u8* file, SymbolMap& map)
         return;
     }
 
+    u32 got[MAX_GOT];
+    memset(got, 0, sizeof(got));
+
     printf("program headers: %d\n", header->program_header_table_entries);
     printf("section headers: %d\n", header->section_header_table_entries);
     printf("string section header %d\n", header->section_header_table_string_index);
@@ -260,7 +277,7 @@ void dump_elf(u8* file, SymbolMap& map)
         section_header* section = get_section_header(header, i);
         if (section->type == section_type::REL) {
             printf("relocating section: %s\n", get_section_name(header, i));
-            relocate_section(header, section, map);
+            relocate_section(header, section, map, got);
         }
     } 
 
@@ -278,10 +295,4 @@ void dump_elf(u8* file, SymbolMap& map)
     }  
 }
 
-}
-
-
-extern "C" void testprint(const char *s) {
-    printf("string adr is %x", s);
-    printf(s - 0xC0000000);
 }
