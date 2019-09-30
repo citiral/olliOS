@@ -118,6 +118,14 @@ void initMemory(multiboot_info* multiboot) {
         }
     }
 
+    // make sure the memory of the other modules isn't overwritten
+    multiboot_module_t *mod = (multiboot_module_t*) multiboot->mods_addr;
+    for (size_t i = 0 ; i < multiboot->mods_count ; i++) {
+        u8* c = (u8*) mod->mod_start;
+        memory::physicalMemoryManager.reservePhysicalMemory((void*) mod->mod_start, mod->mod_end - mod->mod_start);
+        mod++;
+    }
+
     // Now that we can allocate physical memory, initialize the paging. This should set up a valid not 4MB pagetable, with only the KERNEL_BEGIN_PHYSICAL to KERNEL_END_PHYSICAL mapped to the higher half, and nothing more.
     memory::initializePaging();
     LOG_STARTUP("Paging initialized.");
@@ -160,6 +168,7 @@ void print(int c) {
 
 void startup_listener(void* context, u32 type, u32 source, u32 destination, u32 size, void* data)
 {
+    return;
     ata::driver.initialize();
     LOG_STARTUP("ATA driver initialized.");
 
@@ -216,8 +225,8 @@ extern "C" void main(multiboot_info* multiboot) {
     threading::scheduler = new threading::Scheduler();
 
     // Create an event bus
-    EventBus eventbus;
-    eventbus.registerListener(EVENT_TYPE_STARTUP, EVENT_TARGET_MAIN, EVENT_TARGET_MAIN, nullptr, startup_listener);
+    //EventBus eventbus;
+    //eventbus.registerListener(EVENT_TYPE_STARTUP, EVENT_TARGET_MAIN, EVENT_TARGET_MAIN, nullptr, startup_listener);
     
     // if APIC is supported, switch to it and enable multicore
     cpuid_field features = cpuid(1);
@@ -229,9 +238,15 @@ extern "C" void main(multiboot_info* multiboot) {
     } else {
         LOG_STARTUP("APIC not supported, skipping. (Threading will not be supported)");
     }
+
     printf("Flags: %X\n", multiboot->flags);
     printf("mods count: %d\n", multiboot->mods_count);
     multiboot_module_t *mod = (multiboot_module_t*) multiboot->mods_addr;
+    for (int i = 1 ; i < multiboot->mods_count ; i++) {
+        u8* c = (u8*) mod->mod_start;
+        memory::physicalMemoryManager.reservePhysicalMemory((void*) mod->mod_start, mod->mod_end - mod->mod_start);
+    }
+
 
     printf("elf: %d\n", multiboot->u.elf_sec.size);
 
@@ -242,27 +257,28 @@ extern "C" void main(multiboot_info* multiboot) {
         printf("mod %d is at %X\n", i, mod->mod_start);
         u8* c = (u8*) mod->mod_start;
         
-        elf::elf e = elf::elf(c);
-        if (e.link(map) != 0) {
+        elf::elf* e = new elf::elf(c);
+        if (e == nullptr) {
+            printf("Failed allocating elf\n");
+            while (1);
+        }
+
+        if (e->link(map) != 0) {
             printf("failed linking elf\n");
         } else {
             int (*module_load)();
-            e.get_symbol_value("module_load", (u32*) &module_load);
+            e->get_symbol_value("module_load", (u32*) &module_load);
+            printf("done. running.... %x\n", module_load);
             module_load();
         }
-
-
-        //elf::dump_elf(c, map);
 
         mod++;
     }
 
-    while(1);
-     
-    
 	// Initialize the serial driver so that we can output debug messages very early.
 	//initSerialDevices();
     LOG_INFO("STARTING");
+    printf("eventbus: %x", &eventbus);
     eventbus.pushEvent(EVENT_TYPE_STARTUP, EVENT_TARGET_MAIN, EVENT_TARGET_MAIN, 0, nullptr);
     cpu_main();
 

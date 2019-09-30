@@ -58,7 +58,7 @@ static int get_symbol_value(elf_header* elf, section_header* section, u32 symbol
             printf("Found symbol %s at %X\n", name, entry->offset);
         }
 
-        *out = entry->offset - 0xC0000000;
+        *out = entry->offset;
         return 0;
     } else {
         section_header* ndx_header = get_section_header(elf, symbol->section_index);
@@ -69,7 +69,7 @@ static int get_symbol_value(elf_header* elf, section_header* section, u32 symbol
     return -1;
 }
 
-static int relocate_entry(elf_header* elf, section_header* section, elf_rel relocation, SymbolMap& map, u32* got)
+static int relocate_entry(elf* e, elf_header* elf, section_header* section, elf_rel relocation, SymbolMap& map, u32* got)
 {
     section_header* target = get_section_header(elf, section->info);
     //printf("relocation target is %s\n", get_section_name(elf, section->info));
@@ -102,6 +102,15 @@ static int relocate_entry(elf_header* elf, section_header* section, elf_rel relo
             case (int) relocation_type::R_386_GOTOFF:
                 *ref = symval + *ref - (u32)got;
                 break;
+            case (int) relocation_type::R_386_GOT32:
+                if (e->_got_count == ELF_GOT_SIZE - 1) {
+                    printf("GOT overflow\n");
+                    return -1;
+                }
+                e->_got_count++;
+                e->_GOT[e->_got_count] = symval;
+                *ref = e->_got_count*4 + *ref;
+                break;
             default:
                 printf("Unhandled relocation type\n");
                 //return 0;
@@ -114,13 +123,13 @@ static int relocate_entry(elf_header* elf, section_header* section, elf_rel relo
     return -1;
 }
 
-static int relocate_section(elf_header* elf, section_header* section, SymbolMap& map, u32* got)
+static int relocate_section(elf* e, elf_header* elf, section_header* section, SymbolMap& map, u32* got)
 {
     elf_rel* relocation = (elf_rel*) (((u8*)elf) + section->offset);
 
     for (size_t i = 0 ; i < section->size / sizeof(elf_rel) ; i += 1) {
         printf("relocating.. %d\n", i);
-        if (relocate_entry(elf, section, relocation[i], map, got) != 0) {
+        if (relocate_entry(e, elf, section, relocation[i], map, got) != 0) {
             return -1;
         }
     }
@@ -128,7 +137,7 @@ static int relocate_section(elf_header* elf, section_header* section, SymbolMap&
     return 0;
 }
 
-elf::elf(u8* data): _header((elf_header*) data)
+elf::elf(u8* data): _header((elf_header*) data), _got_count(0)
 {
     memset(_GOT, 0, sizeof(_GOT));
 }
@@ -179,7 +188,7 @@ int elf::link(SymbolMap& map)
         section_header* section = get_section_header(_header, i);
         if (section->type == section_type::REL) {
             printf("relocating section: %s\n", get_section_name(_header, i));
-            if (relocate_section(_header, section, map, _GOT) != 0) {
+            if (relocate_section(this, _header, section, map, _GOT) != 0) {
                 return -1;
             }
         }

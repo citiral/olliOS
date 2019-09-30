@@ -35,4 +35,6 @@ private:
 	EventListener *listeners_last;
 };
 
+extern EventBus eventbus;
+
 #endif

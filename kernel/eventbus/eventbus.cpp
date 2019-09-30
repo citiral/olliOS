@@ -1,6 +1,8 @@
 #include "eventbus.h"
 #include "threading/scheduler.h"
 
+EventBus eventbus;
+
 EventBus::EventBus(): listeners(nullptr), listeners_last(nullptr)
 {
     
@@ -39,5 +41,6 @@ void EventBus::eventEntry(u32 type, u32 source, u32 destination, u32 size, void*
         if (((listener->sourceMask & source) != 0) && ((listener->destinationMask & destination) != 0)) {
             listener->callback(listener->context, type, source, destination, size, data);
         }
+        listener = listener->next;
     }
 }

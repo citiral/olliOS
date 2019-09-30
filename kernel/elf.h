@@ -4,7 +4,7 @@
 #include "types.h"
 #include "symbolmap.h"
 
-#define ELF_GOT_SIZE 8192
+#define ELF_GOT_SIZE 2048
 
 namespace elf {
 
@@ -32,9 +32,11 @@ enum class section_type: u32 {
 enum class relocation_type: u32 {
     R_386_32 = 1,
     R_386_PC32 = 2,
+    R_386_GOT32 = 3,
     R_386_PLT32 = 4,
     R_386_GOTOFF = 9,
     R_386_GOTPC = 10,
+    //R_386_GOT32X = 43,
 };
 
 struct program_header {
@@ -113,9 +115,9 @@ public:
     int link(SymbolMap& map);
     int get_symbol_value(const char* name, u32* out);
     
-private:
     elf_header* _header;
     u32 _GOT[ELF_GOT_SIZE];
+    u32 _got_count;
 };
 
 void dump_elf(u8* file, SymbolMap& map);
