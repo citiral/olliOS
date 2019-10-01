@@ -15,6 +15,8 @@ CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O0 -Wall -Wextra -fno-excep
 LDFLAGS = -ffreestanding -O0 -nostdlib -lgcc
 LIBS = $(ROOT)/usr/lib/libk.a
 
+MODULES = keyboard
+
 KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/threading/*.cpp) $(wildcard kernel/eventbus/*.cpp) $(wildcard kernel/util/*.cpp) $(wildcard kernel/devices/*.cpp) $(wildcard kernel/devices/ata/*.cpp) $(wildcard kernel/devices/pci/*.cpp) $(wildcard kernel/alloc/*.cpp) $(wildcard kernel/fs/*.cpp) $(wildcard kernel/kstd/*.cpp)  $(wildcard kernel/memory/*.cpp)
 KERNEL_ASM = $(wildcard kernel/*.s)
 KERNEL_NASM = $(wildcard kernel/*.asm) $(wildcard kernel/threading/*.asm)
@@ -29,9 +31,9 @@ CRTEND_OBJ:=$(shell $(CC) $(CCFLAGS) -print-file-name=crtend.o)
 OBJECTS = $(addprefix $(BUILD), $(filter-out crti.o crtn.o, $(notdir $(KERNEL_CPP:.cpp=.o)) $(notdir $(KERNEL_ASM:.s=.o))  $(notdir $(KERNEL_NASM:.asm=.o))))
 DEPS = $(OBJECTS:.o=.d)
 
-.PHONY: all compile-kernel clean dir libk install install-headers
+.PHONY: all compile-kernel clean dir libk install install-headers $(MODULES)
 
-all: dir install-headers libk $(BUILD)$(OUTPUT) $(ISO) #libk $(BUILD)$(OUTPUT)
+all: dir install-headers libk $(BUILD)$(OUTPUT) $(MODULES) $(ISO)
 
 -include $(DEPS)
 	
@@ -53,7 +55,7 @@ $(ROOT)usr/lib:
 	mkdir -p $@
 
 libk:
-	$(MAKE) -C libk
+	$(MAKE) -C libk -s
 
 kernel: install-headers compile-kernel install-kernel install-grub iso
 
@@ -84,8 +86,9 @@ $(BUILD)%.o: kernel/**/%.asm
 #$(ISO): install
 
 install-headers: $(addprefix $(ROOT)usr/include/, $(HEADERS:kernel/%=%))
-$(ISO): $(addprefix $(ROOT)usr/include/, $(HEADERS:kernel/%=%)) $(ROOT)boot/$(OUTPUT) $(ROOT)boot/ollios.sym $(ROOT)boot/$(OUPUT) $(ROOT)boot/grub/menu.lst $(ROOT)boot/grub/stage2_eltorito
+$(ISO): $(addprefix $(ROOT)usr/include/, $(HEADERS:kernel/%=%)) $(ROOT)boot/$(OUTPUT) $(ROOT)boot/ollios.sym $(ROOT)boot/$(OUPUT) $(ROOT)boot/grub/menu.lst $(ROOT)boot/grub/stage2_eltorito $(MODULES:%=$(ROOT)boot/%.so)
 	mkisofs -R -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -boot-info-table -o $@ root
+
 
 # installs files to root
 $(ROOT)usr/include/%.h: kernel/%.h
@@ -101,6 +104,16 @@ $(ROOT)boot/grub/%: grub/%
 	mkdir $(shell dirname $@) -p
 	cp $^ $@
 
+
+#compile modules
+$(MODULES):
+	make -C modules MODULE=$@ all -s
+
+$(ROOT)boot/%.so: $(BUILD)%.so
+	cp $^ $@
+
+
+# run an emulator
 qemu: all
 	./qemu.sh
 

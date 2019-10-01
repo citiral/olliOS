@@ -5,10 +5,9 @@ AS = i686-elf-as
 ARCH = arch/i686/
 MAKE = make
 
-#MODULE_NAME= $(shell basename $(CURDIR))
-
 ROOT = ../root/
-OUTDIR = ../build/$(MODULE)/
+BUILD = ../build/
+OUTDIR = $(BUILD)$(MODULE)/
 
 INCLUDE = -I $(ROOT)usr/include
 CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O0 -Wall -Wextra -fno-exceptions -fno-rtti $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -nostdlib -fno-threadsafe-statics -Werror=return-type -m32 -g -mgeneral-regs-only -fpic -Xassembler '-mrelax-relocations=no'
@@ -20,7 +19,7 @@ OBJECTS = $(addprefix $(OUTDIR), $(notdir $(MODULE_CPP:.cpp=.o)))
 
 .phony: all clean
 
-all: $(OUTDIR) $(OUTDIR)$(MODULE).so
+all: $(OUTDIR) $(BUILD)$(MODULE).so
 
 clean:
 	rm -fr $(OUTDIR)
@@ -29,7 +28,7 @@ clean:
 $(OUTDIR):
 	mkdir -p $(OUTDIR)
 
-$(OUTDIR)$(MODULE).so: $(OBJECTS)
+$(BUILD)$(MODULE).so: $(OBJECTS)
 	$(CC) -fpic -o $@ $^ $(LDFLAGS) 
 
 $(OUTDIR)%.o: $(MODULE)/%.cpp
