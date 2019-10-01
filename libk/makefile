@@ -21,7 +21,7 @@ LIBK_OBJ = $(addprefix $(BUILD), $(notdir $(LIBK_C:.c=.o)))
 DEPS = $(LIBK_OBJ:.o=.d)
 
 .PHONY: all clean install
-all: $(BUILD)$(BINARIES) install
+all: install $(BUILD)$(BINARIES)
 
 
 $(BUILD)%.a: $(LIBK_OBJ)

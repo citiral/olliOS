@@ -1,6 +1,7 @@
 # Compiled files
 *.o
 *.a
+*.d
 *.so
 *.dll
 *.bin
@@ -10,6 +11,7 @@
 
 bochsout.txt
 ollios.iso
+ollios.sym
 
 # ide files
 .idea
