@@ -7,8 +7,9 @@ AR = i686-elf-ar
 ARCH = arch/i686
 
 ROOT = ../root/
+BUILD = ../build/
 
-LIBK_CCFLAGS = -D__is_libk -D__is_kernel -std=gnu++11 -fbuiltin -ffreestanding -O0 -g -Wall -Wextra -fno-rtti -Wno-write-strings -fno-exceptions $(INCLUDE) --sysroot=$(ROOT) -nostdlib -m32 -mgeneral-regs-only
+LIBK_CCFLAGS = -D__is_libk -D__is_kernel -std=gnu++11 -fbuiltin -ffreestanding -O0 -g -Wall -Wextra -fno-rtti -Wno-write-strings -fno-exceptions $(INCLUDE) --sysroot=$(ROOT) -nostdlib -m32 -mgeneral-regs-only -MD
 
 INCLUDE = -I $(ROOT)usr/include
 
@@ -16,25 +17,32 @@ LIBK_C = $(wildcard string/*.c) $(wildcard stdio/*.c) $(wildcard stdlib/*.c)
 HEADERS = $(wildcard include/*.h)
 
 BINARIES = libk.a
-LIBK_OBJ = $(LIBK_C:.c=.o)
+LIBK_OBJ = $(addprefix $(BUILD), $(notdir $(LIBK_C:.c=.o)))
+DEPS = $(LIBK_OBJ:.o=.d)
 
-.PHONY: all clean install install-headers install-binaries
+.PHONY: all clean install
+all: $(BUILD)$(BINARIES) install
 
-all: install-headers $(BINARIES) install-binaries
 
-libk.a: $(LIBK_OBJ)
+$(BUILD)%.a: $(LIBK_OBJ)
 	$(AR) rcs ../build/$@ $(addprefix ../build/,$(notdir $(LIBK_OBJ)))
 
-%.o: %.c
-	$(CC) -c $< -o ../build/$(notdir $@) $(LIBK_CCFLAGS)
+$(BUILD)%.o: string/%.c
+	$(CC) -c $< -o $@ $(LIBK_CCFLAGS)
+$(BUILD)%.o: stdio/%.c
+	$(CC) -c $< -o $@ $(LIBK_CCFLAGS)
+$(BUILD)%.o: stdlib/%.c
+	$(CC) -c $< -o $@ $(LIBK_CCFLAGS)
 
 clean:
-	rm -f $(addprefix $(ROOT)usr/bin/, $(BINARIES))
+	rm -f $(BUILD)$(BINARIES) $(LIBK_OBJ)
 
-install: install-headers install-binaries
+install: $(addprefix $(ROOT)usr/, $(HEADERS)) $(ROOT)usr/lib/$(BINARIES)
 
-install-headers:
-	cp -Rv $(HEADERS) $(ROOT)usr/include
+$(ROOT)usr/%.h: %.h
+	cp $^ $@
 
-install-binaries:
-	cp $(addprefix ../build/,$(BINARIES)) $(ROOT)usr/lib
+$(ROOT)usr/lib/%: $(BUILD)%
+	cp $^ $@
+
+-include $(DEPS)
