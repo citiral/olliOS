@@ -200,6 +200,16 @@ void startup_listener(void* context, u32 type, u32 source, u32 destination, u32 
     shell->enter();
 }
 
+threading::Semaphore sem(1);
+
+void thread_test(int v) {
+    if (v < 1000) {
+        threading::scheduler->schedule(new threading::Thread(thread_test, v + 1000));
+    }
+    while (true) {
+        printf("%d -> %d\n", apic::id(), v);
+    }
+}
 
 extern "C" void main(multiboot_info* multiboot) {
     // init lowlevel CPU related stuff
@@ -248,6 +258,10 @@ extern "C" void main(multiboot_info* multiboot) {
     SymbolMap map((const char*) mod->mod_start);
     mod++;
 
+    for (int i = 0 ; i < 300 ; i++) {
+        threading::scheduler->schedule(new threading::Thread(thread_test, i));
+    }
+
     for (int i = 1 ; i < multiboot->mods_count ; i++) {
         printf("mod %d is at %X\n", i, mod->mod_start);
         u8* c = (u8*) mod->mod_start;
@@ -274,7 +288,7 @@ extern "C" void main(multiboot_info* multiboot) {
 	//initSerialDevices();
     LOG_INFO("STARTING");
     printf("eventbus: %x", &eventbus);
-    eventbus.pushEvent(EVENT_TYPE_STARTUP, EVENT_TARGET_MAIN, EVENT_TARGET_MAIN, 0, nullptr);
+    eventbus.pushEvent(EVENT_TYPE_STARTUP, 0, nullptr);
     cpu_main();
 
 	/*char* mainL = (char*) main;

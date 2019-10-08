@@ -9,30 +9,29 @@
 #include "threading/semaphore.h"
 #include "threading/spinlock.h"
 
+#define EVENTBUS_RINGBUFFER_SIZE 512
 
-struct EventListener {
+class EventConsumer;
+
+struct Event {
 public:
-	u32 type;
-	u32 sourceMask;
-	u32 destinationMask;
-	void (*callback)(void* context, u32 type, u32 source, u32 destination, u32 size, void* data);
-	void* context;
-	EventListener *next;
+    Event* next;
+    u32 type;
+    u32 lifetime;
+    u8 data[0];
 };
 
 
 class EventBus {
 public:
 	EventBus();
-	void pushEvent(u32 type, u32 source, u32 destination, u32 size, void* data);
-	void registerListener(u32 type, u32 sourceMask, u32 destinationMask, void* context, decltype(EventListener::callback) callback);
+
+	void pushEvent(u32 type, u32 size, void* data);
+    EventConsumer* createConsumer();
 
 private:
-	void eventEntry(u32 type, u32 source, u32 destination, u32 size, void* data);
-
-private:
-	EventListener *listeners;
-	EventListener *listeners_last;
+    std::vector<EventConsumer*> consumers;
+    threading::Semaphore consumers_lock;
 };
 
 extern EventBus eventbus;
