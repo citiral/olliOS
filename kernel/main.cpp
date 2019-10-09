@@ -13,6 +13,7 @@
 #include "sleep.h"
 
 #include "eventbus/eventbus.h"
+#include "eventbus/eventconsumer.h"
 
 #include "pic.h"
 #include "apic.h"
@@ -166,9 +167,8 @@ void print(int c) {
 	LOG_DEBUG("p: %d, from core %d", c, apic::id());
 }
 
-void startup_listener(void* context, u32 type, u32 source, u32 destination, u32 size, void* data)
+void startup_listener(void* context, Event* event)
 {
-    return;
     ata::driver.initialize();
     LOG_STARTUP("ATA driver initialized.");
 
@@ -211,6 +211,11 @@ void thread_test(int v) {
     }
 }
 
+void consumer_test(EventConsumer* consumer) {
+    consumer->registerListener(EVENT_TYPE_STARTUP, nullptr, startup_listener);
+    consumer->enter();
+}
+
 extern "C" void main(multiboot_info* multiboot) {
     // init lowlevel CPU related stuff
     // None of these should be allowed to touch the memory allocator, etc
@@ -234,9 +239,6 @@ extern "C" void main(multiboot_info* multiboot) {
     idt.getEntry(INT_PREEMPT).setOffset((u32)thread_interrupt);
     threading::scheduler = new threading::Scheduler();
 
-    // Create an event bus
-    //EventBus eventbus;
-    //eventbus.registerListener(EVENT_TYPE_STARTUP, EVENT_TARGET_MAIN, EVENT_TARGET_MAIN, nullptr, startup_listener);
     
     // if APIC is supported, switch to it and enable multicore
     cpuid_field features = cpuid(1);
@@ -257,10 +259,6 @@ extern "C" void main(multiboot_info* multiboot) {
 
     SymbolMap map((const char*) mod->mod_start);
     mod++;
-
-    for (int i = 0 ; i < 300 ; i++) {
-        threading::scheduler->schedule(new threading::Thread(thread_test, i));
-    }
 
     for (int i = 1 ; i < multiboot->mods_count ; i++) {
         printf("mod %d is at %X\n", i, mod->mod_start);
@@ -288,7 +286,9 @@ extern "C" void main(multiboot_info* multiboot) {
 	//initSerialDevices();
     LOG_INFO("STARTING");
     printf("eventbus: %x", &eventbus);
-    eventbus.pushEvent(EVENT_TYPE_STARTUP, 0, nullptr);
+
+    threading::scheduler->schedule(new threading::Thread(consumer_test, eventbus.createConsumer()));
+    threading::scheduler->schedule(new threading::Thread(&EventBus::pushEvent, &eventbus, (u32)EVENT_TYPE_STARTUP, (u32)0, (void*)nullptr));
     cpu_main();
 
 	/*char* mainL = (char*) main;

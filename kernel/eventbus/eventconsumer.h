@@ -17,6 +17,7 @@ class EventConsumer {
 public:
     EventConsumer();
     void pushEvent(Event* event);
+    void registerListener(u32 type, void* context, decltype(EventListener::callback) callback);
 
     void enter();
 

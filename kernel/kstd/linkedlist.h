@@ -23,12 +23,12 @@ public:
         push(n);
     }
 
-    T& pop() {
+    T pop() {
         Node* node;
 
-        if (_last != nullptr) {
+        /*if (_last == nullptr) {
             return nullptr;
-        }
+        }*/
         
         node = _last->next;
         _last->next = node->next;
@@ -37,7 +37,7 @@ public:
             _last = nullptr;
         }
 
-        T output = node.t;
+        T output = node->t;
         delete node;
         return output;
     }

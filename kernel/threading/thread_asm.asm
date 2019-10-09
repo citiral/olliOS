@@ -130,7 +130,7 @@ mov [eax], edx
 ; end the interrupt, we know 33 is the IRQ of a thread interrupt. This will return to the parent, and not the thread that got interrupted
 end:
 ; restore its data
-push dword 34
+push dword 33
 call end_interrupt
 add esp, 4
 popad

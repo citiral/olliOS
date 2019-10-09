@@ -4,7 +4,7 @@
 
 EventBus eventbus;
 
-EventBus::EventBus(): listeners_last(nullptr), _consumer_count(0), consumer_lock(1)
+EventBus::EventBus(): consumers_lock(1)
 {
     
 }
@@ -18,19 +18,19 @@ void EventBus::pushEvent(u32 type, u32 size, void* data)
     memcpy(event + 1, data, size);
 
     // Push it to all consumers
-    consumer_lock.lock();
+    consumers_lock.lock();
     event->lifetime = consumers.size();
     for (size_t i = 0 ; i < consumers.size() ; i++) {
         consumers[i]->pushEvent(event);
     }
-    consumer_lock.release();
+    consumers_lock.release();
 }
 
 EventConsumer* EventBus::createConsumer()
 {
-    _consumer_lock.lock();
+    consumers_lock.lock();
     EventConsumer* consumer = new EventConsumer();
     consumers.push_back(consumer);
-    _consumer_lock.release();
+    consumers_lock.release();
     return consumer;
 }

@@ -1,5 +1,7 @@
+#include "eventbus/eventconsumer.h"
 
-EventConsumer::EventConsumer(): events_lock(1), events_count(0), listeners_lock(0)
+
+EventConsumer::EventConsumer(): events_lock(1), events_count(0), listeners_lock(1), listeners()
 {
 
 }
@@ -7,12 +9,12 @@ EventConsumer::EventConsumer(): events_lock(1), events_count(0), listeners_lock(
 void EventConsumer::pushEvent(Event* event)
 {
     events_lock.lock();
-    events.push_back(event);
+    events.push(event);
     events_lock.release();
     events_count.release();
 }
 
-void EventBus::registerListener(u32 type, void* context, decltype(EventListener::callback) callback)
+void EventConsumer::registerListener(u32 type, void* context, decltype(EventListener::callback) callback)
 {
     EventListener listener;
     listener.type = type;
