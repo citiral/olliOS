@@ -9,7 +9,7 @@ EventBus::EventBus(): consumers_lock(1)
     
 }
 
-void EventBus::pushEvent(u32 type, u32 size, void* data)
+void EventBus::push_event(u32 type, u32 size, void* data)
 {
 
     // Make new event
@@ -21,12 +21,12 @@ void EventBus::pushEvent(u32 type, u32 size, void* data)
     consumers_lock.lock();
     event->lifetime = consumers.size();
     for (size_t i = 0 ; i < consumers.size() ; i++) {
-        consumers[i]->pushEvent(event);
+        consumers[i]->push_event(event);
     }
     consumers_lock.release();
 }
 
-EventConsumer* EventBus::createConsumer()
+EventConsumer* EventBus::create_consumer()
 {
     consumers_lock.lock();
     EventConsumer* consumer = new EventConsumer();

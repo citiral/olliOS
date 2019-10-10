@@ -8,13 +8,11 @@ Spinlock::Spinlock(): _value(0) {
 
 void Spinlock::lock() {
     // Keep trying to exchange the value with 1 when the value was 0 before
-    volatile register u8 v = 1;
     while (!__sync_bool_compare_and_swap(&_value, 0, 1));
     __sync_synchronize();
 }
 
 bool Spinlock::try_lock() {
-    volatile register u8 v = 1;
     // exchange the current value with v. if the spinlock was free, v is now 0
     return __sync_bool_compare_and_swap(&_value, 0, 1);
 }

@@ -26,8 +26,8 @@ class EventBus {
 public:
 	EventBus();
 
-	void pushEvent(u32 type, u32 size, void* data);
-    EventConsumer* createConsumer();
+	void push_event(u32 type, u32 size, void* data);
+    EventConsumer* create_consumer();
 
 private:
     std::vector<EventConsumer*> consumers;

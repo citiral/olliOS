@@ -184,7 +184,7 @@ void startup_listener(void* context, Event* event)
 	vfs = new VirtualFileSystem();
     LOG_STARTUP("Virtual filesystem created.");
 
-    /*auto storagedevices = deviceManager.getDevices(DeviceType::Storage);
+    auto storagedevices = deviceManager.getDevices(DeviceType::Storage);
     for (size_t i =  0; i < storagedevices.size() ; i++) {
 		BlockDevice* device = (BlockDevice*) storagedevices[i];
         DeviceStorageInfo info;
@@ -193,7 +193,7 @@ void startup_listener(void* context, Event* event)
         name[3] += i;
         LOG_STARTUP("BINDING %s to %s", info.deviceInfo.name, name);
         vfs->BindFilesystem(name, new Iso9660FileSystem(device));
-    }*/
+    }
 
 
     KernelShell* shell = new KernelShell();
@@ -212,7 +212,7 @@ void thread_test(int v) {
 }
 
 void consumer_test(EventConsumer* consumer) {
-    consumer->registerListener(EVENT_TYPE_STARTUP, nullptr, startup_listener);
+    consumer->listen(EVENT_TYPE_STARTUP, nullptr, startup_listener);
     consumer->enter();
 }
 
@@ -270,13 +270,15 @@ extern "C" void main(multiboot_info* multiboot) {
             while (1);
         }
 
-        if (e->link(map) != 0) {
+        if (e->link(map) != 0 && 0) {
             printf("failed linking elf\n");
         } else {
-            int (*module_load)();
+            EventConsumer* consumer = eventbus.create_consumer();
+            void (*module_load)(EventConsumer*);
             e->get_symbol_value("module_load", (u32*) &module_load);
             printf("done. running.... %x\n", module_load);
-            module_load();
+            module_load(consumer);
+            threading::scheduler->schedule(new threading::Thread(&EventConsumer::enter, consumer));
         }
 
         mod++;
@@ -287,8 +289,9 @@ extern "C" void main(multiboot_info* multiboot) {
     LOG_INFO("STARTING");
     printf("eventbus: %x", &eventbus);
 
-    threading::scheduler->schedule(new threading::Thread(consumer_test, eventbus.createConsumer()));
-    threading::scheduler->schedule(new threading::Thread(&EventBus::pushEvent, &eventbus, (u32)EVENT_TYPE_STARTUP, (u32)0, (void*)nullptr));
+    //threading::scheduler->schedule(new threading::Thread(consumer_test, eventbus.create_consumer()));
+    threading::scheduler->schedule(new threading::Thread(&EventBus::push_event, &eventbus, (u32)EVENT_TYPE_STARTUP, (u32)0, (void*)nullptr));
+    threading::scheduler->schedule(new threading::Thread(&EventBus::push_event, &eventbus, (u32)EVENT_TYPE_STARTUP, (u32)0, (void*)nullptr));
     cpu_main();
 
 	/*char* mainL = (char*) main;
