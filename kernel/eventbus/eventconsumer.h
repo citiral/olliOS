@@ -8,6 +8,7 @@
 struct EventListener {
 public:
 	u32 type;
+    bool oneshot;
 	void (*callback)(void* context, Event* event);
 	void* context;
 	EventListener *next;
@@ -17,7 +18,7 @@ class EventConsumer {
 public:
     EventConsumer();
     void pushEvent(Event* event);
-    void registerListener(u32 type, void* context, decltype(EventListener::callback) callback);
+    void registerListener(u32 type, void* context, decltype(EventListener::callback) callback, bool oneshot = false);
 
     void enter();
 

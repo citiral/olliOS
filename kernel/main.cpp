@@ -184,7 +184,7 @@ void startup_listener(void* context, Event* event)
 	vfs = new VirtualFileSystem();
     LOG_STARTUP("Virtual filesystem created.");
 
-    auto storagedevices = deviceManager.getDevices(DeviceType::Storage);
+    /*auto storagedevices = deviceManager.getDevices(DeviceType::Storage);
     for (size_t i =  0; i < storagedevices.size() ; i++) {
 		BlockDevice* device = (BlockDevice*) storagedevices[i];
         DeviceStorageInfo info;
@@ -193,7 +193,7 @@ void startup_listener(void* context, Event* event)
         name[3] += i;
         LOG_STARTUP("BINDING %s to %s", info.deviceInfo.name, name);
         vfs->BindFilesystem(name, new Iso9660FileSystem(device));
-    }
+    }*/
 
 
     KernelShell* shell = new KernelShell();
