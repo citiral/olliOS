@@ -15,15 +15,25 @@ LDFLAGS =  -std=gnu++11 -Wall -Wextra -nostdlib -m32 -fpic -Xassembler '-mrelax-
 LIBS = $(ROOT)/usr/lib/libk.a
 
 MODULE_CPP = $(wildcard $(MODULE)/*.cpp)
+HEADERS = $(wildcard $(MODULE)/*.h)
 OBJECTS = $(addprefix $(OUTDIR), $(notdir $(MODULE_CPP:.cpp=.o)))
 
-.phony: all clean
+.phony: all clean install
 
-all: $(OUTDIR) $(BUILD)$(MODULE).so
+all: $(addprefix $(ROOT)usr/include/$(MODULE)/, $(notdir $(HEADERS))) $(OUTDIR) $(BUILD)$(MODULE).so install
 
 clean:
 	rm -fr $(OUTDIR)
 	rm ollios.iso
+
+install: $(ROOT)boot/$(MODULE).so $(addprefix $(ROOT)usr/include/$(MODULE)/, $(notdir $(HEADERS)))
+
+$(ROOT)boot/%.so: $(BUILD)%.so
+	cp $^ $@
+	
+$(ROOT)usr/include/$(MODULE)/%.h: $(MODULE)/%.h
+	mkdir $(shell dirname $@) -p
+	cp $^ $@
 
 $(OUTDIR):
 	mkdir -p $(OUTDIR)

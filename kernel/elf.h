@@ -3,6 +3,7 @@
 
 #include "types.h"
 #include "symbolmap.h"
+#include "kstd/unordered_map.h"
 
 #define ELF_GOT_SIZE 1024
 
@@ -30,6 +31,7 @@ enum class section_type: u32 {
 };
 
 enum class relocation_type: u32 {
+    R_386_NONE = 0,
     R_386_32 = 1,
     R_386_PC32 = 2,
     R_386_GOT32 = 3,
@@ -118,6 +120,7 @@ public:
     elf_header* _header;
     u32 _GOT[ELF_GOT_SIZE];
     u32 _got_count;
+    std::unordered_map<const char*, u32> _GotIndex;
 };
 
 void dump_elf(u8* file, SymbolMap& map);

@@ -8,5 +8,6 @@
 #define EVENT_TARGET_ALL 0xFFFFFFFF
 
 #define EVENT_TYPE_STARTUP 1
+#define EVENT_TYPE_KEYBOARD 2
 
 #endif

@@ -2,119 +2,20 @@
 #define __STREAMS_KEYBOARD_H
 
 #include "types.h"
-#include "devices/blockdevice.h"
+#include "event.h"
+#include "threading/mutex.h"
 
 #define INPUT_BUFFER_SIZE 16
 #define KEYBOARD_DRIVER_DEVICE_NAME "KEYBOARD"
 
 namespace keyboard {
 
-	enum class VirtualKeycode : u8 {
-		INVALID = 0,
-		A = 1,
-		B = 2,
-		C,
-		D,
-		E,
-		F,
-		G,
-		H,
-		I,
-		J,
-		K,
-		L,
-		M,
-		N,
-		O,
-		P,
-		Q,
-		R,
-		S,
-		T,
-		U,
-		V,
-		W,
-		X,
-		Y,
-		Z,
-        OPEN_SQUARE,
-        CLOSE_SQUARE,
-        CAPS_LOCK,
-		F1,
-		F2,
-		F3,
-		F4,
-		F5,
-		F6,
-		F7,
-		F8,
-		F9,
-		F10,
-		F11,
-		F12,
-		SPACE,
-		BACKSPACE,
-        TAB,
-		ENTER,
-		LSHIFT,
-		RSHIFT,
-		LCTRL,
-		RCTRL,
-		LALT,
-		RALT,
-		N_SLASH,
-		N_MINUS,
-		N_DOT,
-		U_ARROW,
-		L_ARROW,
-		D_ARROW,
-		R_ARROW,
-		HOME,
-		END,
-        TILDE,
-        T_0,
-        T_1,
-        T_2,
-        T_3,
-        T_4,
-        T_5,
-        T_6,
-        T_7,
-        T_8,
-        T_9,
-        T_10,
-        T_11,
-        N_0,
-        N_1,
-        N_2,
-        N_3,
-        N_4,
-        N_5,
-        N_6,
-        N_7,
-        N_8,
-        N_9
-	};
-
 	void initialize();
-
-	//a single event in the world of virtual keys.
-	//the status register is as follows:
-	// [0-4: UNUSED | 5: ctrl | 6: shift | 7: pressed]
-	// make: 1 if the key is pressed, 0 if the key is released
-	typedef struct __attribute__ ((__packed__))  VirtualKeyEvent {
-		VirtualKeycode vkey;
-		u8 status;
-
-	public:
-		VirtualKeyEvent();
-		VirtualKeyEvent(VirtualKeycode vkey, u8 status);
-	} VirtualKeyEvent;
 
 	extern VirtualKeycode scanset2_map1[255];
 	extern VirtualKeycode scanset2_map2[255];
 
-	class KeyboardDriver : public BlockDevice {
+	class KeyboardDriver {
 	public:
 		KeyboardDriver();
 		virtual ~KeyboardDriver();
@@ -137,8 +38,6 @@ namespace keyboard {
 		void setScanCodeSet(u8 scanset);
 		void setScanCodeTranslation(bool enabled);
 
-		//gets the type of the keyboard driver
-		virtual DeviceType getDeviceType() const;
 		//gets the name of the keyboard driver
 		virtual void getDeviceInfo(void* info) const;
 		//makes the driver process amount scancodes from data
@@ -151,6 +50,8 @@ namespace keyboard {
 		virtual size_t read(void* data, size_t amount);
 		//does nothing!
 		virtual size_t seek(i32 offset, int position);
+		
+		threading::Mutex dataMutex;
 	private:
 		// add a code to the current scanecode list.
 		void addCode(u8 code);

@@ -25,7 +25,6 @@
 #include "memory/physical.h"
 
 #include "devicemanager.h"
-#include "devices/keyboard.h"
 #include "devices/vga.h"
 #include "devices/serial.h"
 #include "devices/ata/ata.h"
@@ -177,9 +176,6 @@ void startup_listener(void* context, Event* event)
 
     deviceManager.addDevice(&vgaDriver);
     LOG_STARTUP("VGA driver initialized.");
-
-    keyboard::initialize();
-	LOG_STARTUP("Keyboard driver initialized.");
 
 	vfs = new VirtualFileSystem();
     LOG_STARTUP("Virtual filesystem created.");

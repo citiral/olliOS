@@ -86,6 +86,8 @@ static int relocate_entry(elf* e, elf_header* elf, section_header* section, elf_
 
         // https://docs.oracle.com/cd/E19683-01/816-7529/chapter6-26/index.html
         switch((u8) relocation.info) {
+            case (int) relocation_type::R_386_NONE:
+                break;
             case (int) relocation_type::R_386_32:
                 *ref = symval + *ref;
                 break;
@@ -102,6 +104,7 @@ static int relocate_entry(elf* e, elf_header* elf, section_header* section, elf_
                     return -1;
                 }
 
+                
                 e->_got_count++;
                 e->_GOT[e->_got_count] = symval;
                 *ref = e->_got_count*4 + *ref;
@@ -115,7 +118,7 @@ static int relocate_entry(elf* e, elf_header* elf, section_header* section, elf_
         return 0;
     }
 
-    return -1;
+    return 0;
 }
 
 static int relocate_section(elf* e, elf_header* elf, section_header* section, SymbolMap& map, u32* got)
@@ -125,6 +128,7 @@ static int relocate_section(elf* e, elf_header* elf, section_header* section, Sy
     for (size_t i = 0 ; i < section->size / sizeof(elf_rel) ; i += 1) {
         printf("relocating.. %d\n", i);
         if (relocate_entry(e, elf, section, relocation[i], map, got) != 0) {
+            printf("FAILED relocating.. %d\n", i);
             return -1;
         }
     }
@@ -184,6 +188,7 @@ int elf::link(SymbolMap& map)
         if (section->type == section_type::REL) {
             printf("relocating section: %s\n", get_section_name(_header, i));
             if (relocate_section(this, _header, section, map, _GOT) != 0) {
+                printf("Failed relocating section %s\n", get_section_name(_header, i));
                 return -1;
             }
         }

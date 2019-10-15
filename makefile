@@ -15,7 +15,7 @@ CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O0 -Wall -Wextra -fno-excep
 LDFLAGS = -ffreestanding -O0 -nostdlib -lgcc
 LIBS = $(ROOT)/usr/lib/libk.a
 
-MODULES = keyboard
+MODULES = keyboard shell
 
 KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/threading/*.cpp) $(wildcard kernel/eventbus/*.cpp) $(wildcard kernel/util/*.cpp) $(wildcard kernel/devices/*.cpp) $(wildcard kernel/devices/ata/*.cpp) $(wildcard kernel/devices/pci/*.cpp) $(wildcard kernel/alloc/*.cpp) $(wildcard kernel/fs/*.cpp) $(wildcard kernel/kstd/*.cpp)  $(wildcard kernel/memory/*.cpp)
 KERNEL_ASM = $(wildcard kernel/*.s)
@@ -55,7 +55,7 @@ $(ROOT)usr/lib:
 	mkdir -p $@
 
 libk:
-	$(MAKE) -C libk -s
+	$(MAKE) -C libk
 
 kernel: install-headers compile-kernel install-kernel install-grub iso
 
@@ -107,7 +107,7 @@ $(ROOT)boot/grub/%: grub/%
 
 #compile modules
 $(MODULES):
-	make -C modules MODULE=$@ all -s
+	make -C modules MODULE=$@ all
 
 $(ROOT)boot/%.so: $(BUILD)%.so
 	cp $^ $@

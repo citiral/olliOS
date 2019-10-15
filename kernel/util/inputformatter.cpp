@@ -1,7 +1,7 @@
 #include "util/inputformatter.h"
 #include "devicemanager.h"
 #include "devices/vga.h"
-#include "devices/keyboard.h"
+#include "keyboard/keyboard.h"
 #include "stdio.h"
 
 using namespace keyboard;

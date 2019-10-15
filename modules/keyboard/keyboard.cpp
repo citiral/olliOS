@@ -1,10 +1,13 @@
 #include "devices/vga.h"
-#include "devices/keyboard.h"
+#include "keyboard.h"
 #include "io.h"
 #include "cdefs.h"
 #include "interrupt.h"
 #include "devicemanager.h"
 #include "stdio.h"
+#include "eventbus/eventbus.h"
+#include "threading/semaphore.h"
+#include "threading/scheduler.h"
 
 #define COMMAND_PORT 0x64
 #define IO_PORT 0x60
@@ -25,23 +28,47 @@
 
 namespace keyboard {
 
+VirtualKeyEvent MakeVirtualKeyEvent()
+{
+	VirtualKeyEvent key;
+	key.vkey = VirtualKeycode::INVALID;
+	key.status = 0;
+	return key;
+}
+
+VirtualKeyEvent MakeVirtualKeyEvent(VirtualKeycode vkey, u8 status)
+{
+	VirtualKeyEvent key;
+	key.vkey = vkey;
+	key.status = status;
+	return key;
+}
+
+static KeyboardDriver* driver;
+
+void KeyboardDriverThread(KeyboardDriver* driver) {
+	while (1) {
+		driver->dataMutex.lock();
+
+		while (true) {
+			VirtualKeyEvent event;
+			size_t read = driver->read(&event, sizeof(VirtualKeyEvent));
+
+			if (read == 0) {
+				break;
+			}
+
+    		eventbus.push_event(EVENT_TYPE_KEYBOARD, sizeof(event), &event);
+		}
+	}
+}
+
 void initialize() {
-	KeyboardDriver* driver = new KeyboardDriver();
-    deviceManager.addDevice(driver);
+	driver = new KeyboardDriver();
 	driver->setScanCodeSet(SCANSET_2);
 	driver->setScanCodeTranslation(false);
-}
 
-VirtualKeyEvent::VirtualKeyEvent()
-{
-	this->vkey = VirtualKeycode::INVALID;
-	this->status = 0;
-}
-
-VirtualKeyEvent::VirtualKeyEvent(VirtualKeycode vkey, u8 status)
-{
-	this->vkey = vkey;
-	this->status = status;
+	threading::scheduler->schedule(new threading::Thread(KeyboardDriverThread, driver));
 }
 
 KeyboardDriver::KeyboardDriver():
@@ -60,9 +87,7 @@ KeyboardDriver::~KeyboardDriver()
 
 void intHandlerKeyboard(u32 interrupt) {
     // send it to the keyboarddriver
-	KeyboardDriver* kb = (KeyboardDriver*) deviceManager.getDevice(DeviceType::Keyboard, 0);
-	if (kb)
-		kb->interrupt1(interrupt);
+	driver->interrupt1(interrupt);
 
     // and end the interrupt
 	end_interrupt(interrupt);
@@ -160,6 +185,8 @@ bool KeyboardDriver::interrupt1(u32 interrupt) {
 	{
 		_commandReturned = true;
 	}
+	
+	dataMutex.release();
 	return true;
 }
 
@@ -201,17 +228,6 @@ void KeyboardDriver::setScanCodeTranslation(bool enabled) {
 	_noWrite = false;
 }
 
-DeviceType KeyboardDriver::getDeviceType() const
-{
-	return DeviceType::Keyboard;
-}
-
-void KeyboardDriver::getDeviceInfo(void* deviceinfo) const
-{
-	DeviceKeyboardInfo* info = (DeviceKeyboardInfo*)deviceinfo;
-	info->deviceInfo.name = KEYBOARD_DRIVER_DEVICE_NAME;
-}
-
 size_t KeyboardDriver::write(const void* data, size_t amount)
 {
 	//loop over every character
@@ -225,16 +241,16 @@ size_t KeyboardDriver::write(const void* data, size_t amount)
 		//check if the current sequence exists
 		VirtualKeycode make = convertMakeScancodeToKeycode();
 		if (make != VirtualKeycode::INVALID) {
-			pushBuffer(VirtualKeyEvent(make, _status | 0b00000001));
+			pushBuffer(MakeVirtualKeyEvent(make, _status | 0b00000001));
 			clearCodes();
-			updateStatus(VirtualKeyEvent(make, _status | 0b00000001));
+			updateStatus(MakeVirtualKeyEvent(make, _status | 0b00000001));
 		} else
 		{
 			VirtualKeycode breakcode = convertBreakScancodeToKeycode();
 			if (breakcode != VirtualKeycode::INVALID) {
-				pushBuffer(VirtualKeyEvent(breakcode, _status | 0b00000000));
+				pushBuffer(MakeVirtualKeyEvent(breakcode, _status | 0b00000000));
 				clearCodes();
-				updateStatus(VirtualKeyEvent(breakcode, _status | 0b00000000));
+				updateStatus(MakeVirtualKeyEvent(breakcode, _status | 0b00000000));
 			}
 		}
 		i++;
@@ -255,16 +271,16 @@ size_t KeyboardDriver::write(const void* data)
 		//check if the current sequence exists
 		VirtualKeycode make = convertMakeScancodeToKeycode();
 		if (make != VirtualKeycode::INVALID) {
-			pushBuffer(VirtualKeyEvent(make, _status | 0b00000001));
+			pushBuffer(MakeVirtualKeyEvent(make, _status | 0b00000001));
 			clearCodes();
-				updateStatus(VirtualKeyEvent(make, _status | 0b00000001));
+				updateStatus(MakeVirtualKeyEvent(make, _status | 0b00000001));
 		} else
 		{
 			VirtualKeycode breakcode = convertBreakScancodeToKeycode();
 			if (breakcode != VirtualKeycode::INVALID) {
-				pushBuffer(VirtualKeyEvent(breakcode, _status | 0b00000000));
+				pushBuffer(MakeVirtualKeyEvent(breakcode, _status | 0b00000000));
 				clearCodes();
-				updateStatus(VirtualKeyEvent(breakcode, _status | 0b00000000));
+				updateStatus(MakeVirtualKeyEvent(breakcode, _status | 0b00000000));
 			}
 		}
 		i++;
@@ -279,16 +295,16 @@ size_t KeyboardDriver::write(char data) {
 	//check if the current sequence exists
 	VirtualKeycode make = convertMakeScancodeToKeycode();
 	if (make != VirtualKeycode::INVALID) {
-		pushBuffer(VirtualKeyEvent(make, _status | 0b00000001));
+		pushBuffer(MakeVirtualKeyEvent(make, _status | 0b00000001));
 		clearCodes();
-		updateStatus(VirtualKeyEvent(make, _status | 0b00000001));
+		updateStatus(MakeVirtualKeyEvent(make, _status | 0b00000001));
 	} else
 	{
 		VirtualKeycode breakcode = convertBreakScancodeToKeycode();
 		if (breakcode != VirtualKeycode::INVALID) {
-			pushBuffer(VirtualKeyEvent(breakcode, _status | 0b00000000));
+			pushBuffer(MakeVirtualKeyEvent(breakcode, _status | 0b00000000));
 			clearCodes();
-			updateStatus(VirtualKeyEvent(breakcode, _status | 0b00000000));
+			updateStatus(MakeVirtualKeyEvent(breakcode, _status | 0b00000000));
 		}
 	}
 
@@ -334,7 +350,7 @@ void KeyboardDriver::updateStatus(VirtualKeyEvent code) {
 VirtualKeyEvent KeyboardDriver::popBuffer()
 {
 	if (_bufferLength <= 0)
-		return VirtualKeyEvent(VirtualKeycode::INVALID, 0);
+		return MakeVirtualKeyEvent(VirtualKeycode::INVALID, 0);
 	VirtualKeyEvent key = _buffer[_bufferPos];
 	_bufferPos++;
 	_bufferLength--;

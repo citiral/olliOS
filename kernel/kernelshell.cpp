@@ -5,7 +5,7 @@
 #include "kernelshell.h"
 #include "alloc.h"
 #include "devicemanager.h"
-#include "devices/keyboard.h"
+#include "keyboard/keyboard.h"
 #include "fs/filesystem.h"
 #include "fs/virtualfilesystem.h"
 #include "threading/thread.h"
@@ -194,11 +194,11 @@ void KernelShell::enter()
 	while (true)
 	{
 		// read some virtual key events from the keyboard driver
-		keyboard::VirtualKeyEvent input[10];
+		/*VirtualKeyEvent input[10];
 		size_t read = ((keyboard::KeyboardDriver*) deviceManager.getDevice(DeviceType::Keyboard, 0))->read(input, 10);
 
 		// send them to the input formatter
-		for (size_t i = 0; i < read; i += sizeof(keyboard::VirtualKeyEvent))
+		for (size_t i = 0; i < read; i += sizeof(VirtualKeyEvent))
 		{
 			_input.handleVirtualKeyEvent(input[i]);
 		}
@@ -232,7 +232,7 @@ void KernelShell::enter()
 					printf("Unknown command: %s\n", line.data());
 				}
 			}
-		}
+		}*/
 	}
 }
 
