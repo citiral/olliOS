@@ -13,6 +13,7 @@
 #include "sleep.h"
 
 #include "eventbus/eventbus.h"
+#include "eventbus/eventconsumer.h"
 
 #include "pic.h"
 #include "apic.h"
@@ -166,9 +167,8 @@ void print(int c) {
 	LOG_DEBUG("p: %d, from core %d", c, apic::id());
 }
 
-void startup_listener(void* context, u32 type, u32 source, u32 destination, u32 size, void* data)
+void startup_listener(void* context, Event* event)
 {
-    return;
     ata::driver.initialize();
     LOG_STARTUP("ATA driver initialized.");
 
@@ -200,6 +200,21 @@ void startup_listener(void* context, u32 type, u32 source, u32 destination, u32 
     shell->enter();
 }
 
+threading::Semaphore sem(1);
+
+void thread_test(int v) {
+    if (v < 1000) {
+        threading::scheduler->schedule(new threading::Thread(thread_test, v + 1000));
+    }
+    while (true) {
+        printf("%d -> %d\n", apic::id(), v);
+    }
+}
+
+void consumer_test(EventConsumer* consumer) {
+    consumer->listen(EVENT_TYPE_STARTUP, nullptr, startup_listener);
+    consumer->enter();
+}
 
 extern "C" void main(multiboot_info* multiboot) {
     // init lowlevel CPU related stuff
@@ -224,9 +239,6 @@ extern "C" void main(multiboot_info* multiboot) {
     idt.getEntry(INT_PREEMPT).setOffset((u32)thread_interrupt);
     threading::scheduler = new threading::Scheduler();
 
-    // Create an event bus
-    //EventBus eventbus;
-    //eventbus.registerListener(EVENT_TYPE_STARTUP, EVENT_TARGET_MAIN, EVENT_TARGET_MAIN, nullptr, startup_listener);
     
     // if APIC is supported, switch to it and enable multicore
     cpuid_field features = cpuid(1);
@@ -258,13 +270,15 @@ extern "C" void main(multiboot_info* multiboot) {
             while (1);
         }
 
-        if (e->link(map) != 0) {
+        if (e->link(map) != 0 && 0) {
             printf("failed linking elf\n");
         } else {
-            int (*module_load)();
+            EventConsumer* consumer = eventbus.create_consumer();
+            void (*module_load)(EventConsumer*);
             e->get_symbol_value("module_load", (u32*) &module_load);
             printf("done. running.... %x\n", module_load);
-            module_load();
+            module_load(consumer);
+            threading::scheduler->schedule(new threading::Thread(&EventConsumer::enter, consumer));
         }
 
         mod++;
@@ -274,7 +288,10 @@ extern "C" void main(multiboot_info* multiboot) {
 	//initSerialDevices();
     LOG_INFO("STARTING");
     printf("eventbus: %x", &eventbus);
-    eventbus.pushEvent(EVENT_TYPE_STARTUP, EVENT_TARGET_MAIN, EVENT_TARGET_MAIN, 0, nullptr);
+
+    //threading::scheduler->schedule(new threading::Thread(consumer_test, eventbus.create_consumer()));
+    threading::scheduler->schedule(new threading::Thread(&EventBus::push_event, &eventbus, (u32)EVENT_TYPE_STARTUP, (u32)0, (void*)nullptr));
+    threading::scheduler->schedule(new threading::Thread(&EventBus::push_event, &eventbus, (u32)EVENT_TYPE_STARTUP, (u32)0, (void*)nullptr));
     cpu_main();
 
 	/*char* mainL = (char*) main;

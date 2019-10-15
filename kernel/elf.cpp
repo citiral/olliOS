@@ -6,13 +6,6 @@ namespace elf {
 
 #define MAGIC_NUMBER 0x464C457F
 
-static program_header* get_program_header(elf_header* file, u32 header_index)
-{
-    u8* data = (u8*) file;
-    program_header* headers = (program_header*) data + file->program_header_table_offset;
-    return &headers[header_index];
-}
-
 static section_header* get_section_header(elf_header* file, u32 header_index)
 {
     u8* data = (u8*) file;
@@ -95,6 +88,7 @@ static int relocate_entry(elf* e, elf_header* elf, section_header* section, elf_
         switch((u8) relocation.info) {
             case (int) relocation_type::R_386_32:
                 *ref = symval + *ref;
+                break;
             case (int) relocation_type::R_386_PC32:
             case (int) relocation_type::R_386_PLT32:
                 *ref = symval + *ref - (u32)ref;

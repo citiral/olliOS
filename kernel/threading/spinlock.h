@@ -13,7 +13,7 @@ namespace threading {
         void release();
 
     private:
-        u8 _value;
+        volatile u32 _value;
     };
 }
 

@@ -1,46 +1,36 @@
 #include "eventbus.h"
+#include "eventbus/eventconsumer.h"
 #include "threading/scheduler.h"
 
 EventBus eventbus;
 
-EventBus::EventBus(): listeners(nullptr), listeners_last(nullptr)
+EventBus::EventBus(): consumers_lock(1)
 {
     
 }
 
-void EventBus::pushEvent(u32 type, u32 source, u32 destination, u32 size, void* data)
+void EventBus::push_event(u32 type, u32 size, void* data)
 {
-    threading::scheduler->schedule(new threading::Thread(&EventBus::eventEntry, this, type, source, destination, size, data));
+
+    // Make new event
+    Event *event = (Event*) malloc(sizeof(Event) + size);
+    event->type = type;
+    memcpy(event + 1, data, size);
+
+    // Push it to all consumers
+    consumers_lock.lock();
+    event->lifetime = consumers.size();
+    for (size_t i = 0 ; i < consumers.size() ; i++) {
+        consumers[i]->push_event(event);
+    }
+    consumers_lock.release();
 }
 
-
-void EventBus::registerListener(u32 type, u32 sourceMask, u32 destinationMask, void* context, decltype(EventListener::callback) callback)
+EventConsumer* EventBus::create_consumer()
 {
-    EventListener* listener = new EventListener;
-    listener->type = type;
-    listener->sourceMask = sourceMask;
-    listener->destinationMask = destinationMask;
-    listener->callback = callback;
-    listener->context = context;
-    listener->next = nullptr;
-
-    if (listeners_last == nullptr) {
-        listeners = listener;
-        listeners_last = listener;       
-    } else {
-        listeners_last->next = listener;
-        listeners_last = listener;
-    }
-}
-
-void EventBus::eventEntry(u32 type, u32 source, u32 destination, u32 size, void* data)
-{
-    EventListener *listener = listeners;
-
-    while (listener != nullptr) {
-        if (((listener->sourceMask & source) != 0) && ((listener->destinationMask & destination) != 0)) {
-            listener->callback(listener->context, type, source, destination, size, data);
-        }
-        listener = listener->next;
-    }
+    consumers_lock.lock();
+    EventConsumer* consumer = new EventConsumer();
+    consumers.push_back(consumer);
+    consumers_lock.release();
+    return consumer;
 }
