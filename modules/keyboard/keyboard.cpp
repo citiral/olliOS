@@ -1,9 +1,7 @@
-#include "devices/vga.h"
 #include "keyboard.h"
 #include "io.h"
 #include "cdefs.h"
 #include "interrupt.h"
-#include "devicemanager.h"
 #include "stdio.h"
 #include "eventbus/eventbus.h"
 #include "threading/semaphore.h"
@@ -58,12 +56,13 @@ void KeyboardDriverThread(KeyboardDriver* driver) {
 				break;
 			}
 
-    		eventbus.push_event(EVENT_TYPE_KEYBOARD, sizeof(event), &event);
+    		eventbus.emit(EVENT_TYPE_KEYBOARD, sizeof(event), &event);
 		}
 	}
 }
 
 void initialize() {
+    printf("test2!\n");
 	driver = new KeyboardDriver();
 	driver->setScanCodeSet(SCANSET_2);
 	driver->setScanCodeTranslation(false);

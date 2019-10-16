@@ -1,4 +1,4 @@
-#include "util/inputformatter.h"
+#include "inputformatter.h"
 #include "devicemanager.h"
 #include "devices/vga.h"
 #include "keyboard/keyboard.h"

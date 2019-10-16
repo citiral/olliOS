@@ -9,7 +9,7 @@ EventBus::EventBus(): consumers_lock(1)
     
 }
 
-void EventBus::push_event(u32 type, u32 size, void* data)
+void EventBus::emit(u32 type, u32 size, void* data)
 {
 
     // Make new event

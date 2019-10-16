@@ -38,7 +38,6 @@
 #include "fs/filesystem.h"
 
 #include "multiboot.h"
-#include "kernelshell.h"
 #include "cpuid.h"
 #include "symbolmap.h"
 #include "elf.h"
@@ -190,10 +189,6 @@ void startup_listener(void* context, Event* event)
         LOG_STARTUP("BINDING %s to %s", info.deviceInfo.name, name);
         vfs->BindFilesystem(name, new Iso9660FileSystem(device));
     }
-
-
-    KernelShell* shell = new KernelShell();
-    shell->enter();
 }
 
 threading::Semaphore sem(1);
@@ -286,8 +281,7 @@ extern "C" void main(multiboot_info* multiboot) {
     printf("eventbus: %x", &eventbus);
 
     //threading::scheduler->schedule(new threading::Thread(consumer_test, eventbus.create_consumer()));
-    threading::scheduler->schedule(new threading::Thread(&EventBus::push_event, &eventbus, (u32)EVENT_TYPE_STARTUP, (u32)0, (void*)nullptr));
-    threading::scheduler->schedule(new threading::Thread(&EventBus::push_event, &eventbus, (u32)EVENT_TYPE_STARTUP, (u32)0, (void*)nullptr));
+    threading::scheduler->schedule(new threading::Thread(&EventBus::emit, &eventbus, (u32)EVENT_TYPE_STARTUP, (u32)0, (void*)nullptr));
     cpu_main();
 
 	/*char* mainL = (char*) main;

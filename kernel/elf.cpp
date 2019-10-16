@@ -82,7 +82,7 @@ static int relocate_entry(elf* e, elf_header* elf, section_header* section, elf_
         if (get_symbol_value(elf, get_section_header(elf, section->link_index), relocation.info >> 8, map, &symval) != 0) {
             return -1;
         }
-        printf("symbol value is %x\n", symval);
+        //printf("symbol value is %x\n", symval);
 
         // https://docs.oracle.com/cd/E19683-01/816-7529/chapter6-26/index.html
         switch((u8) relocation.info) {
@@ -126,7 +126,7 @@ static int relocate_section(elf* e, elf_header* elf, section_header* section, Sy
     elf_rel* relocation = (elf_rel*) (((u8*)elf) + section->offset);
 
     for (size_t i = 0 ; i < section->size / sizeof(elf_rel) ; i += 1) {
-        printf("relocating.. %d\n", i);
+        //printf("relocating.. %d\n", i);
         if (relocate_entry(e, elf, section, relocation[i], map, got) != 0) {
             printf("FAILED relocating.. %d\n", i);
             return -1;

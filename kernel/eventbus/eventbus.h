@@ -15,8 +15,8 @@ class EventConsumer;
 
 struct Event {
 public:
-    Event* next;
     u32 type;
+    u32 subtype;
     u32 lifetime;
     u8 data[0];
 };
@@ -26,7 +26,10 @@ class EventBus {
 public:
 	EventBus();
 
-	void push_event(u32 type, u32 size, void* data);
+	void emit(u32 type, u32 size, void* data);
+
+    template <typename T>
+	void emit(u32 type, u32 size, void* data);
     EventConsumer* create_consumer();
 
 private:

@@ -5,7 +5,7 @@
 #ifndef OLLIOS_GIT_KERNELSHELL_H
 #define OLLIOS_GIT_KERNELSHELL_H
 
-#include "util/inputformatter.h"
+#include "inputformatter.h"
 #include "kstd/vector.h"
 #include "kstd/utility.h"
 #include "kstd/string.h"
