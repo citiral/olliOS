@@ -20,7 +20,7 @@ void InputFormatter::handleVirtualKeyEvent(VirtualKeyEvent event)
 
     //first lets test the special characters
     if (event.vkey == VirtualKeycode::ENTER) {
-		((VgaDriver*) deviceManager.getDevice(DeviceType::Screen, 0))->write('\n');
+		//((VgaDriver*) deviceManager.getDevice(DeviceType::Screen, 0))->write('\n');
 		_input.back().push_back('\0');
 		_input.push_back(std::vector<char>());
 		_lineReady = true;
@@ -96,9 +96,9 @@ bool InputFormatter::isLineReady() const
 void InputFormatter::addChar(u8 character)
 {
 	_input.back().insert(_lineIndex++, character);
-	for (size_t i = _lineIndex-1; i < _input.back().size(); i++)
-		((VgaDriver*) deviceManager.getDevice(DeviceType::Screen, 0))->write(_input.back()[i]);
-	fseek(stdout, _lineIndex-_input.back().size(), SEEK_CUR);
+	//for (size_t i = _lineIndex-1; i < _input.back().size(); i++)
+	//	((VgaDriver*) deviceManager.getDevice(DeviceType::Screen, 0))->write(_input.back()[i]);
+	//fseek(stdout, _lineIndex-_input.back().size(), SEEK_CUR);
 }
 
 void InputFormatter::gotoLine(int linenum)

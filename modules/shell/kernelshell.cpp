@@ -174,6 +174,7 @@ void unset(KernelShell* shell, std::vector<std::string>* args)
 
 KernelShell::KernelShell(): _commands()
 {
+    printf("hello world from kernshell\n");
 #if __KERNEL_ALLOCATOR == __KERNEL_ALLOCATOR_BUCKET
 	_commands.push_back(std::pair<const char *, CommandFunction>("allocinfo", &allocinfo));
 	_commands.push_back(std::pair<const char *, CommandFunction>("allocmerge", &allocmerge));
@@ -188,52 +189,46 @@ KernelShell::KernelShell(): _commands()
 	_env.set("pwd", "/");
 	_env.set("home", "/");*/
 }
-void KernelShell::enter()
+
+void KernelShell::enter(VirtualKeyEvent input)
 {
-	// keep in the shell forever (unless we tell it to exit)
-	while (true)
+	// read some virtual key events from the keyboard driver
+	//VirtualKeyEvent input[10];
+	//size_t read = ((keyboard::KeyboardDriver*) deviceManager.getDevice(DeviceType::Keyboard, 0))->read(input, 10);
+
+    // send them to the input formatter
+    _input.handleVirtualKeyEvent(input);
+	// if there is a line, fetch it (for now use a std::vector<char> since we don't have strings yet)
+	
+    if (_input.isLineReady())
 	{
-		// read some virtual key events from the keyboard driver
-		/*VirtualKeyEvent input[10];
-		size_t read = ((keyboard::KeyboardDriver*) deviceManager.getDevice(DeviceType::Keyboard, 0))->read(input, 10);
+		std::string line = _input.getNextLine();
 
-		// send them to the input formatter
-		for (size_t i = 0; i < read; i += sizeof(VirtualKeyEvent))
+        // find the first matching command and call it
+        bool notFound = true;
+
+        std::vector<std::string>* split = new std::vector<std::string>();
+	    *split = splitCommand(line);
+
+		if (split->size() > 0)
 		{
-			_input.handleVirtualKeyEvent(input[i]);
-		}
-
-		// if there is a line, fetch it (for now use a std::vector<char> since we don't have strings yet)
-		if (_input.isLineReady())
-		{
-			std::string line = _input.getNextLine();
-
-			// find the first matching command and call it
-			bool notFound = true;
-
-			std::vector<std::string>* split = new std::vector<std::string>();
-			*split = splitCommand(line);
-
-			if (split->size() > 0)
+			for (size_t i = 0; i < _commands.size(); i++)
 			{
-				for (size_t i = 0; i < _commands.size(); i++)
+				if (split->at(0) == _commands[i].first)
 				{
-					if (split->at(0) == _commands[i].first)
-					{
-						notFound = false;
-						threading::Thread* p = new threading::Thread(this->_commands[i].second, this, split);
-						threading::scheduler->schedule(p);
-						break;
-					}
-				}
-				// otherwise print a command not found
-				if (notFound)
-				{
-					printf("Unknown command: %s\n", line.data());
+					notFound = false;
+					threading::Thread* p = new threading::Thread(this->_commands[i].second, this, split);
+					threading::scheduler->schedule(p);
+					break;
 				}
 			}
-		}*/
-	}
+			// otherwise print a command not found
+			if (notFound)
+			{
+				printf("Unknown command: %s\n", line.data());
+			}
+		}
+    }
 }
 
 std::vector<std::pair<const char*, KernelShell::CommandFunction>>& KernelShell::commands() {

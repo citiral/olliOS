@@ -14,7 +14,7 @@ class KernelShell {
 using CommandFunction = void (*)(KernelShell* shell, std::vector<std::string>* args);
 public:
     KernelShell();
-    void enter();
+    void enter(VirtualKeyEvent input);
 
     std::vector<std::pair<const char*, CommandFunction>>& commands();
 
