@@ -1,11 +1,9 @@
-#include "devices/vga.h"
+#include "vga/vga.h"
 #include "io.h"
 #include "stdio.h"
 #include "cdefs.h"
 
 static i16* VGA_POINTER = (i16*)0x000B8000;
-
-VgaDriver vgaDriver;
 
 VgaDriver::VgaDriver():
 	_column(0),
@@ -17,7 +15,7 @@ VgaDriver::VgaDriver():
 {
 	//to please the user, the driver is started with a clear screen
 	for (int i = 0 ; i < 500 ; i++)
-		vgaDriver.write("    ");
+		write("    ");
 	_column = 0;
 	_row = 0;
 }
@@ -25,17 +23,6 @@ VgaDriver::VgaDriver():
 VgaDriver::~VgaDriver()
 {
 
-}
-
-DeviceType VgaDriver::getDeviceType() const
-{
-	return DeviceType::Screen;
-}
-
-void VgaDriver::getDeviceInfo(void* deviceinfo) const
-{
-	DeviceScreenInfo* info = (DeviceScreenInfo*)deviceinfo;
-	info->deviceInfo.name = VGA_DRIVER_DEVICE_NAME;
 }
 
 size_t VgaDriver::write(const void* data, size_t amount)
@@ -65,37 +52,6 @@ size_t VgaDriver::write(char data)
 	UNUSED(data);
 	writeChar(data);
 	return 1;
-}
-
-size_t VgaDriver::read(void* data, size_t amount)
-{
-	UNUSED(data);
-	UNUSED(amount);
-	return 0;
-}
-
-size_t VgaDriver::seek(i32 offset, int seek)
-{
-	u32 position;
-
-	if (seek == SEEK_SET)
-		position = 0;
-	else if (seek == SEEK_END)
-		position = VGA_WIDTH * VGA_HEIGHT - 1;
- 	else if (seek == SEEK_CUR)
-		position = _column + _row * VGA_WIDTH;
-
-	position += offset;
-
-	_column = position % VGA_WIDTH;
-	_row = position / VGA_WIDTH;
-
-	_column %= VGA_WIDTH;
-	_row %= VGA_HEIGHT;
-
-	updateCursor();
-
-	return 0;
 }
 
 i16 VgaDriver::generateEntry(char c) {

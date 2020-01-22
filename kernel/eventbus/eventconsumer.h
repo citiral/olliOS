@@ -18,12 +18,16 @@ class EventConsumer {
 public:
     EventConsumer();
     void push_event(Event* event);
+
     void listen(u32 type, void* context, decltype(EventListener::callback) callback);
     void listen_once(u32 type, void* context, decltype(EventListener::callback) callback);
+
+    //void register_device(Device* device);
 
     void enter();
 
 private:
+    u32 id;
     std::vector<EventListener> listeners;
     LinkedList<Event*> events;
     threading::Semaphore events_lock;

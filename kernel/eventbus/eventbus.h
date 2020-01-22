@@ -18,6 +18,7 @@ public:
     u32 type;
     u32 subtype;
     u32 lifetime;
+    u32 id;
     u8 data[0];
 };
 

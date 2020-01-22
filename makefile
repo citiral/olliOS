@@ -15,7 +15,7 @@ CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O0 -Wall -Wextra -fno-excep
 LDFLAGS = -ffreestanding -O0 -nostdlib -lgcc
 LIBS = $(ROOT)/usr/lib/libk.a
 
-MODULES = keyboard shell
+MODULES = keyboard shell vga
 
 KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/threading/*.cpp) $(wildcard kernel/eventbus/*.cpp) $(wildcard kernel/util/*.cpp) $(wildcard kernel/devices/*.cpp) $(wildcard kernel/devices/ata/*.cpp) $(wildcard kernel/devices/pci/*.cpp) $(wildcard kernel/alloc/*.cpp) $(wildcard kernel/fs/*.cpp) $(wildcard kernel/kstd/*.cpp)  $(wildcard kernel/memory/*.cpp)
 KERNEL_ASM = $(wildcard kernel/*.s)

@@ -1,0 +1,19 @@
+// eventbus design
+
+ata = root_node.register("ata");
+
+.. discover ata childs ..
+
+for child in childs:
+    child = ata.register("childname")   (calls on_create for each child to subscribes of "/ata/")
+
+.. data received
+
+child.data(binarydata) (calls on_write for each subscriber of "/ata/childname")
+
+
+
+node("/")
+node("/ata/write").on_create(func, do_once=false).on_data()
+
+/ata/write

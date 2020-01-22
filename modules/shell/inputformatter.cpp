@@ -1,8 +1,9 @@
 #include "inputformatter.h"
 #include "devicemanager.h"
-#include "devices/vga.h"
 #include "keyboard/keyboard.h"
+#include "fs/bindings.h"
 #include "stdio.h"
+#include "string.h"
 
 using namespace keyboard;
 
@@ -111,8 +112,7 @@ void InputFormatter::gotoLine(int linenum)
 	if (_input.back().back() == '\0')
 		_input.back().pop_back();
 
-	VgaDriver* vga = (VgaDriver*) deviceManager.getDevice(DeviceType::Screen, 0);
-	vga->write(_input[linenum].data());
+	stdout->write(_input[linenum].size(), _input[linenum].data());
 	_logIndex = linenum;
 	_lineIndex = _input.back().size();
 }
@@ -148,9 +148,9 @@ void InputFormatter::removeChars(size_t num)
 		for (size_t i = _lineIndex; i < _input.back().size()+num; i++)
 		{
 			if (i < _input.back().size())
-				vgaDriver.write(&_input.back()[i], 1);
+				stdout->write(strlen(&_input.back()[i]), &_input.back()[i]);
 			else
-				vgaDriver.write(" ", 1);
+				putchar(' ');
 			_lineIndex++;
 			t++;
 		}

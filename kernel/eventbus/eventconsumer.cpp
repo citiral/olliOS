@@ -1,9 +1,12 @@
 #include "eventbus/eventconsumer.h"
+#include "util/unique.h"
+
+static UniqueGenerator<u32> consumer_id;
 
 
 EventConsumer::EventConsumer(): events_lock(1), events_count(0), listeners_lock(1) 
 {
-
+    id = consumer_id.next();
 }
 
 void EventConsumer::push_event(Event* event)

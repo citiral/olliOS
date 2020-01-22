@@ -1,6 +1,9 @@
 #include "eventbus.h"
 #include "eventbus/eventconsumer.h"
 #include "threading/scheduler.h"
+#include "util/unique.h"
+
+UniqueGenerator<u32> event_id;
 
 EventBus eventbus;
 
@@ -11,10 +14,10 @@ EventBus::EventBus(): consumers_lock(1)
 
 void EventBus::emit(u32 type, u32 size, void* data)
 {
-
     // Make new event
     Event *event = (Event*) malloc(sizeof(Event) + size);
     event->type = type;
+    event->id = event_id.next();
     memcpy(event + 1, data, size);
 
     // Push it to all consumers

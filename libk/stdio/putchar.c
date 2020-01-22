@@ -1,9 +1,17 @@
 #include "stdio.h"
-#include "devices/vga.h"
+#include "fs/bindings.h"
 
 int putchar(int character)
 {
-    unsigned char c = (unsigned char)character;
-    stdout->write(&c, 1);
-    return character;
+    if (stdout == NULL) {
+        if (bindings::root != NULL) {
+            stdout = bindings::root->get("vga");
+        }
+    }
+
+    if (stdout != NULL) {
+        unsigned char c = (unsigned char)character;
+        stdout->write(1, &c);
+        return character;
+    }
 }

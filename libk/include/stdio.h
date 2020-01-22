@@ -3,8 +3,10 @@
 
 #include <stddef.h>
 
-class BlockDevice;
-typedef BlockDevice FILE;
+namespace bindings {
+    class Binding;
+}
+typedef bindings::Binding FILE;
 
 #define SEEK_SET 0
 #define SEEK_CUR 1
