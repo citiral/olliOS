@@ -245,18 +245,6 @@ extern "C" void main(multiboot_info* multiboot) {
     //set up pre-emptive multithreading
     idt.getEntry(INT_PREEMPT).setOffset((u32)thread_interrupt);
     threading::scheduler = new threading::Scheduler();
-
-    
-    // if APIC is supported, switch to it and enable multicore
-    cpuid_field features = cpuid(1);
-    if ((features.edx & (int)cpuid_feature::EDX_APIC) != 0) {
-        LOG_STARTUP("Initializing APIC.");
-        apic::Init();
-        apic::StartAllCpus(&cpu_main);
-        apic::disableIrq(0x22);
-    } else {
-        LOG_STARTUP("APIC not supported, skipping. (Threading will not be supported)");
-    }
     
     vgaDriver = new VgaDriver();
 
@@ -268,6 +256,17 @@ extern "C" void main(multiboot_info* multiboot) {
 
     symbolMap = new SymbolMap((const char*) mod->mod_start);
     mod++;
+
+    // if APIC is supported, switch to it and enable multicore
+    cpuid_field features = cpuid(1);
+    if ((features.edx & (int)cpuid_feature::EDX_APIC) != 0) {
+        LOG_STARTUP("Initializing APIC.");
+        apic::Init();
+        apic::StartAllCpus(&cpu_main);
+        apic::disableIrq(0x22);
+    } else {
+        LOG_STARTUP("APIC not supported, skipping. (Threading will not be supported)");
+    }
 
     for (int i = 1 ; i < multiboot->mods_count ; i++) {
         printf("mod %d is at %X\n", i, mod->mod_start);

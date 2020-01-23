@@ -1,11 +1,20 @@
 #include "types.h"
 #include "kernelshell.h"
 #include "fs/bindings.h"
+#include "threading/scheduler.h"
 #include <stdio.h>
 
 using namespace bindings;
 
 KernelShell* shell;
+
+
+void test() {
+    while (true) {
+        printf("boop\n");
+        threading::exit();
+    }
+}
 
 extern "C" void module_load(Binding* root)
 {
