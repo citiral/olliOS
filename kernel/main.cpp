@@ -166,21 +166,6 @@ void print(int c) {
 	LOG_DEBUG("p: %d, from core %d", c, apic::id());
 }
 
-
-void print_binding_tree(std::string prefix, bindings::Binding* root) {
-    std::string name = prefix + "/" + root->name;
-
-    printf("%s, %d\n", name.c_str(), root->id);
-
-    bindings::Binding* child = root->_first_child;
-
-    while (child != NULL) {
-        print_binding_tree(name, child);
-        child = child->_next_sibling;
-    }
-
-}
-
 void startup_listener(void* context, Event* event)
 {
     /*ata::driver.initialize();
@@ -245,7 +230,10 @@ extern "C" void main(multiboot_info* multiboot) {
     //set up pre-emptive multithreading
     idt.getEntry(INT_PREEMPT).setOffset((u32)thread_interrupt);
     threading::scheduler = new threading::Scheduler();
-    
+
+    vgaDriver = new VgaDriver();
+    vgaDriver = new VgaDriver();
+    vgaDriver = new VgaDriver();
     vgaDriver = new VgaDriver();
 
     printf("Flags: %X\n", multiboot->flags);
@@ -255,7 +243,6 @@ extern "C" void main(multiboot_info* multiboot) {
     printf("elf: %d\n", multiboot->u.elf_sec.size);
 
     symbolMap = new SymbolMap((const char*) mod->mod_start);
-    mod++;
 
     // if APIC is supported, switch to it and enable multicore
     cpuid_field features = cpuid(1);
@@ -267,12 +254,15 @@ extern "C" void main(multiboot_info* multiboot) {
     } else {
         LOG_STARTUP("APIC not supported, skipping. (Threading will not be supported)");
     }
+    mod++;
 
     for (int i = 1 ; i < multiboot->mods_count ; i++) {
         printf("mod %d is at %X\n", i, mod->mod_start);
         u8* c = (u8*) mod->mod_start;
-        
-        elf::elf* e = new elf::elf(c);
+        u8* data = new u8[mod->mod_end - mod->mod_start];
+        memcpy(data, c, mod->mod_end - mod->mod_start);
+
+        elf::elf* e = new elf::elf(data);
         if (e == nullptr) {
             printf("Failed allocating elf\n");
             while (1);
@@ -283,6 +273,9 @@ extern "C" void main(multiboot_info* multiboot) {
         } else {
             void (*module_load)(bindings::Binding*);
             e->get_symbol_value("module_load", (u32*) &module_load);
+            u32 bss = 0;
+            e->get_symbol_value(".bss", &bss);
+            printf(".bss: 0x%X\n", bss);
             printf("done. running.... %x\n", module_load);
             module_load(bindings::root);
         }

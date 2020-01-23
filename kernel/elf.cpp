@@ -22,7 +22,7 @@ static const char* get_section_name(elf_header* file, u32 section_index)
     return (const char*) data + string_table->offset + section->name_offset;
 }
 
-static void allocate_nobits(section_header* section)
+static void allocate_nobits(elf_header* elf, section_header* section)
 {
     if (section->size == 0) {
         return;
@@ -31,7 +31,11 @@ static void allocate_nobits(section_header* section)
     if (section->flags & 0x02) {
         void* mem = malloc(section->size);
         memset(mem, 0, section->size);
-        section->offset = (u32)mem - (u32)section;
+        printf("BSS %X, %X\n", mem, section->offset);
+        section->offset = ((u32)mem - ((u32)elf));
+        //section->offset = (u32)mem - (u32)section;
+        //if (section > mem)
+        printf("BSS %X, %X\n", mem, section->offset);
     }
 }
 
@@ -57,20 +61,26 @@ static int get_symbol_value(elf_header* elf, section_header* section, u32 symbol
 
         if (entry == nullptr) {
             printf("Can't find symbol %s\n", name);
-            return -1;
+            //return -1;
         }
 
         *out = entry->offset;
         return 0;
     } else {
         section_header* ndx_header = get_section_header(elf, symbol->section_index);
-        *out = (u32)((u8*)elf) + ndx_header->offset + symbol->value;
+        *out = (u32)elf + ndx_header->offset + symbol->value;
+        //*out = (u32)((u8*)elf) + ndx_header->offset + symbol->value;
+
+        if (symbol->section_index == 40) {
+            printf("val: 0x%X, sval %X\n", *out, symbol->value);
+            //while (1);
+        }
         return 0;
     }
 
     return -1;
 }
-
+//_ZNSt6stringD1Ev
 static int relocate_entry(elf* e, elf_header* elf, section_header* section, elf_rel relocation, SymbolMap& map, u32* got)
 {
     section_header* target = get_section_header(elf, section->info);
@@ -88,9 +98,16 @@ static int relocate_entry(elf* e, elf_header* elf, section_header* section, elf_
             return 0;
         }
 
+        const char* name = get_symbol_name(elf, get_section_header(elf, section->link_index), relocation.info >> 8);
+        //if (strcmp(name, "") != 0)
+        //printf("relocating %s\n", name);
+
         if (get_symbol_value(elf, get_section_header(elf, section->link_index), relocation.info >> 8, map, &symval) != 0) {
             return -1;
         }
+
+        //if (strcmp(name, ".bss\n") == 0) {
+        //}
         //printf("symbol value is %x\n", symval);
 
         // https://docs.oracle.com/cd/E19683-01/816-7529/chapter6-26/index.html
@@ -194,8 +211,8 @@ int elf::link(SymbolMap& map)
     for (int i = 0 ; i < _header->section_header_table_entries ; i++) {
         section_header* section = get_section_header(_header, i);
         if (section->type == section_type::NOBITS) {
-            //printf("allocating nobits section: %s\n", get_section_name(_header, i));
-            allocate_nobits(section);
+            printf("allocating nobits section: %s\n", get_section_name(_header, i));
+            allocate_nobits(_header, section);
         }
     }
 
@@ -203,7 +220,7 @@ int elf::link(SymbolMap& map)
     for (int i = 0 ; i < _header->section_header_table_entries ; i++) {
         section_header* section = get_section_header(_header, i);
         if (section->type == section_type::REL) {
-           // printf("relocating section: %s\n", get_section_name(_header, i));
+            //printf("relocating section: %s\n", get_section_name(_header, i));
             if (relocate_section(this, _header, section, map, _GOT) != 0) {
                 printf("Failed relocating section %s\n", get_section_name(_header, i));
                 return -1;

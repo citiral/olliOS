@@ -20,7 +20,7 @@
 
 namespace keyboard {
 
-KeyboardDriver* driver;
+KeyboardDriver* driver = 0;
 
 VirtualKeyEvent MakeVirtualKeyEvent()
 {

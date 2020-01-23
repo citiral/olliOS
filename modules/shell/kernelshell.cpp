@@ -8,6 +8,7 @@
 #include "keyboard/keyboard.h"
 #include "fs/filesystem.h"
 #include "fs/virtualfilesystem.h"
+#include "fs/bindings.h"
 #include "threading/thread.h"
 #include "threading/scheduler.h"
 #include "apic.h"
@@ -80,8 +81,23 @@ void cat(KernelShell* shell, std::vector<std::string>* args)
 	delete args;
 }
 
+void print_binding_tree(std::string prefix, bindings::Binding* root) {
+    std::string name = prefix + "/" + root->name;
+
+    printf("%s, %d\n", name.c_str(), root->id);
+
+    bindings::Binding* child = root->_first_child;
+
+    while (child != NULL) {
+        print_binding_tree(name, child);
+        child = child->_next_sibling;
+    }
+
+}
+
 void ls(KernelShell* shell, std::vector<std::string>* args)
 {
+	//print_binding_tree("", bindings::root);
 	//LOG_DEBUG("pwd: %s", threading::currentProcess()->env.get("pwd").c_str());
 	UNUSED(shell);
 	DirEntry* dir;
