@@ -6,7 +6,11 @@
 #include "threading/mutex.h"
 
 #define INPUT_BUFFER_SIZE 16
-#define KEYBOARD_DRIVER_DEVICE_NAME "KEYBOARD"
+
+#define SCANSET_GET 0
+#define SCANSET_1 1
+#define SCANSET_2 2
+#define SCANSET_3 3
 
 namespace keyboard {
 
@@ -38,8 +42,6 @@ namespace keyboard {
 		void setScanCodeSet(u8 scanset);
 		void setScanCodeTranslation(bool enabled);
 
-		//gets the name of the keyboard driver
-		virtual void getDeviceInfo(void* info) const;
 		//makes the driver process amount scancodes from data
 		virtual size_t write(const void* data, size_t amount);
 		//makes the driver process scancodes from data until a nullpointer is occured
@@ -48,8 +50,6 @@ namespace keyboard {
 		virtual size_t write(char data);
 		//reads virtual keycodes from the keyboard buffer
 		virtual size_t read(void* data, size_t amount);
-		//does nothing!
-		virtual size_t seek(i32 offset, int position);
 		
 		threading::Mutex dataMutex;
 	private:
@@ -89,6 +89,7 @@ namespace keyboard {
 		volatile u8 _commandBufP; // The port to send _commandBufC to (_commandBufD will always go to IO_PORT)
 	};
 
+	extern KeyboardDriver* driver;
 }
 
 #endif

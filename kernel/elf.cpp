@@ -35,6 +35,16 @@ static void allocate_nobits(section_header* section)
     }
 }
 
+const char* get_symbol_name(elf_header* elf, section_header* section, u32 symbol_index)
+{
+    elf_symbol* symbols = (elf_symbol*)(((u8*)elf) + section->offset);
+    elf_symbol* symbol = symbols + symbol_index;
+
+    section_header* name_header = get_section_header(elf, section->link_index);
+    const char *name = ((const char*)elf) + name_header->offset + symbol->name_offset;
+    return name;
+}
+
 static int get_symbol_value(elf_header* elf, section_header* section, u32 symbol_index, SymbolMap& map, u32* out)
 {
     elf_symbol* symbols = (elf_symbol*)(((u8*)elf) + section->offset);
@@ -47,8 +57,7 @@ static int get_symbol_value(elf_header* elf, section_header* section, u32 symbol
 
         if (entry == nullptr) {
             printf("Can't find symbol %s\n", name);
-        } else {
-            printf("Found symbol %s at %X\n", name, entry->offset);
+            return -1;
         }
 
         *out = entry->offset;
@@ -104,10 +113,18 @@ static int relocate_entry(elf* e, elf_header* elf, section_header* section, elf_
                     return -1;
                 }
 
-                
-                e->_got_count++;
-                e->_GOT[e->_got_count] = symval;
-                *ref = e->_got_count*4 + *ref;
+                {
+                    const char* name = get_symbol_name(elf, get_section_header(elf, section->link_index), relocation.info >> 8);
+
+                    if (e->_GotIndex[name] == 0) {
+                        e->_got_count++;
+                        e->_GOT[e->_got_count] = symval;
+                        *ref = e->_got_count*4 + *ref;
+                        e->_GotIndex[name] = e->_got_count;
+                    } else {
+                        *ref = e->_GotIndex[name]*4 + *ref;
+                    }
+                }
                 break;
             default:
                 printf("Unhandled relocation type\n");
@@ -136,7 +153,7 @@ static int relocate_section(elf* e, elf_header* elf, section_header* section, Sy
     return 0;
 }
 
-elf::elf(u8* data): _header((elf_header*) data), _got_count(0)
+elf::elf(u8* data): _header((elf_header*) data), _got_count(0), _GotIndex()
 {
     memset(_GOT, 0, sizeof(_GOT));
 }
@@ -177,7 +194,7 @@ int elf::link(SymbolMap& map)
     for (int i = 0 ; i < _header->section_header_table_entries ; i++) {
         section_header* section = get_section_header(_header, i);
         if (section->type == section_type::NOBITS) {
-            printf("allocating nobits section: %s\n", get_section_name(_header, i));
+            //printf("allocating nobits section: %s\n", get_section_name(_header, i));
             allocate_nobits(section);
         }
     }
@@ -186,7 +203,7 @@ int elf::link(SymbolMap& map)
     for (int i = 0 ; i < _header->section_header_table_entries ; i++) {
         section_header* section = get_section_header(_header, i);
         if (section->type == section_type::REL) {
-            printf("relocating section: %s\n", get_section_name(_header, i));
+           // printf("relocating section: %s\n", get_section_name(_header, i));
             if (relocate_section(this, _header, section, map, _GOT) != 0) {
                 printf("Failed relocating section %s\n", get_section_name(_header, i));
                 return -1;

@@ -5,7 +5,7 @@
 #include "symbolmap.h"
 #include "kstd/unordered_map.h"
 
-#define ELF_GOT_SIZE 1024
+#define ELF_GOT_SIZE 2048
 
 namespace elf {
 
@@ -120,7 +120,7 @@ public:
     elf_header* _header;
     u32 _GOT[ELF_GOT_SIZE];
     u32 _got_count;
-    std::unordered_map<const char*, u32> _GotIndex;
+    std::unordered_map<std::string, u32> _GotIndex;
 };
 
 void dump_elf(u8* file, SymbolMap& map);

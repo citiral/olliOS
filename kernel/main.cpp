@@ -40,7 +40,7 @@
 #include "cpuid.h"
 #include "symbolmap.h"
 #include "elf.h"
-
+#include "vga.h"
 #include "fs/bindings.h"
 
 #include "util/unique.h"
@@ -97,7 +97,7 @@ void initMemory(multiboot_info* multiboot) {
 
             // only use the first physical gb
             //if ((size_t)addr >= 0x40000000)
-                //continue;
+            //    continue;
 
             // don't let this shit overlap with the kernel itself
             if ((size_t)addr < (size_t)KERNEL_END_PHYSICAL) {
@@ -183,7 +183,7 @@ void print_binding_tree(std::string prefix, bindings::Binding* root) {
 
 void startup_listener(void* context, Event* event)
 {
-    ata::driver.initialize();
+    /*ata::driver.initialize();
     LOG_STARTUP("ATA driver initialized.");
 
     PCI::init();
@@ -201,7 +201,7 @@ void startup_listener(void* context, Event* event)
         name[3] += i;
         LOG_STARTUP("BINDING %s to %s", info.deviceInfo.name, name);
         vfs->BindFilesystem(name, new Iso9660FileSystem(device));
-    }
+    }*/
 }
 
 threading::Semaphore sem(1);
@@ -220,6 +220,7 @@ void consumer_test(EventConsumer* consumer) {
     consumer->enter();
 }
 
+VgaDriver* vgaDriver = 0;
 extern "C" void main(multiboot_info* multiboot) {
     // init lowlevel CPU related stuff
     // None of these should be allowed to touch the memory allocator, etc
@@ -256,6 +257,8 @@ extern "C" void main(multiboot_info* multiboot) {
     } else {
         LOG_STARTUP("APIC not supported, skipping. (Threading will not be supported)");
     }
+    
+    vgaDriver = new VgaDriver();
 
     printf("Flags: %X\n", multiboot->flags);
     printf("mods count: %d\n", multiboot->mods_count);
@@ -263,19 +266,8 @@ extern "C" void main(multiboot_info* multiboot) {
 
     printf("elf: %d\n", multiboot->u.elf_sec.size);
 
-    SymbolMap map((const char*) mod->mod_start);
+    symbolMap = new SymbolMap((const char*) mod->mod_start);
     mod++;
-
-    bindings::root->on_create([](bindings::Binding* root, bindings::Binding* child) {
-        if (child->name == "vga") {
-            printf("FOUND VGA!\n");
-            const char* string = "TEST VGA PRINT!\n";
-            child->write(strlen(string), string);
-            return false;
-        } else {
-            return false;
-        }
-    });
 
     for (int i = 1 ; i < multiboot->mods_count ; i++) {
         printf("mod %d is at %X\n", i, mod->mod_start);
@@ -287,7 +279,7 @@ extern "C" void main(multiboot_info* multiboot) {
             while (1);
         }
 
-        if (e->link(map) != 0 && 0) {
+        if (e->link(*symbolMap) != 0 && 0) {
             printf("failed linking elf\n");
         } else {
             void (*module_load)(bindings::Binding*);

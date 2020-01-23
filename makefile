@@ -63,7 +63,7 @@ $(BUILD)$(OUTPUT): $(BUILD)$(CRTI_OBJ) $(OBJECTS) $(BUILD)$(CRTN_OBJ)
 	$(CC) -T kernel/linker.ld -o build/$(OUTPUT) $(CFLAGS) $(addprefix build/, $(CRTI_OBJ)) $(CRTBEGIN_OBJ) $(OBJECTS) $(CRTEND_OBJ) $(addprefix build/, $(CRTN_OBJ)) $(LDFLAGS) $(LIBS)
 
 $(BUILD)ollios.sym: $(BUILD)$(OUTPUT)
-	nm $^ > $@
+	nm $^ | sort > $@
 
 clean:
 	rm -fr build root

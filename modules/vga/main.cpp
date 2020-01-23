@@ -6,15 +6,15 @@
 
 using namespace bindings;
 
-VgaDriver vgaDriver;
+VgaDriver* vgaDriver = 0;
 
 extern "C" void module_load(Binding* root)
 {
-    new (&vgaDriver) VgaDriver();
-
+    vgaDriver = new VgaDriver();
+    vgaDriver->write("Hello world!\n");
     root->create("vga", [](OwnedBinding* vga, size_t size, const void* data){
         (void) vga;
-        vgaDriver.write(data, size);
+        vgaDriver->write(data, size);
         return true;
     });
 }

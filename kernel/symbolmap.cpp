@@ -1,6 +1,8 @@
 #include "symbolmap.h"
 #include <stdio.h>
 
+SymbolMap* symbolMap;
+
 u32 string_to_offset(const char* str)
 {
     u32 offset = 0;
@@ -23,7 +25,7 @@ u32 string_to_offset(const char* str)
     return offset;
 }
 
-SymbolMap::SymbolMap(const char* data): symbols()
+SymbolMap::SymbolMap(const char* data): symbols_map()
 {
 
     while (*data != 0) {
@@ -38,18 +40,31 @@ SymbolMap::SymbolMap(const char* data): symbols()
         }
         data++;
 
-        SymbolMapEntry& entry = symbols[line];
+        SymbolMapEntry& entry = symbols_map[line];
         entry.type = type;
         entry.offset = offset;
+        entry.name = line;
+        symbols_list.push_back(entry);
     }
 }
 
 
 SymbolMapEntry* SymbolMap::find_symbol(const char* name)
 {
-    if (symbols.count(name) == 0) {
+    if (symbols_map.count(name) == 0) {
         return nullptr;
     }
 
-    return &symbols[name];
+    return &symbols_map[name];
+}
+
+SymbolMapEntry* SymbolMap::find_function_name(u32 addr)
+{
+    for (int i = symbols_list.size() - 1 ; i >= 0 ; i--) {
+        if (symbols_list[i].offset <= addr) {
+            return &symbols_list[i];
+        }
+    }
+
+    return NULL;
 }

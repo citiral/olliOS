@@ -21,7 +21,7 @@ void InputFormatter::handleVirtualKeyEvent(VirtualKeyEvent event)
 
     //first lets test the special characters
     if (event.vkey == VirtualKeycode::ENTER) {
-		//((VgaDriver*) deviceManager.getDevice(DeviceType::Screen, 0))->write('\n');
+		putchar('\n');
 		_input.back().push_back('\0');
 		_input.push_back(std::vector<char>());
 		_lineReady = true;
@@ -97,8 +97,8 @@ bool InputFormatter::isLineReady() const
 void InputFormatter::addChar(u8 character)
 {
 	_input.back().insert(_lineIndex++, character);
-	//for (size_t i = _lineIndex-1; i < _input.back().size(); i++)
-	//	((VgaDriver*) deviceManager.getDevice(DeviceType::Screen, 0))->write(_input.back()[i]);
+	for (size_t i = _lineIndex-1; i < _input.back().size(); i++)
+		putchar(_input.back()[i]);
 	//fseek(stdout, _lineIndex-_input.back().size(), SEEK_CUR);
 }
 
@@ -112,7 +112,7 @@ void InputFormatter::gotoLine(int linenum)
 	if (_input.back().back() == '\0')
 		_input.back().pop_back();
 
-	stdout->write(_input[linenum].size(), _input[linenum].data());
+	printf("%s", _input[linenum].data());
 	_logIndex = linenum;
 	_lineIndex = _input.back().size();
 }
@@ -124,7 +124,7 @@ void InputFormatter::moveCursorBy(int amount)
 	else if (_lineIndex + amount > _input.back().size())
 		amount = _input.back().size()-_lineIndex;
 
-	fseek(stdout, amount, SEEK_CUR);
+	//fseek(stdout, amount, SEEK_CUR);
 	_lineIndex += amount;
 }
 
@@ -148,7 +148,7 @@ void InputFormatter::removeChars(size_t num)
 		for (size_t i = _lineIndex; i < _input.back().size()+num; i++)
 		{
 			if (i < _input.back().size())
-				stdout->write(strlen(&_input.back()[i]), &_input.back()[i]);
+				putchar(_input.back()[i]);
 			else
 				putchar(' ');
 			_lineIndex++;

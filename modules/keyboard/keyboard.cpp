@@ -3,7 +3,6 @@
 #include "cdefs.h"
 #include "interrupt.h"
 #include "stdio.h"
-#include "eventbus/eventbus.h"
 #include "threading/semaphore.h"
 #include "threading/scheduler.h"
 
@@ -19,12 +18,9 @@
 
 #define STATUS_INPUT_BUFFER_EMPTY (1<<1)
 
-#define SCANSET_GET 0
-#define SCANSET_1 1
-#define SCANSET_2 2
-#define SCANSET_3 3
-
 namespace keyboard {
+
+KeyboardDriver* driver;
 
 VirtualKeyEvent MakeVirtualKeyEvent()
 {
@@ -40,34 +36,6 @@ VirtualKeyEvent MakeVirtualKeyEvent(VirtualKeycode vkey, u8 status)
 	key.vkey = vkey;
 	key.status = status;
 	return key;
-}
-
-static KeyboardDriver* driver;
-
-void KeyboardDriverThread(KeyboardDriver* driver) {
-	while (1) {
-		driver->dataMutex.lock();
-
-		while (true) {
-			VirtualKeyEvent event;
-			size_t read = driver->read(&event, sizeof(VirtualKeyEvent));
-
-			if (read == 0) {
-				break;
-			}
-
-    		eventbus.emit(EVENT_TYPE_KEYBOARD, sizeof(event), &event);
-		}
-	}
-}
-
-void initialize() {
-    printf("test2!\n");
-	driver = new KeyboardDriver();
-	driver->setScanCodeSet(SCANSET_2);
-	driver->setScanCodeTranslation(false);
-
-	threading::scheduler->schedule(new threading::Thread(KeyboardDriverThread, driver));
 }
 
 KeyboardDriver::KeyboardDriver():
@@ -272,7 +240,7 @@ size_t KeyboardDriver::write(const void* data)
 		if (make != VirtualKeycode::INVALID) {
 			pushBuffer(MakeVirtualKeyEvent(make, _status | 0b00000001));
 			clearCodes();
-				updateStatus(MakeVirtualKeyEvent(make, _status | 0b00000001));
+			updateStatus(MakeVirtualKeyEvent(make, _status | 0b00000001));
 		} else
 		{
 			VirtualKeycode breakcode = convertBreakScancodeToKeycode();
@@ -324,14 +292,6 @@ size_t KeyboardDriver::read(void* data, size_t amount)
 		}
 	}
 	return i * sizeof(VirtualKeyEvent);
-}
-
-size_t KeyboardDriver::seek(i32 offset, int position)
-{
-	UNUSED(offset);
-	UNUSED(position);
-	//you can't seek in a keyboard, dummy
-	return 1;
 }
 
 void KeyboardDriver::updateStatus(VirtualKeyEvent code) {
@@ -389,12 +349,16 @@ void KeyboardDriver::pushBuffer(VirtualKeyEvent key)
 }
 
 VirtualKeycode KeyboardDriver::convertMakeScancodeToKeycode() {
-	VirtualKeycode k1 = scanset2_map1[_code1];
-	if (k1 == VirtualKeycode::INVALID && _code2 != 0) {
-		return scanset2_map2[_code2];
-	} else {
+	
+	/*if (_code1 == 0xF0 || (_code1 == 0xE0 && _code2 == 0xF0)) {
+		return VirtualKeycode::INVALID;
+	} else {*/
+		VirtualKeycode k1 = scanset2_map1[_code1];
+		if (k1 == VirtualKeycode::INVALID && _code2 != 0) {
+			return scanset2_map2[_code2];
+		}
 		return k1;
-	}
+	//}
 }
 
 VirtualKeycode KeyboardDriver::convertBreakScancodeToKeycode() {
@@ -535,6 +499,21 @@ VirtualKeycode scanset2_map1[255] = {
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::N_MINUS,
+	VirtualKeycode::INVALID,
+	VirtualKeycode::INVALID,
+	VirtualKeycode::INVALID,
+	VirtualKeycode::INVALID,// 80
+	VirtualKeycode::INVALID,
+	VirtualKeycode::INVALID,
+	VirtualKeycode::INVALID,
+	VirtualKeycode::INVALID,
+	VirtualKeycode::INVALID,
+	VirtualKeycode::INVALID,
+	VirtualKeycode::INVALID,
+	VirtualKeycode::INVALID,
+	VirtualKeycode::INVALID,
+	VirtualKeycode::INVALID,
+	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,

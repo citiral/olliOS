@@ -39,7 +39,7 @@ $(OUTDIR):
 	mkdir -p $(OUTDIR)
 
 $(BUILD)$(MODULE).so: $(OBJECTS)
-	$(CC) -fpic -o $@ $^ $(LDFLAGS) 
+	$(CC) -fpic -o $@ $^ $(LDFLAGS)
 
 $(OUTDIR)%.o: $(MODULE)/%.cpp
 	$(CC) -c $< -o $@ $(CCFLAGS)

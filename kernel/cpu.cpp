@@ -1,5 +1,6 @@
 #include "cpu.h"
 #include "stdio.h"
+#include "symbolmap.h"
 
 void CPU::dumpstack(unsigned int MaxFrames)
 {
@@ -14,7 +15,13 @@ void CPU::dumpstack(unsigned int MaxFrames)
 		// Unwind to previous stack frame
 		ebp = reinterpret_cast<unsigned int *>(ebp[0]);
 		//unsigned int * arguments = &ebp[2];
-		printf("  0x%X     \n", eip);
+
+		SymbolMapEntry* symbol = symbolMap->find_function_name(eip);
+		if (symbol) {
+			printf("  %s@0x%X     \n", symbol->name.c_str(), eip);
+		} else {
+			printf("  0x%X     \n", eip);
+		}
 	}
 }
 

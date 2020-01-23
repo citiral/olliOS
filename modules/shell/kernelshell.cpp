@@ -197,10 +197,10 @@ void KernelShell::enter(VirtualKeyEvent input)
 	//size_t read = ((keyboard::KeyboardDriver*) deviceManager.getDevice(DeviceType::Keyboard, 0))->read(input, 10);
 
     // send them to the input formatter
-    _input.handleVirtualKeyEvent(input);
+	_input.handleVirtualKeyEvent(input);
 	// if there is a line, fetch it (for now use a std::vector<char> since we don't have strings yet)
 	
-    if (_input.isLineReady())
+	if (_input.isLineReady())
 	{
 		std::string line = _input.getNextLine();
 

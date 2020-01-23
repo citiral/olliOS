@@ -16,11 +16,11 @@ typedef bindings::Binding FILE;
 extern "C" {
 #endif
 
-extern FILE* stdout;
+//extern FILE* stdout;
 
 int printf(const char* format, ...);
 int putchar(int character);
-int fseek(FILE* stream, long int offset, int origin);
+//int fseek(FILE* stream, long int offset, int origin);
 
 #ifdef __cplusplus
 }

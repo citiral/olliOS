@@ -2,6 +2,7 @@
 #define __BINDINGS_H
 
 #include "kstd/string.h"
+#include "threading/mutex.h"
 
 namespace bindings {
 
@@ -46,10 +47,16 @@ namespace bindings {
         void iterate(T** node, PARAMS... params)
         {
             // Loop over all entries
+            _lock.lock();
             while (*node != NULL) {
 
+                
                 //Execute the callback. If it returns false, remove it from the list
-                if (!(*node)->cb(params...)) {
+                _lock.release();
+                bool keep_cb = (*node)->cb(params...);
+                _lock.lock();
+                
+                if (!keep_cb) {                    
                     T* next = ( *node)->next;
                     delete (*node);
                     *node = next;
@@ -58,6 +65,7 @@ namespace bindings {
                     node = &((*node)->next);
                 }
             }
+            _lock.release();
         }
 
     public:
@@ -69,6 +77,7 @@ namespace bindings {
         Binding_on_create* _on_create_cbs;
         Binding_on_data* _on_data_cbs;
         Binding_on_write* _on_write_cbs;
+        threading::Mutex _lock;
     };
 
     class OwnedBinding: public Binding {

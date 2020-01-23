@@ -1,37 +1,23 @@
 #include "types.h"
 #include "kernelshell.h"
-#include "eventbus/eventbus.h"
-#include "eventbus/eventconsumer.h"
+#include "fs/bindings.h"
 #include <stdio.h>
 
-KernelShell shell;
+using namespace bindings;
 
-static void startup_listener(void* context, Event* event)
+KernelShell* shell;
+
+extern "C" void module_load(Binding* root)
 {
-    printf("shell started\n");
-}
+    shell = new KernelShell();
 
-static void on_keyboard_data(void* context, Event* event)
-{
-    static bool skip = true;
-    if (skip) {
-        skip = false;
-        return;
-    }
-    VirtualKeyEvent* kbevent = (VirtualKeyEvent*) event->data;
+    root->get("keyboard")->on_data([](Binding* keyboard, size_t count, const void* data) {
+        const VirtualKeyEvent* keys = (VirtualKeyEvent*) data;
 
-    shell.enter(*kbevent);
-    //printf("data: %c\n", *kbevent);
-}
-
-extern "C" void module_load(EventConsumer* bus)
-{
-    new (&shell) KernelShell();
-
-    //bus->listen(EVENT_TYPE_KEYBOARD, nullptr, on_keyboard_data);
-    bus->listen(EVENT_TYPE_KEYBOARD, nullptr, [](void* context, Event* event) {
-        VirtualKeyEvent* kbevent = (VirtualKeyEvent*) event->data;
-        shell.enter(*kbevent);
+        for (int i = 0 ; i < count / sizeof(VirtualKeyEvent) ; i++) {
+            shell->enter(keys[i]);
+        }
+        
+        return true;
     });
-    bus->listen(EVENT_TYPE_STARTUP, nullptr, startup_listener);
 }
