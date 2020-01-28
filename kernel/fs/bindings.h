@@ -33,12 +33,23 @@ namespace bindings {
 
     class Binding {
     public:
-        Binding(u64 id, std::string name);
+        Binding(std::string name);
 
         Binding* get(const char* name);
         bool has(const char* name);
 
-        OwnedBinding* create(std::string child_name, on_write_cb cb = NULL);
+        template<class T>
+        T* add(T* child)
+        {
+            _lock.lock();
+            child->_next_sibling = _first_child;
+            _first_child = child;
+            _lock.release();
+
+            iterate<Binding_on_create>(&_on_create_cbs, this, child);
+            return child;
+        }
+        //OwnedBinding* create(std::string child_name, on_write_cb cb = NULL);
         Binding* on_create(on_create_cb cb);
         Binding* on_data(on_data_cb cb);
         void write(u32 size, const void* data);
@@ -82,11 +93,16 @@ namespace bindings {
 
     class OwnedBinding: public Binding {
     public:
-        OwnedBinding(u64 id, std::string name);
+        OwnedBinding(std::string name);
 
         OwnedBinding* on_write(on_write_cb cb);
         void provide(u32 size, const void* data);
     };
+
+    /*class MemoryBinding: public OwnedBinding {
+    public:
+        OwnedBinding(u64 id, std::string name);
+    };*/
 
     void init();
 

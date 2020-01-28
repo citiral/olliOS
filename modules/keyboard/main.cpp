@@ -24,17 +24,10 @@ void KeyboardDriverThread(KeyboardDriver* driver, OwnedBinding* keyboard) {
 	}
 }
 
-static int TestInteger1 = 0;
-static int TestInteger2 = 0;
-static int TestInteger3 = 0;
-
 extern "C" void module_load(Binding* root)
 {
-    OwnedBinding* keyboard = root->create("keyboard");
-	printf("TestInteger1, &%X, %X\n", &TestInteger1, TestInteger1);
-	printf("TestInteger2, &%X, %X\n", &TestInteger2, TestInteger2);
-	printf("TestInteger3, &%X, %X\n", &TestInteger3, TestInteger3);
-    printf("D1:%X, %X\n", &driver, driver);
+    OwnedBinding* keyboard = root->add(new OwnedBinding("keyboard"));
+
 	driver = new KeyboardDriver();
 	driver->setScanCodeSet(SCANSET_2);
 	driver->setScanCodeTranslation(false);

@@ -4,18 +4,19 @@
 namespace bindings
 {
     Binding* root = NULL;
-    static UniqueGenerator<u64> id_generator(2);
+    static UniqueGenerator<u64> id_generator(1);
 
     void init()
     {
-        root = new OwnedBinding(1, "");
+        id_generator = UniqueGenerator<u64>(1);
+        root = new OwnedBinding("");
     }
 
-    Binding::Binding(u64 id, std::string name): id(id), name(name), _first_child(NULL), _next_sibling(NULL), _on_create_cbs(NULL), _on_data_cbs(NULL), _on_write_cbs(NULL), _lock()
+    Binding::Binding(std::string name): id(id_generator.next()), name(name), _first_child(NULL), _next_sibling(NULL), _on_create_cbs(NULL), _on_data_cbs(NULL), _on_write_cbs(NULL), _lock()
     {
     }
 
-    OwnedBinding::OwnedBinding(u64 id, std::string name): Binding(id, name)
+    OwnedBinding::OwnedBinding(std::string name): Binding(name)
     {
     }
 
@@ -41,22 +42,17 @@ namespace bindings
         return get(name) != NULL;
     }
 
-    OwnedBinding* Binding::create(std::string child_name, on_write_cb cb)
+    /*OwnedBinding* Binding::create(std::string child_name, on_write_cb cb)
     {
         // Create a new child, and put him as the first sibling with the previous first sibling as his next one
-        OwnedBinding* child = new OwnedBinding(id_generator.next(), child_name);
-        _lock.lock();
-        child->_next_sibling = _first_child;
-        _first_child = child;
-        _lock.release();
+        OwnedBinding* child = new OwnedBinding(child_name);
 
         if (cb != NULL) {
             child->on_write(cb);
         }
 
-        iterate<Binding_on_create>(&_on_create_cbs, this, child);
-        return child;
-    }
+        return add(child);
+    }*/
 
     void Binding::write(u32 size, const void* data)
     {

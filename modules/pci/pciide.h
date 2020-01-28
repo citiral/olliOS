@@ -1,12 +1,13 @@
 #ifndef OLLIOS_PCIIDE_H
 #define OLLIOS_PCIIDE_H
 
-#include "devices/pci/pcidevice.h"
+#include "pcidevice.h"
 #include "types.h"
+#include "fs/bindings.h"
 
 class PCIIDE : public PCIDevice {
 public:
-	PCIIDE(u8 bus, u8 dev, u8 func);
+	PCIIDE(bindings::OwnedBinding* bind, u8 bus, u8 dev, u8 func);
 	~PCIIDE();
 
 	u32 getBaseAddress(int drive);

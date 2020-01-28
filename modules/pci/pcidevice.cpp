@@ -3,8 +3,9 @@
 #include "cpu.h"
 #include "cdefs.h"
 #include "string.h"
+#include "stdio.h"
 
-PCIDevice::PCIDevice(u8 bus, u8 dev, u8 func)
+PCIDevice::PCIDevice(bindings::OwnedBinding* root, u8 bus, u8 dev, u8 func)
 {
 	// Save these values
 	_bus = bus;
@@ -18,6 +19,11 @@ PCIDevice::PCIDevice(u8 bus, u8 dev, u8 func)
 
 	// Get the device name from the hard coded list (no other way, sorry)
 	_deviceName = PCI::getName(_vendorId, _deviceId);
+
+	char name[32];
+	sprintf(name, "%x:%x", 10, 20);
+	binding = new bindings::OwnedBinding(name);
+	root->add(binding);
 
 	// Get the device class
 	_classCode = configReadByte(11);

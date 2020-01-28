@@ -4,11 +4,12 @@
 #include "devices/device.h"
 #include "kstd/string.h"
 #include "types.h"
+#include "fs/bindings.h"
 
 class PCIDevice : public Device
 {
 public:
-	PCIDevice(u8 bus, u8 dev, u8 func);
+	PCIDevice(bindings::OwnedBinding* root, u8 bus, u8 dev, u8 func);
 	~PCIDevice();
 	u16 getVendorID();
 	u16 getFunction();
@@ -47,6 +48,7 @@ private:
 	u8 _headerType;
 
 	const char* _deviceName;
+	bindings::OwnedBinding* binding;
 };
 
 #endif

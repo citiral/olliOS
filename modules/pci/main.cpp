@@ -1,14 +1,11 @@
-#include "eventbus/eventconsumer.h"
+#include "types.h"
+#include "fs/bindings.h"
 #include "pci.h"
 #include <stdio.h>
 
-static void startup_listener(void* context, Event* event)
-{
-    printf("Hello world from pci!\n");
-    ata::driver.initialize();
-}
+using namespace bindings;
 
-extern "C" void module_load(EventConsumer* bus)
+extern "C" void module_load(Binding* root)
 {
-    bus->listen(EVENT_TYPE_STARTUP, nullptr, startup_listener);
+    PCI::init(root->add(new OwnedBinding("pci")));
 }

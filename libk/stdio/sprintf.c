@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-static int printUnsigned(unsigned int num)
+static int sprintUnsigned(char* target, unsigned int num)
 {
     char c[10];
     size_t i = 0;
@@ -17,13 +17,13 @@ static int printUnsigned(unsigned int num)
     //print em out.
     while (k > 0) {
         k--;
-        putchar(c[k]);
+        *(target++) = c[k];
     }
 
     return k;
 }
 
-static int printHexLower(unsigned int num)
+static int sprintHexLower(char* target, unsigned int num)
 {
     char c[8];
     size_t i = 0;
@@ -42,13 +42,13 @@ static int printHexLower(unsigned int num)
     //print em out.
     while (k > 0) {
         k--;
-        putchar(c[k]);
+        *(target++) = c[k];
     }
 
     return k;
 }
 
-static int printHexUpper(unsigned int num)
+static int sprintHexUpper(char* target, unsigned int num)
 {
     char c[8];
     size_t i = 0;
@@ -67,30 +67,31 @@ static int printHexUpper(unsigned int num)
     //print em out.
     while (k > 0) {
         k--;
-        putchar(c[k]);
+        *(target++) = c[k];
     }
 
     return k;
 }
 
-static int printSigned(int num)
+static int sprintSigned(char* target, int num)
 {
     //print the sign, if needed
     if (num < 0) {
-        putchar('-');
-        return printUnsigned(-num) + 1;
+        *(target++) = '-';
+        return sprintUnsigned(target, -num) + 1;
     } else {
-        return printUnsigned(num);
+        return sprintUnsigned(target, num);
     }
 }
 
-int printf(const char* format, ...)
+int sprintf(char* target, const char* format, ...)
 {
     //initialisation
     va_list argp;
     va_start(argp, format);
     size_t i = 0;
     int written = 0;
+    int temp;
     char c;
 
     //for every character
@@ -99,7 +100,7 @@ int printf(const char* format, ...)
         //if it is not a %, just print it
         if (c != '%')
         {
-            putchar(c);
+            *(target++) = c;
             written++;
         } else
         {
@@ -108,35 +109,45 @@ int printf(const char* format, ...)
             switch (c) {
                 case 'd':
                 case 'i':
-                    written += printSigned(va_arg(argp, int));
+                    temp = sprintSigned(target, va_arg(argp, int));
+                    written += temp;
+                    target += temp;
                     break;
                 case 'u':
-                    written += printUnsigned(va_arg(argp, unsigned int));
+                    temp = sprintUnsigned(target, va_arg(argp, unsigned int));
+                    written += temp;
+                    target += temp;
                     break;
                 case 'x':
-                    written += printHexLower(va_arg(argp, unsigned int));
+                    temp = sprintHexLower(target, va_arg(argp, unsigned int));
+                    written += temp;
+                    target += temp;
                     break;
                 case 'X':
-                    written += printHexUpper(va_arg(argp, unsigned int));
+                    temp = sprintHexUpper(target, va_arg(argp, unsigned int));
+                    written += temp;
+                    target += temp;
                     break;
                 case 'c':
-                    putchar((char)va_arg(argp, unsigned int));
+                    *(target++) = ((char)va_arg(argp, unsigned int));
                     written += 1;
                     break;
                 case 's':
                     char* string = va_arg(argp, char*);
 
                     while (*string != '\0') {
-                        putchar(*string);
+                        *(target++) = (*string);
                         string++;
+                        written += 1;
                     }
 
-                    written += 1;
                     break;
             }
         }
         i++;
     }
+
+    *(target++) = 0;
 
     va_end(argp);
     return written;

@@ -18,9 +18,9 @@ void CPU::dumpstack(unsigned int MaxFrames)
 
 		SymbolMapEntry* symbol = symbolMap->find_function_name(eip);
 		if (symbol) {
-			printf("  %s@0x%X     \n", symbol->name.c_str(), eip);
+			printf("0x%X: %s+0x%X     \n", eip, symbol->name.c_str(), eip - symbol->offset);
 		} else {
-			printf("  0x%X     \n", eip);
+			printf("0x%X     \n", eip);
 		}
 	}
 }

@@ -97,7 +97,9 @@ void print_binding_tree(std::string prefix, bindings::Binding* root) {
 
 void ls(KernelShell* shell, std::vector<std::string>* args)
 {
-	//print_binding_tree("", bindings::root);
+	print_binding_tree("", bindings::root);
+	return;
+	
 	//LOG_DEBUG("pwd: %s", threading::currentProcess()->env.get("pwd").c_str());
 	UNUSED(shell);
 	DirEntry* dir;

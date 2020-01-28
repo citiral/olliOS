@@ -3,6 +3,7 @@
 
 #include "types.h"
 #include "kstd/string.h"
+#include "fs/bindings.h"
 
 namespace PCI
 {
@@ -16,7 +17,7 @@ namespace PCI
 	void configWriteWord(u8 bus, u8 dev, u8 func, u8 reg, u16 value);
 	void configWriteByte(u8 bus, u8 dev, u8 func, u8 reg, u8 value);
 
-	void init();
+	void init(bindings::OwnedBinding* bind);
 }
 
 #endif

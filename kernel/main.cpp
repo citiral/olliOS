@@ -27,7 +27,6 @@
 #include "devicemanager.h"
 #include "devices/serial.h"
 #include "devices/ata/ata.h"
-#include "devices/pci/pci.h"
 
 #include "threading/scheduler.h"
 #include "threading/semaphore.h"
@@ -241,7 +240,6 @@ extern "C" void main(multiboot_info* multiboot) {
     multiboot_module_t *mod = (multiboot_module_t*) multiboot->mods_addr;
 
     printf("elf: %d\n", multiboot->u.elf_sec.size);
-
     symbolMap = new SymbolMap((const char*) mod->mod_start);
 
     // if APIC is supported, switch to it and enable multicore
@@ -273,15 +271,17 @@ extern "C" void main(multiboot_info* multiboot) {
         } else {
             void (*module_load)(bindings::Binding*);
             e->get_symbol_value("module_load", (u32*) &module_load);
-            u32 bss = 0;
-            e->get_symbol_value(".bss", &bss);
-            printf(".bss: 0x%X\n", bss);
             printf("done. running.... %x\n", module_load);
             module_load(bindings::root);
         }
 
         mod++;
     }
+
+
+	char name[32];
+	sprintf(name, "abc %d", 12);
+    printf("NAME IS %s\n", name);
 
 	// Initialize the serial driver so that we can output debug messages very early.
 	//initSerialDevices();

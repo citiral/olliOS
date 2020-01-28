@@ -6,3 +6,4 @@ kernel  /boot/ollios.bin
 module /boot/ollios.sym
 module /boot/keyboard.so
 module /boot/shell.so
+module /boot/pci.so

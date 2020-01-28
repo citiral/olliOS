@@ -1,6 +1,6 @@
-#include "devices/pci/pci.h"
-#include "devices/pci/pcidevice.h"
-#include "devices/pci/pciide.h"
+#include "pci.h"
+#include "pcidevice.h"
+#include "pciide.h"
 
 #include "devicemanager.h"
 #include "io.h"
@@ -116,7 +116,7 @@ namespace PCI
 		return vendor != 0xFFFF;
 	}
 
-	void init()
+	void init(bindings::OwnedBinding *bind)
 	{
 		LOG_STARTUP("Searching for PCI devices...");
 
@@ -130,15 +130,14 @@ namespace PCI
 					{
 						u8 classCode = configReadByte(bus, dev, func, 11);
 						u8 subclassCode = configReadByte(bus, dev, func, 10);
-						//_headerType = configReadByte(bus, dev, func, 14);
 
 						PCIDevice* device;
 						if (classCode == 0x1 && subclassCode == 0x1)
-							device = new PCIIDE(bus, dev, func);
+							device = new PCIIDE(bind, bus, dev, func);
 						else
-							device = new PCIDevice(bus, dev, func);
+							device = new PCIDevice(bind, bus, dev, func);
 
-						deviceManager.addDevice(device);
+						//deviceManager.addDevice(device);
 					}
 				}
 			}

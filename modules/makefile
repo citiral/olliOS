@@ -10,13 +10,17 @@ BUILD = ../build/
 OUTDIR = $(BUILD)$(MODULE)/
 
 INCLUDE = -I $(ROOT)usr/include
-CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O0 -Wall -Wextra -fno-exceptions -fno-rtti $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -nostdlib -fno-threadsafe-statics -Werror=return-type -m32 -g -mgeneral-regs-only 
+CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O0 -Wall -Wextra -fno-exceptions -fno-rtti $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -nostdlib -fno-threadsafe-statics -Werror=return-type -m32 -g -mgeneral-regs-only -MD
 LDFLAGS =  -std=gnu++11 -Wall -Wextra -nostdlib -m32 -r -Xlinker '-Ur'
 LIBS = $(ROOT)/usr/lib/libk.a
 
 MODULE_CPP = $(wildcard $(MODULE)/*.cpp)
 HEADERS = $(wildcard $(MODULE)/*.h)
 OBJECTS = $(addprefix $(OUTDIR), $(notdir $(MODULE_CPP:.cpp=.o)))
+
+DEPS = $(OBJECTS:.o=.d)
+
+-include $(DEPS)
 
 .phony: all clean install
 

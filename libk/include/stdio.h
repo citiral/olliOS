@@ -19,6 +19,7 @@ extern "C" {
 //extern FILE* stdout;
 
 int printf(const char* format, ...);
+int sprintf(char* target, const char* format, ...);
 int putchar(int character);
 //int fseek(FILE* stream, long int offset, int origin);
 

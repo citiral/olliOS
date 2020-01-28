@@ -1,7 +1,8 @@
-#include "devices/pci/pciide.h"
+#include "pciide.h"
 #include "devices/ata/ata.h"
+#include "fs/bindings.h"
 
-PCIIDE::PCIIDE(u8 bus, u8 dev, u8 func) : PCIDevice(bus, dev, func) {
+PCIIDE::PCIIDE(bindings::OwnedBinding* bind, u8 bus, u8 dev, u8 func) : PCIDevice(bind, bus, dev, func) {
 	ata::driver.detectDevice(getBaseAddress(0), 0);
 	ata::driver.detectDevice(getBaseAddress(1), 1);
 }
