@@ -449,7 +449,7 @@ VirtualKeycode scanset2_map1[255] = {
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
+	VirtualKeycode::SLASH,
 	VirtualKeycode::L,
 	VirtualKeycode::COLON,
 	VirtualKeycode::P,

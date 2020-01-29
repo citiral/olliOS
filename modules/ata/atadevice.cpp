@@ -1,3 +1,4 @@
+#include "fs/bindings.h"
 #include "atadevice.h"
 #include "ata.h"
 #include "io.h"
@@ -5,13 +6,31 @@
 
 #define BIT_LBA48 (1<<10)
 
+class ATABinding: public bindings::OwnedBinding {
+public:
+	ATABinding(std::string name, ata::AtaDevice* _ata): bindings::OwnedBinding(name), ata(_ata)
+	{
+
+	}
+
+public:
+	ata::AtaDevice* ata;
+};
+
 namespace ata {
 
 AtaDevice::AtaDevice(bindings::Binding* ata, u16 port, unsigned short* data, int drive) : _data(data), _port(port),_drive(drive)
 {
 	readName();
 
-	bind = new bindings::OwnedBinding(_name);
+	bind = new ATABinding(_name, this);
+
+	bind->on_read([](bindings::OwnedBinding* _binding, void* buffer, size_t size, size_t offset) {
+		ATABinding* binding = (ATABinding*) _binding;
+		
+		binding->ata->seek(offset, SEEK_SET);
+		return binding->ata->read(buffer, size);
+	});
 	ata->add(bind);
 
 	u32 B = data[60] & 0xFF;
@@ -54,7 +73,7 @@ void AtaDevice::readName()
 			lastCharPos = i;
 	}
 	
-	for (int i = 0; i < lastCharPos; i++) {
+	for (size_t i = 0; i < lastCharPos; i++) {
 		if (name[i] == ' ')
 			name[i] = '_';
 	}

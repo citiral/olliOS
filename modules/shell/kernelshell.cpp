@@ -43,11 +43,11 @@ void cat(KernelShell* shell, std::vector<std::string>* args)
 		return;
 	}
 
-    char buffer[64];
+    char buffer[2048];
 	size_t total = 0;
 	size_t read;
 	do {
-		read = bind->read(&buffer, 64, total);
+		read = bind->read(&buffer, 2048, total);
 		for (size_t i = 0 ; i < read ; i++)
 			putchar(buffer[i]);
 		total += read;
@@ -69,11 +69,11 @@ void hex(KernelShell* shell, std::vector<std::string>* args)
 		return;
 	}
 
-    u8 buffer[64];
+    u8 buffer[2048];
 	size_t total = 0;
 	size_t read;
 	do {
-		read = bind->read(buffer, 64, total);
+		read = bind->read(buffer, 2048, total);
 		for (size_t i = 0 ; i < read ; i++) {
 			printf("%.2X", (unsigned int) buffer[i]);;
 		}

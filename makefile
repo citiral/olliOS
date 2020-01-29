@@ -17,11 +17,11 @@ LDFLAGS = -ffreestanding -O0 -nostdlib -lgcc
 
 MODULES = keyboard shell vga pci ata
 
-KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/threading/*.cpp) $(wildcard kernel/eventbus/*.cpp) $(wildcard kernel/util/*.cpp) $(wildcard kernel/devices/*.cpp) $(wildcard kernel/devices/ata/*.cpp) $(wildcard kernel/devices/pci/*.cpp) $(wildcard kernel/alloc/*.cpp) $(wildcard kernel/fs/*.cpp) $(wildcard kernel/kstd/*.cpp)  $(wildcard kernel/memory/*.cpp)
+KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/*/*.cpp)
 KERNEL_C = $(wildcard kernel/libk/*/*.c)
 KERNEL_ASM = $(wildcard kernel/*.s)
 KERNEL_NASM = $(wildcard kernel/*.asm) $(wildcard kernel/threading/*.asm)
-HEADERS = $(wildcard kernel/*.h) $(wildcard kernel/threading/*.h) $(wildcard kernel/eventbus/*.h) $(wildcard kernel/util/*.h) $(wildcard kernel/devices/*.h) $(wildcard kernel/devices/ata/*.h) $(wildcard kernel/devices/pci/*.h) $(wildcard kernel/alloc/*.h) $(wildcard kernel/fs/*.h) $(wildcard kernel/kstd/*.h)  $(wildcard kernel/memory/*.h) $(wildcard kernel/libk/*/*.h) $(wildcard kernel/libk/*.h)
+HEADERS = $(wildcard kernel/*.h) $(wildcard kernel/*/*.h)
 
 CRTI_OBJ=crti.o
 CRTN_OBJ=crtn.o
