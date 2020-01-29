@@ -451,7 +451,7 @@ VirtualKeycode scanset2_map1[255] = {
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::L,
-	VirtualKeycode::INVALID,
+	VirtualKeycode::COLON,
 	VirtualKeycode::P,
 	VirtualKeycode::T_10,
 	VirtualKeycode::INVALID,
@@ -636,7 +636,7 @@ VirtualKeycode scanset2_map2[255] = {
 	VirtualKeycode::INVALID,// 6E
 	VirtualKeycode::INVALID,// 6F
 	VirtualKeycode::INVALID,// 70
-	VirtualKeycode::INVALID,// 71
+	VirtualKeycode::DELETE,// 71
 	VirtualKeycode::D_ARROW,// 72
 	VirtualKeycode::INVALID,// 73
 	VirtualKeycode::R_ARROW,// 74

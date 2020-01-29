@@ -5,12 +5,12 @@
 #include <stdio.h>
 #include "cdefs.h"
 #include "io.h"
-#include "devices/ata/ata.h"
-#include "devices/ata/atapacketdevice.h"
+#include "ata.h"
+#include "atapacketdevice.h"
 
 namespace ata {
 
-AtaPacketDevice::AtaPacketDevice(u16 port, unsigned short* data, u8 drive): AtaDevice(port, data, drive), _lba(0) {
+AtaPacketDevice::AtaPacketDevice(bindings::Binding* ata, u16 port, unsigned short* data, u8 drive): AtaDevice(ata, port, data, drive), _lba(0) {
 }
 
 AtaPacketDevice::~AtaPacketDevice() {

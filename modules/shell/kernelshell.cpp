@@ -7,8 +7,6 @@
 #include "devicemanager.h"
 #include "keyboard/keyboard.h"
 #include "fs/filesystem.h"
-#include "fs/virtualfilesystem.h"
-#include "fs/bindings.h"
 #include "threading/thread.h"
 #include "threading/scheduler.h"
 #include "apic.h"
@@ -21,122 +19,128 @@ void allocinfo(KernelShell* shell, std::vector<std::string>* args)
 	UNUSED(shell);
 	kernelAllocator.printStatistics();
 	printf("\n");
-	delete args;
 }
 
 void allocmerge(KernelShell* shell, std::vector<std::string>* args)
 {
 	UNUSED(shell);
 	kernelAllocator.merge();
-	delete args;
 }
 #endif
 
-void devicesinfo(KernelShell* shell, std::vector<std::string>* args)
-{
-	UNUSED(shell);
-	/*const char* names[] = {"Keyboard", "Screen", "Storage"};
-
-	for (u8 i = 0 ; i < 3 ; i++) {
-		DeviceType type = (DeviceType)i;
-		printf("%s: ", names[i]);
-
-		for (int i = 0 ; i + 1 < deviceManager.getDevices(type).size() ; i++) {
-			printf("%s, ", deviceManager.getDevices(type)[i]->getDeviceName());
-		}
-		if (deviceManager.getDevices(type).size() > 0)
-			printf("%s", deviceManager.getDevices(type).back()->getDeviceName());
-		printf("\n");
-	}*/
-	delete args;
-}
-
 void cat(KernelShell* shell, std::vector<std::string>* args)
 {
-	UNUSED(shell);
-	if (args->size() < 2) {
-		printf("Please specify a directory.");
+	bindings::Binding* bind;
+	
+	if (args->size() > 1) {
+		bind = shell->working_directory->get(args->at(1).c_str());
+	} else {
+		bind = shell->working_directory;
+	}
+
+	if (bind == NULL && args->size() > 1) {
+		printf("Invalid path: %s\n", args->at(1).c_str());
 		return;
 	}
 
-	BlockDevice* file = vfs->openFile(args->at(1).c_str());
-
-	if (!file) {
-		printf("Invalid file: %s\n", args->at(1).c_str());
-		return;
-	}
-
-	while (true) {
-		char data;
-		bool read = file->read(&data, 1);
-
-		if (read) {
-			printf("%c", data);
-		} else {
-			break;
-		}
-	}
-
-	delete file;
-	delete args;
+    char buffer[64];
+	size_t total = 0;
+	size_t read;
+	do {
+		read = bind->read(&buffer, 64, total);
+		for (size_t i = 0 ; i < read ; i++)
+			putchar(buffer[i]);
+		total += read;
+	} while (read > 0);
 }
 
-void print_binding_tree(std::string prefix, bindings::Binding* root) {
-    std::string name = prefix + "/" + root->name;
+void hex(KernelShell* shell, std::vector<std::string>* args)
+{
+	bindings::Binding* bind;
+	
+	if (args->size() > 1) {
+		bind = shell->working_directory->get(args->at(1).c_str());
+	} else {
+		bind = shell->working_directory;
+	}
 
-    printf("%s, %d\n", name.c_str(), root->id);
+	if (bind == NULL && args->size() > 1) {
+		printf("Invalid path: %s\n", args->at(1).c_str());
+		return;
+	}
 
-    bindings::Binding* child = root->_first_child;
+    u8 buffer[64];
+	size_t total = 0;
+	size_t read;
+	do {
+		read = bind->read(buffer, 64, total);
+		for (size_t i = 0 ; i < read ; i++) {
+			printf("%.2X", (unsigned int) buffer[i]);;
+		}
+		total += read;
+	} while (read > 0);
 
-    while (child != NULL) {
-        print_binding_tree(name, child);
-        child = child->_next_sibling;
-    }
-
+	putchar('\n');
 }
 
 void ls(KernelShell* shell, std::vector<std::string>* args)
 {
-	print_binding_tree("", bindings::root);
-	return;
+	bindings::Binding* bind;
 	
-	//LOG_DEBUG("pwd: %s", threading::currentProcess()->env.get("pwd").c_str());
-	UNUSED(shell);
-	DirEntry* dir;
-	if (args->size() > 1)
-	{
-		dir = vfs->fromPath(args->at(1).c_str());
-	}
-	else
-	{
-		dir = vfs->fromPath("/");
+	if (args->size() > 1) {
+		bind = shell->working_directory->get(args->at(1).c_str());
+	} else {
+		bind = shell->working_directory;
 	}
 
-	if (!dir && args->size() == 2) {
-		printf("Invalid directory: %s\n", args->at(1).c_str());
+	if (bind == NULL && args->size() > 1) {
+		printf("Invalid path: %s\n", args->at(1).c_str());
 		return;
 	}
 
-	if (dir) {
-		while (dir->valid()) {
-			printf("%s\n", dir->name().c_str());
-			dir->advance();
-		}
-
-		delete dir;
-	}
-	delete args;
+	bind->enumerate([](bindings::Binding*, bindings::Binding* child) {
+		printf("%s\n", child->name.c_str());
+		return true;
+	});
 }
-/*
+
 void cd(KernelShell* shell, std::vector<std::string>* args)
 {
-	UNUSED(shell);
-	if (args->size() <= 1)
-		threading::currentProcess()->parent->env.set("pwd", Files::normalize(threading::currentProcess()->env.get("home")));
-	else
-		threading::currentProcess()->parent->env.set("pwd", Files::getPath(threading::currentProcess()->env, args->at(1).c_str()));
-	delete args;
-}*/
+	bindings::Binding* bind;
+	
+	if (args->size() > 1) {
+		bind = shell->working_directory->get(args->at(1).c_str());
+	} else {
+		bind = bindings::root;
+	}
+
+
+	if (bind == NULL && args->size() > 1) {
+		printf("Invalid path: %s\n", args->at(1).c_str());
+		return;
+	}
+
+	shell->working_directory = bind;
+}
+
+void touch(KernelShell* shell, std::vector<std::string>* args)
+{
+	bindings::Binding* bind = nullptr;
+	
+	if (args->size() != 2) {		
+		printf("Binding name expected\n", args->at(1).c_str());
+		return;
+	}
+	
+	bind = shell->working_directory->get(args->at(1).c_str());
+
+	if (bind != nullptr) {
+		printf("Bind already exists\n");
+		return;
+	}
+
+	shell->working_directory->add(new bindings::OwnedBinding(args->at(1)));
+}
 
 void help(KernelShell* shell, std::vector<std::string>* args)
 {
@@ -153,7 +157,6 @@ void help(KernelShell* shell, std::vector<std::string>* args)
 		printf("%s", shell->commands().back().first);
 	};
 	printf("\n");
-	delete args;
 }
 /*
 void set(KernelShell* shell, std::vector<std::string>* args)
@@ -190,6 +193,11 @@ void unset(KernelShell* shell, std::vector<std::string>* args)
 	delete args;
 }*/
 
+void KernelShell::prompt()
+{
+	printf("> ");
+}
+
 KernelShell::KernelShell(): _commands()
 {
     printf("hello world from kernshell\n");
@@ -197,15 +205,15 @@ KernelShell::KernelShell(): _commands()
 	_commands.push_back(std::pair<const char *, CommandFunction>("allocinfo", &allocinfo));
 	_commands.push_back(std::pair<const char *, CommandFunction>("allocmerge", &allocmerge));
 #endif
-    _commands.push_back(std::pair<const char*, CommandFunction>("devicesinfo", &devicesinfo));
     _commands.push_back(std::pair<const char*, CommandFunction>("help", &help));
     _commands.push_back(std::pair<const char*, CommandFunction>("ls", &ls));
 	_commands.push_back(std::pair<const char*, CommandFunction>("cat", &cat));
-	//_commands.push_back(std::pair<const char*, CommandFunction>("cd", &cd));
-	/*_commands.push_back(std::pair<const char*, CommandFunction>("set", &set));
-	_commands.push_back(std::pair<const char*, CommandFunction>("unset", &unset));
-	_env.set("pwd", "/");
-	_env.set("home", "/");*/
+	_commands.push_back(std::pair<const char*, CommandFunction>("hex", &hex));
+	_commands.push_back(std::pair<const char*, CommandFunction>("cd", &cd));
+	_commands.push_back(std::pair<const char*, CommandFunction>("touch", &touch));
+
+	working_directory = bindings::root;
+	prompt();
 }
 
 void KernelShell::enter(VirtualKeyEvent input)
@@ -216,8 +224,7 @@ void KernelShell::enter(VirtualKeyEvent input)
 
     // send them to the input formatter
 	_input.handleVirtualKeyEvent(input);
-	// if there is a line, fetch it (for now use a std::vector<char> since we don't have strings yet)
-	
+
 	if (_input.isLineReady())
 	{
 		std::string line = _input.getNextLine();
@@ -225,18 +232,17 @@ void KernelShell::enter(VirtualKeyEvent input)
         // find the first matching command and call it
         bool notFound = true;
 
-        std::vector<std::string>* split = new std::vector<std::string>();
-	    *split = splitCommand(line);
+        std::vector<std::string> split = splitCommand(line);
 
-		if (split->size() > 0)
+		if (split.size() > 0)
 		{
 			for (size_t i = 0; i < _commands.size(); i++)
 			{
-				if (split->at(0) == _commands[i].first)
+				if (split.at(0) == _commands[i].first)
 				{
 					notFound = false;
-					threading::Thread* p = new threading::Thread(this->_commands[i].second, this, split);
-					threading::scheduler->schedule(p);
+					_commands[i].second(this, &split);
+					prompt();
 					break;
 				}
 			}

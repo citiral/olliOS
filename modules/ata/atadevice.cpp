@@ -1,5 +1,5 @@
-#include "devices/ata/atadevice.h"
-#include "devices/ata/ata.h"
+#include "atadevice.h"
+#include "ata.h"
 #include "io.h"
 #include "types.h"
 
@@ -7,9 +7,12 @@
 
 namespace ata {
 
-AtaDevice::AtaDevice(u16 port, unsigned short* data, int drive) : _data(data), _port(port),_drive(drive)
+AtaDevice::AtaDevice(bindings::Binding* ata, u16 port, unsigned short* data, int drive) : _data(data), _port(port),_drive(drive)
 {
 	readName();
+
+	bind = new bindings::OwnedBinding(_name);
+	ata->add(bind);
 
 	u32 B = data[60] & 0xFF;
 	u32 A = (data[60] >> 8) & 0xFF;
@@ -51,6 +54,11 @@ void AtaDevice::readName()
 			lastCharPos = i;
 	}
 	
+	for (int i = 0; i < lastCharPos; i++) {
+		if (name[i] == ' ')
+			name[i] = '_';
+	}
+
 	_name = std::string(name, lastCharPos+1);
 }
 

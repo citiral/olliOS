@@ -5,7 +5,6 @@
 
 void intHandlerWakeup(u32 interrupt);
 void intHandlerUndefined(u32 interrupt);
-void intHandlerAta(u32 interrupt);
 void intHandlerGeneralProtectionViolation(u32 interrupt);
 void intHandlerPageFault(u32 interrupt);
 void intHandlerSpurious(u32 interrupt);

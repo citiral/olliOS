@@ -3,25 +3,60 @@
 //
 
 #include "threading/thread.h"
-#include "devices/ata/ata.h"
-#include "devices/ata/atapacketdevice.h"
-#include "devices/ata/atapiodevice.h"
+#include "ata.h"
+#include "atapacketdevice.h"
+#include "atapiodevice.h"
+#include "interrupt.h"
 #include "io.h"
 #include "cdefs.h"
 #include <stdio.h>
 #include <stdlib.h>
 
+using namespace bindings;
+
 namespace ata {
 
 AtaDriver driver = AtaDriver();
+
+void intHandlerAta(u32 interrupt) {
+	UNUSED(interrupt);
+    ata::driver.notifyInterrupt();
+    end_interrupt(interrupt);
+}
 
 AtaDriver::AtaDriver(): _interrupted(false), _lock(1) {
 
 }
 
-void AtaDriver::initialize() {
+void AtaDriver::initialize(Binding* pci) {
+    idt.setFunction(INT_ATA_BUS1, &ata::intHandlerAta);
+	idt.setFunction(INT_ATA_BUS2, &ata::intHandlerAta);
+
+    bind = new bindings::OwnedBinding("ata");
+    bindings::root->add(bind);
+
     _lock = threading::Semaphore(1);
 	_interrupted = false;
+
+    pci->enumerate([](Binding* pci, Binding* device) {
+
+        u32 dev_class = device->get("class")->read<u32>();
+        u32 dev_subclass = device->get("subclass")->read<u32>();
+
+        if (dev_class == 1 && dev_subclass == 1) {
+
+            printf("Found IDE interface!\n");
+
+            u32 bar0 = device->get("bars")->get("0")->read<u32>();
+            u32 bar2 = device->get("bars")->get("2")->read<u32>();
+
+            if (bar0 == 0 || bar0 == 1)
+                driver.detectDevice(0x1F0, 0);
+            //if (bar2 == 0 || bar2 == 1)
+            //    driver.detectDevice(0x170, 1);
+        }
+        return true;
+    }, true);
 }
 
 void AtaDriver::disableScanDefaultAddresses()
@@ -81,7 +116,6 @@ AtaDevice* AtaDriver::detectDevice(u16 p, int device) {
 	u8 status = inb(p+PORT_STATUS);
 	if (status == 0 || (status & BIT_STATUS_DF) > 0)
 		return nullptr;
-
     bool isPacket = false;
 
     // check if the signature matches that of a packet device
@@ -118,11 +152,11 @@ AtaDevice* AtaDriver::detectDevice(u16 p, int device) {
 	// register it to the devicemanager
 	AtaDevice* atadevice;
     if (isPacket) {
-		atadevice = new AtaPacketDevice(p, data, device);
-        deviceManager.addDevice(atadevice);
+		atadevice = new AtaPacketDevice(bind, p, data, device);
+        //deviceManager.addDevice(atadevice);
     } else {
-		atadevice = new AtaPioDevice(p, data, device);
-        deviceManager.addDevice(atadevice);
+		atadevice = new AtaPioDevice(bind, p, data, device);
+        //deviceManager.addDevice(atadevice);
     }
 
     return atadevice;
@@ -153,7 +187,7 @@ bool AtaDriver::waitForDataOrError(u16 p) {
 
 void AtaDriver::waitForInterrupt(u16 p) {
     while (_interrupted == false) {
-        threading::exit();
+        //threading::exit();
     }
     _interrupted = false;
 

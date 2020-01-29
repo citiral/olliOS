@@ -2,14 +2,14 @@
 // Created by Olivier on 30/09/16.
 //
 
-#include "devices/ata/ata.h"
-#include "devices/ata/atapiodevice.h"
+#include "ata.h"
+#include "atapiodevice.h"
 #include "cpu.h"
 #include <string.h>
 
 namespace ata {
 
-AtaPioDevice::AtaPioDevice(u16 port, unsigned short* data, int device): AtaDevice(port, data, device) {
+AtaPioDevice::AtaPioDevice(bindings::Binding* ata, u16 port, unsigned short* data, int device): AtaDevice(ata, port, data, device) {
 }
 
 AtaPioDevice::~AtaPioDevice() {

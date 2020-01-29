@@ -105,7 +105,16 @@ void VgaDriver::writeChar(char c) {
 			advanceCharacter();
 		}
 	} else if (c == '\r') {
-		
+		_column = 0;
+		updateCursor();
+	} else if (c == '\b') {
+		if (_column > 0) {
+			_column--;
+		} else if (_row > 0) {
+			_row--;
+			_column = VGA_WIDTH - 1;
+		}
+		updateCursor();
 	} else {
 		setChar(c);
 		advanceCharacter();

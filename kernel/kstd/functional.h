@@ -1,5 +1,5 @@
-#ifndef OLLIOS_GIT_HASH_H
-#define OLLIOS_GIT_HASH_H
+#ifndef OLLIOS_GIT_FUNCTIONAL_H
+#define OLLIOS_GIT_FUNCTIONAL_H
 
 #include "types.h"
 #include "cdefs.h"

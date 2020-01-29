@@ -19,7 +19,7 @@ void KeyboardDriverThread(KeyboardDriver* driver, OwnedBinding* keyboard) {
 				break;
 			}
 
-            keyboard->provide(sizeof(event), &event);
+            keyboard->provide(&event, sizeof(event));
 		}
 	}
 }

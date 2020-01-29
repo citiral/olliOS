@@ -18,6 +18,8 @@ public:
 	void addChar(u8 character);
 	// Remove a certain amount of characters from the current line.
 	void removeChars(size_t amount);
+	// Remove a certain amount of characters from the current line.
+	void deleteChars(size_t amount);
     // gets the current line, null terminated
     std::string getNextLine();
 

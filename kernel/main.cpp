@@ -26,7 +26,6 @@
 
 #include "devicemanager.h"
 #include "devices/serial.h"
-#include "devices/ata/ata.h"
 
 #include "threading/scheduler.h"
 #include "threading/semaphore.h"
@@ -231,9 +230,6 @@ extern "C" void main(multiboot_info* multiboot) {
     threading::scheduler = new threading::Scheduler();
 
     vgaDriver = new VgaDriver();
-    vgaDriver = new VgaDriver();
-    vgaDriver = new VgaDriver();
-    vgaDriver = new VgaDriver();
 
     printf("Flags: %X\n", multiboot->flags);
     printf("mods count: %d\n", multiboot->mods_count);
@@ -255,7 +251,7 @@ extern "C" void main(multiboot_info* multiboot) {
     mod++;
 
     for (int i = 1 ; i < multiboot->mods_count ; i++) {
-        printf("mod %d is at %X\n", i, mod->mod_start);
+        printf("loading module %d at 0x%X\n", i, mod->mod_start);
         u8* c = (u8*) mod->mod_start;
         u8* data = new u8[mod->mod_end - mod->mod_start];
         memcpy(data, c, mod->mod_end - mod->mod_start);
@@ -271,24 +267,11 @@ extern "C" void main(multiboot_info* multiboot) {
         } else {
             void (*module_load)(bindings::Binding*);
             e->get_symbol_value("module_load", (u32*) &module_load);
-            printf("done. running.... %x\n", module_load);
             module_load(bindings::root);
         }
 
         mod++;
     }
 
-
-	char name[32];
-	sprintf(name, "abc %d", 12);
-    printf("NAME IS %s\n", name);
-
-	// Initialize the serial driver so that we can output debug messages very early.
-	//initSerialDevices();
-    
-    //print_binding_tree("", bindings::root);
-    
-    //threading::scheduler->schedule(new threading::Thread(consumer_test, eventbus.create_consumer()));
-    //threading::scheduler->schedule(new threading::Thread(&EventBus::emit, &eventbus, (u32)EVENT_TYPE_STARTUP, (u32)0, (void*)nullptr));
     cpu_main();
 }

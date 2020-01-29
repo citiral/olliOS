@@ -1,6 +1,6 @@
 #include "interrupt.h"
 #include "interruptHandlers.h"
-#include "devices/ata/ata.h"
+#include "cdefs.h"
 #include "pic.h"
 
 void intHandlerUndefined(u32 interrupt)
@@ -12,12 +12,6 @@ void intHandlerUndefined(u32 interrupt)
 void intHandlerWakeup(u32 interrupt)
 {
 	UNUSED(interrupt);
-}
-
-void intHandlerAta(u32 interrupt) {
-	UNUSED(interrupt);
-    ata::driver.notifyInterrupt();
-    endInterrupt(interrupt);
 }
 
 void intHandlerGeneralProtectionViolation(u32 interrupt)

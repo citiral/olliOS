@@ -132,10 +132,10 @@ namespace PCI
 						u8 subclassCode = configReadByte(bus, dev, func, 10);
 
 						PCIDevice* device;
-						if (classCode == 0x1 && subclassCode == 0x1)
-							device = new PCIIDE(bind, bus, dev, func);
-						else
-							device = new PCIDevice(bind, bus, dev, func);
+						//if (classCode == 0x1 && subclassCode == 0x1)
+						//	device = new PCIIDE(bind, bus, dev, func);
+						//else
+						device = new PCIDevice(bind, bus, dev, func);
 
 						//deviceManager.addDevice(device);
 					}

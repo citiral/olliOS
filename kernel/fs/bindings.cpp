@@ -1,5 +1,6 @@
 #include "fs/bindings.h"
 #include "util/unique.h"
+#include "string.h"
 
 namespace bindings
 {
@@ -12,7 +13,7 @@ namespace bindings
         root = new OwnedBinding("");
     }
 
-    Binding::Binding(std::string name): id(id_generator.next()), name(name), _first_child(NULL), _next_sibling(NULL), _on_create_cbs(NULL), _on_data_cbs(NULL), _on_write_cbs(NULL), _lock()
+    Binding::Binding(std::string name): id(id_generator.next()), name(name), _first_child(NULL), _next_sibling(NULL), _parent(NULL), _on_create_cbs(NULL), _on_data_cbs(NULL), _on_write_cbs(NULL), _on_read_cb(NULL), _lock()
     {
     }
 
@@ -22,14 +23,58 @@ namespace bindings
 
     Binding* Binding::get(const char* name)
     {
+        const char* subname = name;
+
+        // Skip leading slash
+        if (subname[0] == '/') {
+            subname++;
+
+            // True if the path ends with a '/', in which case we are the targetted binding
+            if (subname[0] == 0) {
+                return this;
+            }
+        }
+
+        // Handle '.' and '..'
+        if (subname[0] == '.') {
+            if (subname[1] == '/') {
+                return this->get(subname+2);
+            } else if (subname[1] == 0) {                
+                return this;
+            } else if (subname[1] == '.') {
+                if (subname[2] == '/') {
+                    if (_parent) {
+                        return _parent->get(subname+3);
+                    } else {
+                        return NULL;
+                    }
+                } else if (subname[2] == 0) {                
+                    return _parent;
+                }
+            }
+        }
+
         _lock.lock();
         Binding* child = _first_child;
 
         while (child != NULL) {
-            if (child->name == name) {
-                _lock.release();
-                return child;
-            }
+
+            int i = 0;
+            do {
+                // End of section in path has been reached
+                if (child->name[i] == 0) {
+                    if (subname[i] == 0) {
+                        _lock.release();
+                        return child;
+                    } else if (subname[i] == '/') {
+                        _lock.release();
+                        return child->get(subname+i);
+                    } else {
+                        break;
+                    }
+                }
+            } while (subname[i] == child->name[i++]);
+
             child = child->_next_sibling;
         }
         _lock.release();
@@ -42,26 +87,39 @@ namespace bindings
         return get(name) != NULL;
     }
 
-    /*OwnedBinding* Binding::create(std::string child_name, on_write_cb cb)
-    {
-        // Create a new child, and put him as the first sibling with the previous first sibling as his next one
-        OwnedBinding* child = new OwnedBinding(child_name);
-
-        if (cb != NULL) {
-            child->on_write(cb);
-        }
-
-        return add(child);
-    }*/
-
-    void Binding::write(u32 size, const void* data)
+    void Binding::write(const void* data, size_t size)
     {
         iterate<Binding_on_write>(&_on_write_cbs, (OwnedBinding*) this, size, data);
     }
+    
+    size_t Binding::read(void* buffer, size_t size, size_t offset)
+    {
+        if (_on_read_cb)
+            return _on_read_cb((OwnedBinding*)this, buffer, size, offset);
+        else
+            return 0;
+    }
 
-    void OwnedBinding::provide(u32 size, const void* data)
+    void OwnedBinding::provide(const void* data, size_t size)
     {
         iterate<Binding_on_data>(&_on_data_cbs, this, size, data);
+    }
+    Binding* Binding::enumerate(on_create_cb cb, bool persistent)
+    {
+        Binding* child = _first_child;
+        if (persistent) {
+            on_create(cb);
+        }
+
+        while (child != NULL) {
+            if (!cb(this, child)) {
+                break;
+            }
+            
+            child = child->_next_sibling;
+        }
+
+        return this;
     }
 
     Binding* Binding::on_create(on_create_cb cb)
@@ -98,5 +156,52 @@ namespace bindings
         _lock.release();
 
         return this;
+    }
+    
+    OwnedBinding* OwnedBinding::on_read(on_read_cb cb)
+    {
+        _on_read_cb = cb;
+        return this;
+    }
+
+    MemoryBinding::MemoryBinding(std::string name, const void* data, size_t size): OwnedBinding(name)
+    {
+        // Copy over the data
+        buffer = new char[size];
+        this->size = size;
+        memcpy(buffer, data, size);
+
+        // Register a callback to read the data
+        on_read([](OwnedBinding* binding, void* buffer, size_t size, size_t offset) -> size_t {
+            MemoryBinding* t = (MemoryBinding*) binding;
+
+            if (t->size < size + offset) {
+                size = t->size - offset;
+            }
+
+            memcpy(buffer, t->buffer, size);
+
+            return size;
+        });
+    }
+
+    RefMemoryBinding::RefMemoryBinding(std::string name, const void* data, size_t size): OwnedBinding(name)
+    {
+        // Copy over the data
+        buffer = data;
+        this->size = size;
+
+        // Register a callback to read the data
+        on_read([](OwnedBinding* binding, void* buffer, size_t size, size_t offset) -> size_t {
+            RefMemoryBinding* t = (RefMemoryBinding*) binding;
+
+            if (t->size < size + offset) {
+                size = t->size - offset;
+            }
+
+            memcpy(buffer, t->buffer, size);
+
+            return size;
+        });
     }
 }

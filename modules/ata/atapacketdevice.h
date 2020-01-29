@@ -5,7 +5,7 @@
 #ifndef OLLIOS_GIT_ATAPACKETDEVICE_H
 #define OLLIOS_GIT_ATAPACKETDEVICE_H
 
-#include "devices/ata/atadevice.h"
+#include "atadevice.h"
 #include "cdefs.h"
 
 namespace ata {
@@ -14,7 +14,7 @@ namespace ata {
 
 class AtaPacketDevice: public AtaDevice {
 public:
-    AtaPacketDevice(u16 port, unsigned short* data, u8 drive);
+    AtaPacketDevice(bindings::Binding* ata, u16 port, unsigned short* data, u8 drive);
     ~AtaPacketDevice();
 
     virtual DeviceType getDeviceType() const;

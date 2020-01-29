@@ -5,9 +5,10 @@
 #ifndef OLLIOS_GIT_ATA_H
 #define OLLIOS_GIT_ATA_H
 
-#include "devices/ata/atadevice.h"
+#include "atadevice.h"
 #include "threading/semaphore.h"
 #include "types.h"
+#include "fs/bindings.h"
 
 /*#define PORT_DATA           0x1F0
 #define PORT_FEATURE        0x1F1
@@ -71,12 +72,7 @@ enum class AtaDeviceIndex: u8 {
     SLAVE = 1,
 };
 
-/*class AtaDevice {
-public:
-private:
-    unsigned short* identify;
-    AtaDeviceIndex index;
-};*/
+void intHandlerAta(u32 interrupt);
 
 // for now we are only going to support one controller
 // and use atapi
@@ -85,7 +81,7 @@ public:
     AtaDriver();
 
     // discovers devices and initializes them so after this function they can be used.
-	void initialize();
+	void initialize(bindings::Binding* pci);
 
 	// Don't scan the default addresses. Normally called after a PCI IDE Interface has been detected.
 	void disableScanDefaultAddresses();
@@ -120,6 +116,8 @@ public:
     // grabs or releases the driver, preventing other threads from using it
     void grab();
     void release();
+
+    bindings::OwnedBinding* bind;
 
 private:
     // This has to be volatile, otherwise codegen might cache it in a register which won't detect changes by interrupt

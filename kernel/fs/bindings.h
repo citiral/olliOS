@@ -12,6 +12,9 @@ namespace bindings {
     typedef bool(*on_create_cb)(Binding* binding, Binding* child);
     typedef bool(*on_data_cb)(Binding* binding, size_t size, const void* data);
     typedef bool(*on_write_cb)(OwnedBinding* binding, size_t size, const void* data);
+    
+    typedef bool(*read_cb)(Binding* binding, size_t size, const void* data, bool done);
+    typedef size_t(*on_read_cb)(OwnedBinding* binding, void* buffer, size_t size, size_t offset);
 
     class Binding_on_create {
     public:
@@ -38,10 +41,33 @@ namespace bindings {
         Binding* get(const char* name);
         bool has(const char* name);
 
+        
+        Binding* enumerate(on_create_cb cb, bool persistent = false);
+        Binding* on_create(on_create_cb cb);
+        Binding* on_data(on_data_cb cb);
+        void write(const void* data, size_t size);
+        size_t read(void* buffer, size_t size, size_t offset);
+
+        template<class T>
+        T read() {            
+            T t;
+
+            size_t total = 0;
+            size_t ret;
+
+            do {
+                ret = read(((u8*)&t) + total, sizeof(T) - total, total);
+                total += ret;
+            } while (ret > 0);
+
+            return t;
+        }
+        
         template<class T>
         T* add(T* child)
         {
             _lock.lock();
+            child->_parent = this;
             child->_next_sibling = _first_child;
             _first_child = child;
             _lock.release();
@@ -49,11 +75,7 @@ namespace bindings {
             iterate<Binding_on_create>(&_on_create_cbs, this, child);
             return child;
         }
-        //OwnedBinding* create(std::string child_name, on_write_cb cb = NULL);
-        Binding* on_create(on_create_cb cb);
-        Binding* on_data(on_data_cb cb);
-        void write(u32 size, const void* data);
-        
+
         template<class T, class... PARAMS>
         void iterate(T** node, PARAMS... params)
         {
@@ -67,7 +89,7 @@ namespace bindings {
                 bool keep_cb = (*node)->cb(params...);
                 _lock.lock();
                 
-                if (!keep_cb) {                    
+                if (!keep_cb) {
                     T* next = ( *node)->next;
                     delete (*node);
                     *node = next;
@@ -84,10 +106,12 @@ namespace bindings {
         std::string name;
         Binding* _first_child;
         Binding* _next_sibling;
+        Binding* _parent;
     protected:
         Binding_on_create* _on_create_cbs;
         Binding_on_data* _on_data_cbs;
         Binding_on_write* _on_write_cbs;
+        on_read_cb _on_read_cb;
         threading::Mutex _lock;
     };
 
@@ -96,13 +120,27 @@ namespace bindings {
         OwnedBinding(std::string name);
 
         OwnedBinding* on_write(on_write_cb cb);
-        void provide(u32 size, const void* data);
+        OwnedBinding* on_read(on_read_cb cb);
+        void provide(const void* data, size_t size);
     };
 
-    /*class MemoryBinding: public OwnedBinding {
+    class MemoryBinding: public OwnedBinding {
     public:
-        OwnedBinding(u64 id, std::string name);
-    };*/
+        MemoryBinding(std::string name, const void* data, size_t size);        
+
+    private:
+        void* buffer;
+        size_t size;
+    };
+
+    class RefMemoryBinding: public OwnedBinding {
+    public:
+        RefMemoryBinding(std::string name, const void* data, size_t size);        
+
+    private:
+        const void* buffer;
+        size_t size;
+    };
 
     void init();
 

@@ -391,8 +391,6 @@ extern "C" void __attribute__ ((noinline)) IdtRegisterInterrupts()
 		idt.setFunction(x, &intHandlerUndefined);
 	
 	//idt.setFunction(INT_KEYBOARD, &intHandlerKeyboard);
-    idt.setFunction(INT_ATA_BUS1, &intHandlerAta);
-	idt.setFunction(INT_ATA_BUS2, &intHandlerAta);
 	idt.setFunction(INT_GENERAL_PROTECTION_VIOLATION, &intHandlerGeneralProtectionViolation);
     idt.setFunction(INT_PAGE_FAULT, &intHandlerPageFault);
 	//idt.setFunction(INT_WAKEUP, &intHandlerWakeup);

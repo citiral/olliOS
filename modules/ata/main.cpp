@@ -1,14 +1,16 @@
-#include "eventbus/eventconsumer.h"
+#include "fs/bindings.h"
 #include "ata.h"
 #include <stdio.h>
 
-static void startup_listener(void* context, Event* event)
-{
-    printf("Hello world from ata!\n");
-    ata::driver.initialize();
-}
+using namespace bindings;
 
-extern "C" void module_load(EventConsumer* bus)
+extern "C" void module_load(Binding* root)
 {
-    bus->listen(EVENT_TYPE_STARTUP, nullptr, startup_listener);
+    root->enumerate([](Binding* root, Binding* child) {
+        if (child->name == "pci") {
+            ata::driver.initialize(child);
+            return false;
+        }
+        return true;
+    }, true);
 }
