@@ -5,6 +5,8 @@
 namespace bindings
 {
     Binding* root = NULL;
+    threading::Mutex lock;
+
     static UniqueGenerator<u64> id_generator(1);
 
     void init()
@@ -13,7 +15,7 @@ namespace bindings
         root = new OwnedBinding("");
     }
 
-    Binding::Binding(std::string name): id(id_generator.next()), name(name), _first_child(NULL), _next_sibling(NULL), _parent(NULL), _on_create_cbs(NULL), _on_data_cbs(NULL), _on_write_cbs(NULL), _on_read_cb(NULL), _lock()
+    Binding::Binding(std::string name): id(id_generator.next()), name(name), _first_child(NULL), _next_sibling(NULL), _parent(NULL), _on_create_cbs(NULL), _on_data_cbs(NULL), _on_write_cbs(NULL), _on_read_cb(NULL)
     {
     }
 
@@ -54,7 +56,7 @@ namespace bindings
             }
         }
 
-        _lock.lock();
+        lock.lock();
         Binding* child = _first_child;
 
         while (child != NULL) {
@@ -64,10 +66,10 @@ namespace bindings
                 // End of section in path has been reached
                 if (child->name[i] == 0) {
                     if (subname[i] == 0) {
-                        _lock.release();
+                        lock.release();
                         return child;
                     } else if (subname[i] == '/') {
-                        _lock.release();
+                        lock.release();
                         return child->get(subname+i);
                     } else {
                         break;
@@ -77,7 +79,7 @@ namespace bindings
 
             child = child->_next_sibling;
         }
-        _lock.release();
+        lock.release();
 
         return NULL;
     }
@@ -115,7 +117,7 @@ namespace bindings
             if (!cb(this, child)) {
                 break;
             }
-            
+
             child = child->_next_sibling;
         }
 
@@ -126,22 +128,22 @@ namespace bindings
     {
         Binding_on_create* binding_on_create = new Binding_on_create();
         binding_on_create->cb = cb;
-        _lock.lock();
+        lock.lock();
         binding_on_create->next = _on_create_cbs;
         _on_create_cbs = binding_on_create;
-        _lock.release();
+        lock.release();
 
         return this;
     }
 
     Binding* Binding::on_data(on_data_cb cb)
     {
+        lock.lock();
         Binding_on_data* binding_on_data = new Binding_on_data();
         binding_on_data->cb = cb;
-        _lock.lock();
-        binding_on_data->next = _on_data_cbs;
+        binding_on_data->next = NULL;// _on_data_cbs;
         _on_data_cbs = binding_on_data;
-        _lock.release();
+        lock.release();
 
         return this;
     }
@@ -150,10 +152,10 @@ namespace bindings
     {
         Binding_on_write* binding_on_write = new Binding_on_write();
         binding_on_write->cb = cb;
-        _lock.lock();
+        lock.lock();
         binding_on_write->next = _on_write_cbs;
         _on_write_cbs = binding_on_write;
-        _lock.release();
+        lock.release();
 
         return this;
     }

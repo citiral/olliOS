@@ -2,13 +2,12 @@
 #define OLLIOS_ATADEVICE_H
 
 #include "fs/bindings.h"
-#include "devices/blockdevice.h"
 #include "cdefs.h"
 #include "kstd/string.h"
 
 namespace ata {
 
-class AtaDevice: public BlockDevice {
+class AtaDevice {
 public:
     AtaDevice(bindings::Binding* ata, u16 port, unsigned short* data, int drive);
     ~AtaDevice();
@@ -22,15 +21,6 @@ public:
 
 	void selectDevice();
 
-    virtual DeviceType getDeviceType() const =0;
-    virtual void getDeviceInfo(void* deviceinfo) const =0;
-
-	virtual size_t write(const void* data, size_t amount) =0;
-	virtual size_t write(const void* data) =0;
-	virtual size_t write(char data) =0;
-	virtual size_t read(void* data, size_t amount) =0;
-	virtual size_t seek(i32 offset, int position) =0;
-
 	void outB(u16 reg, u8 value);
 	void outW(u16 reg, u16 value);
 	void outL(u16 reg, u32 value);
@@ -40,6 +30,9 @@ public:
 	u16 inW(u16 reg);
 	u32 inL(u16 reg);
 	void inSW (unsigned short int reg, void *addr, unsigned long int count);
+
+	virtual size_t seek(i32 offset, int position) = 0;
+    virtual size_t read(void* data, size_t amount) = 0;
 
 protected:
 	unsigned short* _data;

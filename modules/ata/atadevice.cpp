@@ -3,6 +3,7 @@
 #include "ata.h"
 #include "io.h"
 #include "types.h"
+#include "string.h"
 
 #define BIT_LBA48 (1<<10)
 
@@ -23,15 +24,19 @@ AtaDevice::AtaDevice(bindings::Binding* ata, u16 port, unsigned short* data, int
 {
 	readName();
 
-	bind = new ATABinding(_name, this);
+	char name[32];
+	sprintf(name, "ata%x", drive);
 
-	bind->on_read([](bindings::OwnedBinding* _binding, void* buffer, size_t size, size_t offset) {
+	bind = new bindings::OwnedBinding(name);
+	bind->add(new bindings::RefMemoryBinding("name", _name.c_str(), strlen(_name.c_str()) + 1));
+	ata->add(bind);
+	
+	bindings::root->get("dev")->add((new ATABinding(std::string("ata") + ('0' + drive), this))->on_read([](bindings::OwnedBinding* _binding, void* buffer, size_t size, size_t offset) {
 		ATABinding* binding = (ATABinding*) _binding;
-		
 		binding->ata->seek(offset, SEEK_SET);
 		return binding->ata->read(buffer, size);
-	});
-	ata->add(bind);
+	}));
+
 
 	u32 B = data[60] & 0xFF;
 	u32 A = (data[60] >> 8) & 0xFF;
@@ -40,7 +45,6 @@ AtaDevice::AtaDevice(bindings::Binding* ata, u16 port, unsigned short* data, int
 
 	_lba28size = (A << 0) | (B << 8) | (C << 16) | (D << 24);
 
-	//_lba28size = (((u32) data[60])) | ((((u32) data[61]) & 0x0FFFFFFF) << 16);
 	if (_lba28size != 0)
 	{
 		u64 bytes = (u64) _lba28size * (u64) _bytesPerSector;

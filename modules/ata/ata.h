@@ -124,6 +124,7 @@ private:
 	volatile bool _interrupted;
 	bool _scanDefaultAddresses = true;
 	int _lastDevice = -1;
+    unsigned int _deviceCount;
     threading::Semaphore _lock;
 };
 

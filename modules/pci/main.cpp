@@ -7,5 +7,5 @@ using namespace bindings;
 
 extern "C" void module_load(Binding* root)
 {
-    PCI::init(root->add(new OwnedBinding("pci")));
+    PCI::init(root->get("sys")->add(new OwnedBinding("pci")));
 }

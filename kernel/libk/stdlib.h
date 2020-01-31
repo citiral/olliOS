@@ -11,6 +11,8 @@
 extern "C" {
 #endif
 
+#define HEAP_SMASH_DETECTION
+
 void* malloc(size_t size);
 void* realloc(void* ptr, size_t size);
 void free(void* ptr);

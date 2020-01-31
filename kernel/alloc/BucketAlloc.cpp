@@ -72,7 +72,13 @@ void* BucketAlloc::malloc(size_t size) {
         // give it the the allocator, and try to allocate some memory
         if (page != nullptr) {
             init(page, allocsize);
-            mem = mallocOneTry(size);
+            lock.release();
+            mem = malloc(size);
+            lock.lock();
+            if (mem == NULL) {
+                printf("Failed malloc!\n");
+                while (1);
+            }
         }
     }
 
@@ -113,7 +119,7 @@ void* BucketAlloc::mallocOneTry(size_t size) {
             }
 
             // and reuse the old region for ourselves
-            oldregpos[0] = size | USED_FLAG; // set the used flag so merge can now this region is active
+            oldregpos[0] = size | USED_FLAG; // set the used flag so merge can know this region is active
             oldregpos[1] = 0; // the next pointer is used to check if the region is used so we have to clear it
 
             return oldregpos + 2;
@@ -131,13 +137,19 @@ void BucketAlloc::insertIntoBucket(size_t* region) {
     region[1] = (size_t)buckets[bucket];
     buckets[bucket] = region;
 }
-
+//realloc+0x52
 void* BucketAlloc::realloc(void* ptr, size_t size) {
     // just allocate new memory
     void* newmem = malloc(size);
 
     // copy the old memory
-    size_t oldsize = *(((size_t*)ptr) - 2);
+    size_t* reg = (size_t*)((char*)(ptr) - 2 * sizeof(size_t));
+    size_t oldsize = reg[0] & (~USED_FLAG);
+    
+    //printf("size is %x oldsize is %x\n", size, oldsize);
+    //if (oldsize > 1000000) {
+    //    CPU::panic();
+    //}
     if (oldsize < size) {
         memcpy(newmem, ptr, oldsize);
     } else {
@@ -156,6 +168,8 @@ void BucketAlloc::free(void* ptr) {
     lock.lock();
     // get a pointer to the memory region (just memory + header)
     size_t* reg = (size_t*)((char*)(ptr) - 2 * sizeof(size_t));
+
+    //printf("free size is %x\n", reg[0] ^ USED_FLAG);
 
     // remove the used flag
     reg[0] = reg[0] ^ USED_FLAG;

@@ -6,7 +6,7 @@ using namespace bindings;
 
 extern "C" void module_load(Binding* root)
 {
-    root->enumerate([](Binding* root, Binding* child) {
+    root->get("sys")->enumerate([](Binding* root, Binding* child) {
         if (child->name == "pci") {
             ata::driver.initialize(child);
             return false;

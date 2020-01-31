@@ -1,8 +1,6 @@
 #ifndef OLLIOS_SERIAL_H
 #define OLLIOS_SERIAL_H
 
-#include "devices/blockdevice.h"
-
 // Serial speeds
 // The number of the clock divisor used to actually set the speed.
 // This table can be found at http://retired.beyondlogic.org/serial/serial.htm#12
@@ -20,7 +18,7 @@ enum class SerialSpeed : u32
 	B115200 = 1
 };
 
-class Serial : public BlockDevice
+class Serial
 {
 public:
 	Serial(u16 port);

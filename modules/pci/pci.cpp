@@ -2,7 +2,6 @@
 #include "pcidevice.h"
 #include "pciide.h"
 
-#include "devicemanager.h"
 #include "io.h"
 #include "cdefs.h"
 #include "kstd/vector.h"

@@ -29,11 +29,13 @@ AtaDriver::AtaDriver(): _interrupted(false), _lock(1) {
 }
 
 void AtaDriver::initialize(Binding* pci) {
+    _deviceCount = 0;
+
     idt.setFunction(INT_ATA_BUS1, &ata::intHandlerAta);
 	idt.setFunction(INT_ATA_BUS2, &ata::intHandlerAta);
 
     bind = new bindings::OwnedBinding("ata");
-    bindings::root->add(bind);
+    bindings::root->get("sys")->add(bind);
 
     _lock = threading::Semaphore(1);
 	_interrupted = false;
@@ -45,15 +47,16 @@ void AtaDriver::initialize(Binding* pci) {
 
         if (dev_class == 1 && dev_subclass == 1) {
 
-            printf("Found IDE interface!\n");
-
             u32 bar0 = device->get("bars")->get("0")->read<u32>();
             u32 bar2 = device->get("bars")->get("2")->read<u32>();
 
-            if (bar0 == 0 || bar0 == 1)
+            if (bar0 == 0 || bar0 == 1)  {
                 driver.detectDevice(0x1F0, 0);
-            //if (bar2 == 0 || bar2 == 1)
-            //    driver.detectDevice(0x170, 1);
+                //driver.detectDevice(0x1F0, 1);
+            } if (bar2 == 0 || bar2 == 1) {
+                //driver.detectDevice(0x170, 0);
+                //driver.detectDevice(0x170, 1);
+            }
         }
         return true;
     }, true);

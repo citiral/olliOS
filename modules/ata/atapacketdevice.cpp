@@ -16,40 +16,31 @@ AtaPacketDevice::AtaPacketDevice(bindings::Binding* ata, u16 port, unsigned shor
 AtaPacketDevice::~AtaPacketDevice() {
 }
 
-DeviceType AtaPacketDevice::getDeviceType() const {
-    return DeviceType::Storage;
-}
-
-void AtaPacketDevice::getDeviceInfo(void* deviceinfo) const
-{
-	DeviceStorageInfo* info = (DeviceStorageInfo*)deviceinfo;
-	info->deviceInfo.name = (char*)(_data + 27);
-}
-
 size_t AtaPacketDevice::read(void* data, size_t amount) {
     driver.grab();
     driver.clearInterruptFlag();
     
     // select ourselves as drive
     driver.selectDevice(_port, _drive);
-
     outb(_port + PORT_DRIVE, 0 << 4);
     
-    // round amount to the lowest block (2k boundary)
-    amount -= amount % 2048;
+    // round amount up the highest block (2k boundary)
+    size_t actual_amount = amount;
+    if (actual_amount % 2048 != 0)
+        actual_amount += 2048 - (actual_amount % 2048);
     
     // we are not going to use DMA (set dma bit to zero)
     outb(_port+PORT_FEATURE, 0);
 
     // set the max amount of bytes we want to receive
-    outb(_port+PORT_CYLINDER_LOW, amount & 0xFF);
-    outb(_port+PORT_CYLINDER_HIGH, amount >> 8);
+    outb(_port+PORT_CYLINDER_LOW, actual_amount & 0xFF);
+    outb(_port+PORT_CYLINDER_HIGH, actual_amount >> 8);
 
    for(int i = 0; i < 40; i++)
        inb(_port + PORT_STATUS); // Reading the Alternate Status port wastes 100ns.
 
-    // convert the amount to blocks
-    amount /= 2048;
+    // convert the actual_amount to blocks
+    actual_amount /= 2048;
 
     // send the packet command
     outb(_port+PORT_COMMAND, COMMAND_PACKET);
@@ -73,10 +64,10 @@ size_t AtaPacketDevice::read(void* data, size_t amount) {
     commands[5] = _lba;
 
     // send the transfer length (in blocks) MSB first
-    commands[6] = amount >> 24;
-    commands[7] = amount >> 16;
-    commands[8] = amount >> 8;
-    commands[9] = amount;
+    commands[6] = actual_amount >> 24;
+    commands[7] = actual_amount >> 16;
+    commands[8] = actual_amount >> 8;
+    commands[9] = actual_amount;
 
     // set the group number to 0, I presume we can ignore this
     commands[10] = 0;
@@ -92,13 +83,20 @@ size_t AtaPacketDevice::read(void* data, size_t amount) {
     driver.waitForBusy(_port);
     //driver.waitForInterrupt(_port);
 
-    // now lets fetch the amount of data we can read
-    int wordcount = ((inb(_port+PORT_LBA_HIGH) << 8) | inb(_port+PORT_LBA_MID)) / 2;
-
+    // now lets fetch the actual_amount of data we can read
+    size_t wordcount = ((inb(_port+PORT_LBA_HIGH) << 8) | inb(_port+PORT_LBA_MID));
+    
     // and now finally we can read the data
-    for (int i = 0 ; i < wordcount ; i++) {
-        ((unsigned short*)data)[i] = inw(_port+PORT_DATA);
+    for (size_t i = 0 ; i < wordcount / 2 ; i++) {
+        if (i * 2 < amount) {
+            ((unsigned short*)data)[i] = inw(_port+PORT_DATA);
+        } else {
+            inw(_port+PORT_DATA);
+        }
     }
+    
+
+    // 
 
     // the device is going to send us one last interrupt
     driver.waitForInterrupt(_port);
@@ -107,7 +105,7 @@ size_t AtaPacketDevice::read(void* data, size_t amount) {
     _lba += wordcount / 1024;
 
     driver.release();
-    return wordcount * 2;
+    return wordcount < amount ? wordcount : amount;
 }
 
 size_t AtaPacketDevice::write(const void* data, size_t amount)

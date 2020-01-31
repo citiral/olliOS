@@ -7,7 +7,7 @@
 
 class PCIBinding: public bindings::OwnedBinding {
 public:
-	PCIBinding(char* name, PCIDevice* device, u32 bar): bindings::OwnedBinding(name), _device(device), _bar(bar)
+	PCIBinding(std::string name, PCIDevice* device, u32 bar): bindings::OwnedBinding(name), _device(device), _bar(bar)
 	{
 		on_read([](OwnedBinding* _binding, void* buffer, size_t size, size_t offset) {
 			PCIBinding* binding = (PCIBinding*) _binding;
@@ -119,17 +119,6 @@ void PCIDevice::configWriteWord(u8 reg, u16 value)
 void PCIDevice::configWriteByte(u8 reg, u8 value)
 {
 	PCI::configWriteByte(_bus, _device, _func, reg, value);
-}
-
-DeviceType PCIDevice::getDeviceType() const
-{
-	return DeviceType::PCI;
-}
-
-void PCIDevice::getDeviceInfo(void* deviceinfo) const
-{
-	DevicePCIInfo* info = (DevicePCIInfo*) deviceinfo;
-	info->deviceInfo.name = _deviceName;
 }
 
 void PCIDevice::writeIOBAR(int bar, u32 value)

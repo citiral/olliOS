@@ -9,7 +9,7 @@
 #include "kstd/utility.h"
 #include "kstd/new.h"
 #include <stdlib.h>
-
+#include "libk/string.h"
 // divergence of spec from vector: No iterators, no allocator, missing functions
 
 namespace std {
@@ -252,6 +252,10 @@ namespace std {
                     _data = static_cast<T*>(malloc(_maxLength * sizeof(T)));
                 } else {
                     _data = static_cast<T*>(realloc(_data, _maxLength * sizeof(T)));
+                    /*T* _data2 = static_cast<T*>(malloc(_maxLength * sizeof(T)));
+                    memcpy(_data2, _data, _length * sizeof(T));
+                    free(_data);
+                    _data = _data2;*/
                 }
             }
         }

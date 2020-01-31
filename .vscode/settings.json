@@ -44,5 +44,6 @@
         "memory": "cpp",
         "mutex": "cpp",
         "sstream": "cpp"
-    }
+    },
+    "C_Cpp.default.systemIncludePath": ["root/usr/include"]
 }

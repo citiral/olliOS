@@ -4,9 +4,7 @@
 
 #include "kernelshell.h"
 #include "alloc.h"
-#include "devicemanager.h"
 #include "keyboard/keyboard.h"
-#include "fs/filesystem.h"
 #include "threading/thread.h"
 #include "threading/scheduler.h"
 #include "apic.h"
@@ -43,11 +41,11 @@ void cat(KernelShell* shell, std::vector<std::string>* args)
 		return;
 	}
 
-    char buffer[2048];
+    char buffer[2];
 	size_t total = 0;
 	size_t read;
 	do {
-		read = bind->read(&buffer, 2048, total);
+		read = bind->read(&buffer, sizeof(buffer), total);
 		for (size_t i = 0 ; i < read ; i++)
 			putchar(buffer[i]);
 		total += read;
@@ -69,11 +67,11 @@ void hex(KernelShell* shell, std::vector<std::string>* args)
 		return;
 	}
 
-    u8 buffer[2048];
+    u8 buffer[64];
 	size_t total = 0;
 	size_t read;
 	do {
-		read = bind->read(buffer, 2048, total);
+		read = bind->read(buffer, sizeof(buffer), total);
 		for (size_t i = 0 ; i < read ; i++) {
 			printf("%.2X", (unsigned int) buffer[i]);;
 		}

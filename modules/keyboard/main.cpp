@@ -26,7 +26,7 @@ void KeyboardDriverThread(KeyboardDriver* driver, OwnedBinding* keyboard) {
 
 extern "C" void module_load(Binding* root)
 {
-    OwnedBinding* keyboard = root->add(new OwnedBinding("keyboard"));
+    OwnedBinding* keyboard = root->get("sys")->add(new OwnedBinding("keyboard"));
 
 	driver = new KeyboardDriver();
 	driver->setScanCodeSet(SCANSET_2);

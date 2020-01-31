@@ -15,16 +15,6 @@ AtaPioDevice::AtaPioDevice(bindings::Binding* ata, u16 port, unsigned short* dat
 AtaPioDevice::~AtaPioDevice() {
 }
 
-DeviceType AtaPioDevice::getDeviceType() const {
-    return DeviceType::Storage;
-}
-
-void AtaPioDevice::getDeviceInfo(void* deviceinfo) const
-{
-	DeviceStorageInfo* info = (DeviceStorageInfo*)deviceinfo;
-	info->deviceInfo.name = (char*)(_data + 27);
-}
-
 size_t AtaPioDevice::write(const void* data, size_t amount)
 {
 	UNUSED(data);

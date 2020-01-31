@@ -1,5 +1,4 @@
 #include "inputformatter.h"
-#include "devicemanager.h"
 #include "keyboard/keyboard.h"
 #include "fs/bindings.h"
 #include "stdio.h"

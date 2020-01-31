@@ -3,8 +3,13 @@
 
 #include "kstd/string.h"
 #include "threading/mutex.h"
+#include "threading/spinlock.h"
 
 namespace bindings {
+
+    // TODO: this is massively inefficient. Bindings should be made threadsafe in a non-braindead way so this can be removed
+    // Besides I have not yet verified if, even with this lock, insertions into threading linked lists are thread-safe after all
+    extern threading::Mutex lock;
 
     class Binding;
     class OwnedBinding;
@@ -66,11 +71,11 @@ namespace bindings {
         template<class T>
         T* add(T* child)
         {
-            _lock.lock();
+            lock.lock();
             child->_parent = this;
             child->_next_sibling = _first_child;
             _first_child = child;
-            _lock.release();
+            lock.release();
 
             iterate<Binding_on_create>(&_on_create_cbs, this, child);
             return child;
@@ -80,14 +85,13 @@ namespace bindings {
         void iterate(T** node, PARAMS... params)
         {
             // Loop over all entries
-            _lock.lock();
+            lock.lock();
             while (*node != NULL) {
 
-                
                 //Execute the callback. If it returns false, remove it from the list
-                _lock.release();
+                lock.release();
                 bool keep_cb = (*node)->cb(params...);
-                _lock.lock();
+                lock.lock();
                 
                 if (!keep_cb) {
                     T* next = ( *node)->next;
@@ -98,7 +102,7 @@ namespace bindings {
                     node = &((*node)->next);
                 }
             }
-            _lock.release();
+            lock.release();
         }
 
     public:
@@ -112,7 +116,6 @@ namespace bindings {
         Binding_on_data* _on_data_cbs;
         Binding_on_write* _on_write_cbs;
         on_read_cb _on_read_cb;
-        threading::Mutex _lock;
     };
 
     class OwnedBinding: public Binding {
@@ -145,6 +148,7 @@ namespace bindings {
     void init();
 
     extern Binding* root;
+    // Global bindings lock
 }
 
 #endif

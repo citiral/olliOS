@@ -1,12 +1,11 @@
 #ifndef OLLIOS_PCIDEVICE_H
 #define OLLIOS_PCIDEVICE_H
 
-#include "devices/device.h"
 #include "kstd/string.h"
 #include "types.h"
 #include "fs/bindings.h"
 
-class PCIDevice : public Device
+class PCIDevice
 {
 public:
 	PCIDevice(bindings::OwnedBinding* root, u8 bus, u8 dev, u8 func);
@@ -26,14 +25,6 @@ public:
 
 	void writeIOBAR(int bar, u32 value); // Write an IO BAR. Note that it will mask the return value correctly so you won't have to ;)
 	u32 readIOBAR(int bar); // Read an IO BAR. Note that it will mask the return value correctly so you won't have to ;)
-
-	/*
-	void writeMemBAR(int bar, u32 value); // Write a memory BAR. Note that it will mask the return value correctly so you won't have to ;)
-	u32 readMemBAR(int bar); // Read a memory BAR. Note that it will mask the return value correctly so you won't have to ;)
-	*/
-
-    DeviceType getDeviceType() const;
-	void getDeviceInfo(void* deviceinfo) const;
 private:
 	u8 _bus;
 	u8 _device;

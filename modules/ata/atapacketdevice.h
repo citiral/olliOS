@@ -17,9 +17,6 @@ public:
     AtaPacketDevice(bindings::Binding* ata, u16 port, unsigned short* data, u8 drive);
     ~AtaPacketDevice();
 
-    virtual DeviceType getDeviceType() const;
-    virtual void getDeviceInfo(void* deviceinfo) const;
-
     size_t write(const void* data, size_t amount);
     size_t write(const void* data);
     size_t write(char data);
