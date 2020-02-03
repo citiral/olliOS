@@ -37,7 +37,7 @@ size_t AtaPioDevice::write(char data)
 	return 0;
 }
 
-size_t AtaPioDevice::read(void* data, size_t amount)
+size_t AtaPioDevice::read(void* data, size_t amount, size_t offset)
 {
 	char* cdata = (char*) data;
 	read(_pointer, amount, cdata);

@@ -34,7 +34,7 @@ AtaDevice::AtaDevice(bindings::Binding* ata, u16 port, unsigned short* data, int
 	bindings::root->get("dev")->add((new ATABinding(std::string("ata") + ('0' + drive), this))->on_read([](bindings::OwnedBinding* _binding, void* buffer, size_t size, size_t offset) {
 		ATABinding* binding = (ATABinding*) _binding;
 		binding->ata->seek(offset, SEEK_SET);
-		return binding->ata->read(buffer, size);
+		return binding->ata->read(buffer, size, offset);
 	}));
 
 

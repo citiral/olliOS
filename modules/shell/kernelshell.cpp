@@ -41,11 +41,11 @@ void cat(KernelShell* shell, std::vector<std::string>* args)
 		return;
 	}
 
-    char buffer[2];
+    char buffer[2048];
 	size_t total = 0;
 	size_t read;
 	do {
-		read = bind->read(&buffer, sizeof(buffer), total);
+		read = bind->read(buffer, sizeof(buffer), total);
 		for (size_t i = 0 ; i < read ; i++)
 			putchar(buffer[i]);
 		total += read;

@@ -10,13 +10,13 @@
 
 namespace ata {
 
-AtaPacketDevice::AtaPacketDevice(bindings::Binding* ata, u16 port, unsigned short* data, u8 drive): AtaDevice(ata, port, data, drive), _lba(0) {
+AtaPacketDevice::AtaPacketDevice(bindings::Binding* ata, u16 port, unsigned short* data, u8 drive): AtaDevice(ata, port, data, drive) {
 }
 
 AtaPacketDevice::~AtaPacketDevice() {
 }
 
-size_t AtaPacketDevice::read(void* data, size_t amount) {
+size_t AtaPacketDevice::read(void* data, size_t amount, size_t offset) {
     driver.grab();
     driver.clearInterruptFlag();
     
@@ -24,8 +24,11 @@ size_t AtaPacketDevice::read(void* data, size_t amount) {
     driver.selectDevice(_port, _drive);
     outb(_port + PORT_DRIVE, 0 << 4);
     
-    // round amount up the highest block (2k boundary)
+    // round offset down, add count removed from offset to amount, and round amount up.
     size_t actual_amount = amount;
+    size_t skip = offset % 2048;
+    actual_amount += skip;
+    offset -= skip;
     if (actual_amount % 2048 != 0)
         actual_amount += 2048 - (actual_amount % 2048);
     
@@ -39,8 +42,9 @@ size_t AtaPacketDevice::read(void* data, size_t amount) {
    for(int i = 0; i < 40; i++)
        inb(_port + PORT_STATUS); // Reading the Alternate Status port wastes 100ns.
 
-    // convert the actual_amount to blocks
+    // convert the actual_amount and offset to blocks
     actual_amount /= 2048;
+    offset /= 2048;
 
     // send the packet command
     outb(_port+PORT_COMMAND, COMMAND_PACKET);
@@ -58,10 +62,10 @@ size_t AtaPacketDevice::read(void* data, size_t amount) {
     commands[1] = 0;
 
     // send the lba MSB first
-    commands[2] = _lba >> 24;
-    commands[3] = _lba >> 16;
-    commands[4] = _lba >> 8;
-    commands[5] = _lba;
+    commands[2] = offset >> 24;
+    commands[3] = offset >> 16;
+    commands[4] = offset >> 8;
+    commands[5] = offset;
 
     // send the transfer length (in blocks) MSB first
     commands[6] = actual_amount >> 24;
@@ -87,11 +91,14 @@ size_t AtaPacketDevice::read(void* data, size_t amount) {
     size_t wordcount = ((inb(_port+PORT_LBA_HIGH) << 8) | inb(_port+PORT_LBA_MID));
     
     // and now finally we can read the data
-    for (size_t i = 0 ; i < wordcount / 2 ; i++) {
-        if (i * 2 < amount) {
-            ((unsigned short*)data)[i] = inw(_port+PORT_DATA);
-        } else {
-            inw(_port+PORT_DATA);
+    for (size_t i = 0 ; i < wordcount ; i += 2) {
+        u16 byte = inw(_port+PORT_DATA);
+        u8* read = (u8*)&byte;
+
+        for (size_t k = 0 ; k < 2 ; k++) {
+            if ((i + k) >= skip && (i + k) < (skip + amount)) {
+                ((u8*)data)[i + k - skip] = read[k];
+            }
         }
     }
     
@@ -102,10 +109,10 @@ size_t AtaPacketDevice::read(void* data, size_t amount) {
     driver.waitForInterrupt(_port);
 
     // advance the lba by wordcount / 1024 (advance once for each 2K block read)
-    _lba += wordcount / 1024;
+    //_lba += wordcount / 1024;
 
     driver.release();
-    return wordcount < amount ? wordcount : amount;
+    return (wordcount < amount ? wordcount : amount);
 }
 
 size_t AtaPacketDevice::write(const void* data, size_t amount)
@@ -136,13 +143,6 @@ size_t AtaPacketDevice::seek(i32 offset, int position) {
         return 1;
 
     offset /= 2048;
-
-    if (position == SEEK_SET)
-        _lba = offset;
-    else if (position == SEEK_CUR)
-        _lba += offset;
-    else if (position == SEEK_END)
-        LOG_UNIMPLEMENTED();
 
     return 0;
 }

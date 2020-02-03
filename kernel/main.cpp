@@ -248,15 +248,5 @@ extern "C" void main(multiboot_info* multiboot) {
         mod++;
     }
 
-    bindings::Binding* ata = bindings::root->get("dev/ata0");
-
-    u8 data[2048];
-    u8 data2[2048];
-
-    printf("Read 2048 got %d\n", ata->read(data, 2048, 0));
-    printf("Read 512 got %d\n", ata->read(data2, 512, 0));
-    printf("%d\n", memcmp(data, data2, 512));
-
-
     cpu_main();
 }

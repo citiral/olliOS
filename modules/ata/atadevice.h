@@ -32,7 +32,7 @@ public:
 	void inSW (unsigned short int reg, void *addr, unsigned long int count);
 
 	virtual size_t seek(i32 offset, int position) = 0;
-    virtual size_t read(void* data, size_t amount) = 0;
+    virtual size_t read(void* data, size_t amount, size_t offset) = 0;
 
 protected:
 	unsigned short* _data;
