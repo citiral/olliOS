@@ -15,7 +15,7 @@ CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O0 -Wall -Wextra -fno-excep
 LDFLAGS = -ffreestanding -O0 -nostdlib -lgcc
 #LIBS = $(ROOT)/usr/lib/libk.a
 
-MODULES = keyboard shell vga pci ata mbr iso9660
+MODULES = keyboard shell vga pci ata mbr iso9660 sysint
 APPS = hello_world
 
 KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/*/*.cpp)

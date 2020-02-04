@@ -15,8 +15,9 @@ LDFLAGS =  -std=gnu++11 -Wall -Wextra -nostdlib -m32 -r -Xlinker '-Ur'
 LIBS = $(ROOT)/usr/lib/libk.a
 
 MODULE_CPP = $(wildcard $(MODULE)/*.cpp)
+MODULE_ASM = $(wildcard $(MODULE)/*.asm)
 HEADERS = $(wildcard $(MODULE)/*.h)
-OBJECTS = $(addprefix $(OUTDIR), $(notdir $(MODULE_CPP:.cpp=.o)))
+OBJECTS = $(addprefix $(OUTDIR), $(notdir $(MODULE_CPP:.cpp=.o)) $(notdir $(MODULE_ASM:.asm=.o)))
 
 DEPS = $(OBJECTS:.o=.d)
 
@@ -47,3 +48,6 @@ $(BUILD)$(MODULE).so: $(OBJECTS)
 
 $(OUTDIR)%.o: $(MODULE)/%.cpp
 	$(CC) -c $< -o $@ $(CCFLAGS)
+
+$(OUTDIR)%.o: $(MODULE)/%.asm
+	nasm -felf32 $< -o $@
