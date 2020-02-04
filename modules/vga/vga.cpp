@@ -1,5 +1,5 @@
 #include "vga.h"
-#include "io.h"
+#include "cpu/io.h"
 #include "stdio.h"
 #include "cdefs.h"
 

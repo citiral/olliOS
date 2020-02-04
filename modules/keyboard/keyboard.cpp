@@ -1,8 +1,8 @@
 #include "keyboard.h"
-#include "io.h"
 #include "cdefs.h"
-#include "interrupt.h"
 #include "stdio.h"
+#include "cpu/io.h"
+#include "cpu/interrupt.h"
 #include "threading/semaphore.h"
 #include "threading/scheduler.h"
 

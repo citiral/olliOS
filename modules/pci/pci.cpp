@@ -2,7 +2,7 @@
 #include "pcidevice.h"
 #include "pciide.h"
 
-#include "io.h"
+#include "cpu/io.h"
 #include "cdefs.h"
 #include "kstd/vector.h"
 

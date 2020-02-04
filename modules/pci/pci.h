@@ -3,7 +3,7 @@
 
 #include "types.h"
 #include "kstd/string.h"
-#include "fs/bindings.h"
+#include "bindings.h"
 
 namespace PCI
 {

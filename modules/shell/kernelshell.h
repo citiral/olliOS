@@ -9,7 +9,7 @@
 #include "kstd/vector.h"
 #include "kstd/utility.h"
 #include "kstd/string.h"
-#include "fs/bindings.h"
+#include "bindings.h"
 
 class KernelShell {
 using CommandFunction = void (*)(KernelShell* shell, std::vector<std::string>* args);

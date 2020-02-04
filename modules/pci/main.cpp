@@ -1,5 +1,5 @@
 #include "types.h"
-#include "fs/bindings.h"
+#include "bindings.h"
 #include "pci.h"
 #include <stdio.h>
 

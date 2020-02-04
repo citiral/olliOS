@@ -1,40 +1,28 @@
 #include "types.h"
 #include "stdio.h"
 #include "string.h"
-#include "kstd/string.h"
-#include "kstd/new.h"
-#include "kstd/unordered_map.h"
 #include "stdlib.h"
-#include "acpi.h"
-
-#include "cpu.h"
-#include "gdt.h"
-#include "interrupt.h"
-#include "sleep.h"
-
-#include "eventbus/eventbus.h"
-#include "eventbus/eventconsumer.h"
-
-#include "pic.h"
-#include "apic.h"
-#include "io.h"
-#include "alloc.h"
 #include "linker.h"
+#include "multiboot.h"
 
+#include "cpu/acpi.h"
+#include "cpu/cpu.h"
+#include "cpu/gdt.h"
+#include "cpu/pic.h"
+#include "cpu/apic.h"
+#include "cpu/io.h"
+#include "cpu/cpuid.h"
+
+#include "memory/alloc.h"
 #include "memory/virtual.h"
 #include "memory/physical.h"
 
 #include "threading/scheduler.h"
-#include "threading/semaphore.h"
 
-#include "multiboot.h"
-#include "cpuid.h"
-#include "symbolmap.h"
-#include "elf.h"
-#include "vga.h"
-#include "fs/bindings.h"
+#include "elf/symbolmap.h"
+#include "elf/elf.h"
 
-#include "util/unique.h"
+#include "bindings.h"
 
 extern void *__realmode_lma_start;
 extern void *__realmode_lma_end;
@@ -86,10 +74,6 @@ void initMemory(multiboot_info* multiboot) {
             if (mmap->type != 1)
                 continue;
 
-            // only use the first physical gb
-            //if ((size_t)addr >= 0x40000000)
-            //    continue;
-
             // don't let this shit overlap with the kernel itself
             if ((size_t)addr < (size_t)KERNEL_END_PHYSICAL) {
                 size_t diff = (size_t)KERNEL_END_PHYSICAL - (size_t) addr;
@@ -123,7 +107,6 @@ void initMemory(multiboot_info* multiboot) {
 }
 
 void cpu_main() {
-    LOG_INFO("entering from cpu main %d", apic::id());
     apic::setSleep(INT_PREEMPT, apic::busFrequency / 1024, false);
     while (true) {
         threading::scheduler->enter();
@@ -131,51 +114,6 @@ void cpu_main() {
     }
 }
 
-void print(int c) {
-	while (true)
-	LOG_DEBUG("p: %d, from core %d", c, apic::id());
-}
-
-void startup_listener(void* context, Event* event)
-{
-    /*ata::driver.initialize();
-    LOG_STARTUP("ATA driver initialized.");
-
-    PCI::init();
-	LOG_STARTUP("PCI driver initialized.");
-
-	vfs = new VirtualFileSystem();
-    LOG_STARTUP("Virtual filesystem created.");
-
-    auto storagedevices = deviceManager.getDevices(DeviceType::Storage);
-    for (size_t i =  0; i < storagedevices.size() ; i++) {
-		BlockDevice* device = (BlockDevice*) storagedevices[i];
-        DeviceStorageInfo info;
-        device->getDeviceInfo(&info);
-        char* name = "hdda";
-        name[3] += i;
-        LOG_STARTUP("BINDING %s to %s", info.deviceInfo.name, name);
-        vfs->BindFilesystem(name, new Iso9660FileSystem(device));
-    }*/
-}
-
-threading::Semaphore sem(1);
-
-void thread_test(int v) {
-    if (v < 1000) {
-        threading::scheduler->schedule(new threading::Thread(thread_test, v + 1000));
-    }
-    while (true) {
-        printf("%d -> %d\n", apic::id(), v);
-    }
-}
-
-void consumer_test(EventConsumer* consumer) {
-    consumer->listen(EVENT_TYPE_STARTUP, nullptr, startup_listener);
-    consumer->enter();
-}
-
-VgaDriver* vgaDriver = 0;
 extern "C" void main(multiboot_info* multiboot) {
     // init lowlevel CPU related stuff
     // None of these should be allowed to touch the memory allocator, etc
@@ -203,8 +141,6 @@ extern "C" void main(multiboot_info* multiboot) {
     idt.getEntry(INT_PREEMPT).setOffset((u32)thread_interrupt);
     threading::scheduler = new threading::Scheduler();
 
-    vgaDriver = new VgaDriver();
-
     printf("Flags: %X\n", multiboot->flags);
     printf("mods count: %d\n", multiboot->mods_count);
     multiboot_module_t *mod = (multiboot_module_t*) multiboot->mods_addr;
@@ -231,7 +167,7 @@ extern "C" void main(multiboot_info* multiboot) {
         u8* data = new u8[mod->mod_end - mod->mod_start];
         memcpy(data, c, mod->mod_end - mod->mod_start);
 
-        elf::elf* e = new elf::elf(data);
+        elf::elf* e = new elf::elf(data, true);
         if (e == nullptr) {
             printf("Failed allocating elf\n");
             while (1);

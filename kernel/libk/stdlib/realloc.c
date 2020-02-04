@@ -3,9 +3,9 @@
 //
 
 #include "stdlib.h"
-#include "alloc.h"
+#include "memory/alloc.h"
 #include "stdio.h"
-#include "cpu.h"
+#include "cpu/cpu.h"
 
 void* realloc(void* ptr, size_t size) {
 #ifdef HEAP_SMASH_DETECTION

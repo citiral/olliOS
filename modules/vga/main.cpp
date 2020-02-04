@@ -1,6 +1,6 @@
 #include "vga/vga.h"
 #include "types.h"
-#include "fs/bindings.h"
+#include "bindings.h"
 #include <stdio.h>
 #include "kstd/new.h"
 

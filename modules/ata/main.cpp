@@ -1,4 +1,4 @@
-#include "fs/bindings.h"
+#include "bindings.h"
 #include "ata.h"
 #include <stdio.h>
 

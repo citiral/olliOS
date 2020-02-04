@@ -1,7 +1,7 @@
 #ifndef __CDEFS_H
 #define __CDEFS_H
 
-#include "cpu.h"
+#include "cpu/cpu.h"
 #include <stdio.h>
 
 #define __PAGE_ALIGNED __attribute__((aligned(0x1000)))

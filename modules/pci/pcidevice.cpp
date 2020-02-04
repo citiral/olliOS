@@ -1,6 +1,6 @@
 #include "pcidevice.h"
 #include "pci.h"
-#include "cpu.h"
+#include "cpu/cpu.h"
 #include "cdefs.h"
 #include "string.h"
 #include "stdio.h"

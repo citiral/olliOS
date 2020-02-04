@@ -1,4 +1,4 @@
-#include "fs/bindings.h"
+#include "bindings.h"
 #include "util/unique.h"
 #include "string.h"
 

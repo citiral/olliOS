@@ -6,8 +6,8 @@
 #include "ata.h"
 #include "atapacketdevice.h"
 #include "atapiodevice.h"
-#include "interrupt.h"
-#include "io.h"
+#include "cpu/interrupt.h"
+#include "cpu/io.h"
 #include "cdefs.h"
 #include <stdio.h>
 #include <stdlib.h>

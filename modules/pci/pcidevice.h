@@ -3,7 +3,7 @@
 
 #include "kstd/string.h"
 #include "types.h"
-#include "fs/bindings.h"
+#include "bindings.h"
 
 class PCIDevice
 {

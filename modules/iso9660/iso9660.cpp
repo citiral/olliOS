@@ -1,7 +1,6 @@
 #include "iso9660.h"
 #include "kstd/utility.h"
 #include "cdefs.h"
-#include "cpu.h"
 
 #define DIRECTORY_RECORD_HIDDEN 0x1
 #define DIRECTORY_RECORD_IS_DIRECTORY 0x2

@@ -1,7 +1,7 @@
 #ifndef __ISO9660_H
 #define __ISO9960_H
 
-#include "fs/bindings.h"
+#include "bindings.h"
 #include "kstd/vector.h"
 
 class Iso9660Binding;

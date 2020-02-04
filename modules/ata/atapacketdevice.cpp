@@ -4,7 +4,7 @@
 
 #include <stdio.h>
 #include "cdefs.h"
-#include "io.h"
+#include "cpu/io.h"
 #include "ata.h"
 #include "atapacketdevice.h"
 

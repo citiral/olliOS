@@ -3,10 +3,9 @@
 //
 
 #include "stdlib.h"
-#include "alloc.h"
+#include "memory/alloc.h"
 #include "stdio.h"
-#include "cpu.h"
-#include "stdio.h"
+#include "cpu/cpu.h"
 
 void free(void* ptr) {
 #ifdef HEAP_SMASH_DETECTION

@@ -1,6 +1,6 @@
 #include "cpu.h"
 #include "stdio.h"
-#include "symbolmap.h"
+#include "elf/symbolmap.h"
 
 void CPU::dumpstack(unsigned int MaxFrames)
 {

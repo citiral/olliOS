@@ -1,7 +1,7 @@
 #ifndef OLLIOS_ATADEVICE_H
 #define OLLIOS_ATADEVICE_H
 
-#include "fs/bindings.h"
+#include "bindings.h"
 #include "cdefs.h"
 #include "kstd/string.h"
 

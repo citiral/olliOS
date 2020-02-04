@@ -1,6 +1,6 @@
 #include "threading/thread.h"
+#include "cpu/apic.h"
 #include "cdefs.h"
-#include "apic.h"
 
 using namespace threading;
 

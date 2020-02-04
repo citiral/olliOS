@@ -1,6 +1,6 @@
 #include "types.h"
 #include "kernelshell.h"
-#include "fs/bindings.h"
+#include "bindings.h"
 #include "threading/scheduler.h"
 #include <stdio.h>
 

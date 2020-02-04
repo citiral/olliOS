@@ -1,7 +1,7 @@
-#include "fs/bindings.h"
+#include "bindings.h"
 #include "atadevice.h"
 #include "ata.h"
-#include "io.h"
+#include "cpu/io.h"
 #include "types.h"
 #include "string.h"
 

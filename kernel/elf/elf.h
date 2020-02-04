@@ -111,13 +111,23 @@ struct elf_rela {
 
 class elf {
 public:
-    elf(u8* data);
+    elf(u8* data, bool in_kernel);
 
     int is_valid();
     int link(SymbolMap& map);
     int get_symbol_value(const char* name, u32* out);
     
+private:
+    section_header* get_section_header(u32 header_index);
+    const char* get_section_name(u32 section_index);
+    void allocate_nobits(section_header* section);
+    const char* get_symbol_name(section_header* section, u32 symbol_index);
+    int get_symbol_value(section_header* section, u32 symbol_index, SymbolMap& map, u32* out);
+    int relocate_entry(section_header* section, elf_rel relocation, SymbolMap& map, u32* got);
+    int relocate_section(section_header* section, SymbolMap& map, u32* got);
+
     elf_header* _header;
+    bool _in_kernel;    
     u32 _GOT[ELF_GOT_SIZE];
     u32 _got_count;
     std::unordered_map<std::string, u32> _GotIndex;

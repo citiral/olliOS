@@ -8,7 +8,7 @@
 #include "atadevice.h"
 #include "threading/semaphore.h"
 #include "types.h"
-#include "fs/bindings.h"
+#include "bindings.h"
 
 /*#define PORT_DATA           0x1F0
 #define PORT_FEATURE        0x1F1

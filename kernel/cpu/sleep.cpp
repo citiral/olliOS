@@ -1,6 +1,6 @@
-#include "sleep.h"
-#include "apic.h"
-#include "interrupt.h"
+#include "cpu/sleep.h"
+#include "cpu/apic.h"
+#include "cpu/interrupt.h"
 #include "cdefs.h"
 
 

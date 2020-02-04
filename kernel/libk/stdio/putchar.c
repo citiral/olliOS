@@ -1,18 +1,9 @@
 #include "stdio.h"
-#include "fs/bindings.h"
-#include "vga.h"
-
-extern VgaDriver* vgaDriver;
+#include "bindings.h"
 
 int putchar(int character)
 {
-    if (vgaDriver != NULL) {
-        unsigned char c = (unsigned char)character;
-        vgaDriver->write(&c, 1);
-    }
-    return 1;
-
-    /*if (stdout == NULL) {
+    if (stdout == NULL) {
         if (bindings::root != NULL) {
             stdout = bindings::root->get("vga");
         }
@@ -20,7 +11,9 @@ int putchar(int character)
 
     if (stdout != NULL) {
         unsigned char c = (unsigned char)character;
-        stdout->write(1, &c);
+        stdout->write(&c, 1);
         return character;
-    }*/
+    }
+
+    return character;
 }

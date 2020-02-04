@@ -3,7 +3,7 @@
 
 #include "pcidevice.h"
 #include "types.h"
-#include "fs/bindings.h"
+#include "bindings.h"
 
 class PCIIDE : public PCIDevice {
 public:

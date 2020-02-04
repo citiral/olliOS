@@ -2,8 +2,8 @@
 // Created by citiral on 9/23/16.
 //
 
-#include "alloc/BucketAlloc.h"
-#include "memory/virtual.h"
+#include "BucketAlloc.h"
+#include "virtual.h"
 #include "cdefs.h"
 #include "linker.h"
 #include <string.h>

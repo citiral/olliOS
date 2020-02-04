@@ -3,13 +3,16 @@
 //
 
 #include "kernelshell.h"
-#include "alloc.h"
+#include "linker.h"
+#include "memory/alloc.h"
+#include "memory/virtual.h"
 #include "keyboard/keyboard.h"
 #include "threading/thread.h"
 #include "threading/scheduler.h"
-#include "apic.h"
+#include "cpu/apic.h"
 #include <string.h>
 #include "stdio.h"
+#include "elf/elf.h"
 
 #if __KERNEL_ALLOCATOR == __KERNEL_ALLOCATOR_BUCKET
 void allocinfo(KernelShell* shell, std::vector<std::string>* args)
@@ -156,6 +159,52 @@ void help(KernelShell* shell, std::vector<std::string>* args)
 	};
 	printf("\n");
 }
+
+void run(KernelShell* shell, std::vector<std::string>* args)
+{
+	if (args->size() != 2)
+	{
+		printf("Usage: run program\n");
+		return;
+	}
+
+	bindings::Binding* bind = shell->working_directory->get(args->at(1).c_str());
+	if (bind == NULL) {
+		printf("Invalid path: %s\n");
+		return;
+	}
+
+    memory::PageDirectory* pagedir = memory::kernelPageDirectory.clone();
+
+	((memory::PageDirectory*)(memory::kernelPageDirectory.getPhysicalAddress(pagedir)))->use();
+
+	u8* start = (u8*)0x40000000;
+	memory::kernelPageDirectory.bindVirtualPage(start);
+
+	size_t total = 0;
+	size_t read;
+	do {
+		read = bind->read((void*)(((u32)start) + total), 4096 - total, total);
+		total += read;
+	} while (read != 0);
+
+	elf::elf* e = new elf::elf(start, false);
+	if (e == nullptr) {
+		printf("Failed allocating elf\n");
+		while (1);
+	}
+
+	if (e->link(*symbolMap) != 0 && 0) {
+		printf("failed linking elf\n");
+	} else {
+		void (*app_main)(void);
+		e->get_symbol_value("main", (u32*) &app_main);
+		app_main();
+	}
+
+	((memory::PageDirectory*)(((char*)&memory::kernelPageDirectory) - 0xC0000000))->use();
+	memory::freePageDirectory(pagedir);
+}
 /*
 void set(KernelShell* shell, std::vector<std::string>* args)
 {
@@ -209,6 +258,7 @@ KernelShell::KernelShell(): _commands()
 	_commands.push_back(std::pair<const char*, CommandFunction>("hex", &hex));
 	_commands.push_back(std::pair<const char*, CommandFunction>("cd", &cd));
 	_commands.push_back(std::pair<const char*, CommandFunction>("touch", &touch));
+	_commands.push_back(std::pair<const char*, CommandFunction>("run", &run));
 
 	working_directory = bindings::root;
 	prompt();

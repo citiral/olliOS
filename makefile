@@ -16,11 +16,12 @@ LDFLAGS = -ffreestanding -O0 -nostdlib -lgcc
 #LIBS = $(ROOT)/usr/lib/libk.a
 
 MODULES = keyboard shell vga pci ata mbr iso9660
+APPS = hello_world
 
 KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/*/*.cpp)
 KERNEL_C = $(wildcard kernel/libk/*/*.c)
-KERNEL_ASM = $(wildcard kernel/*.s)
-KERNEL_NASM = $(wildcard kernel/*.asm) $(wildcard kernel/threading/*.asm)
+KERNEL_ASM = $(wildcard kernel/*.s) $(wildcard kernel/*/*.s)
+KERNEL_NASM = $(wildcard kernel/*.asm) $(wildcard kernel/*/*.asm)
 HEADERS = $(wildcard kernel/*.h) $(wildcard kernel/*/*.h)
 
 CRTI_OBJ=crti.o
@@ -32,13 +33,13 @@ CRTEND_OBJ:=$(shell $(CC) $(CCFLAGS) -print-file-name=crtend.o)
 OBJECTS = $(addprefix $(BUILD), $(filter-out crti.o crtn.o, $(notdir $(KERNEL_CPP:.cpp=.o)) $(notdir $(KERNEL_C:.c=.o)) $(notdir $(KERNEL_ASM:.s=.o))  $(notdir $(KERNEL_NASM:.asm=.o))))
 DEPS = $(OBJECTS:.o=.d)
 
-.PHONY: all compile-kernel clean dir install install-headers $(MODULES)
+.PHONY: all compile-kernel clean dir install install-headers $(MODULES) $(APPS)
 
-all: dir install-headers $(BUILD)$(OUTPUT) $(MODULES) $(ISO)
+all: dir install-headers $(BUILD)$(OUTPUT) $(MODULES) $(APPS) $(ISO)
 
 -include $(DEPS)
 	
-dir: $(BUILD) $(ROOT) $(ROOT)boot $(ROOT)boot/grub $(ROOT)usr $(ROOT)usr/include $(ROOT)usr/lib
+dir: $(BUILD) $(ROOT) $(ROOT)boot $(ROOT)boot/grub $(ROOT)usr $(ROOT)usr/bin $(ROOT)usr/include $(ROOT)usr/lib
 
 $(BUILD):
 	mkdir -p $@
@@ -49,6 +50,8 @@ $(ROOT)boot:
 $(ROOT)boot/grub:
 	mkdir -p $@
 $(ROOT)usr:
+	mkdir -p $@
+$(ROOT)usr/bin:
 	mkdir -p $@
 $(ROOT)usr/include:
 	mkdir -p $@
@@ -84,16 +87,21 @@ $(BUILD)%.o: kernel/**/**/%.c
 	$(CC) -c $< -o $@ $(CCFLAGS)
 $(BUILD)%.o: kernel/%.s
 	$(CC) -c $< -o $@ $(CCFLAGS)
-
+$(BUILD)%.o: kernel/**/%.s
+	$(CC) -c $< -o $@ $(CCFLAGS)
+$(BUILD)%.o: kernel/**/**/%.s
+	$(CC) -c $< -o $@ $(CCFLAGS)
 $(BUILD)%.o: kernel/%.asm
 	nasm -felf32 $< -o $@
 $(BUILD)%.o: kernel/**/%.asm
+	nasm -felf32 $< -o $@
+$(BUILD)%.o: kernel/**/**/%.asm
 	nasm -felf32 $< -o $@
 
 #$(ISO): install
 
 install-headers: $(addprefix $(ROOT)usr/include/, $(HEADERS:kernel/%=%))
-$(ISO): $(addprefix $(ROOT)usr/include/, $(HEADERS:kernel/%=%)) $(ROOT)boot/$(OUTPUT) $(ROOT)boot/ollios.sym $(ROOT)boot/$(OUPUT) $(ROOT)boot/grub/menu.lst $(ROOT)boot/grub/stage2_eltorito $(MODULES:%=$(ROOT)boot/%.so)
+$(ISO): $(addprefix $(ROOT)usr/include/, $(HEADERS:kernel/%=%)) $(ROOT)boot/$(OUTPUT) $(ROOT)boot/ollios.sym $(ROOT)boot/$(OUPUT) $(ROOT)boot/grub/menu.lst $(ROOT)boot/grub/stage2_eltorito $(MODULES:%=$(ROOT)boot/%.so) $(APPS:%=$(ROOT)usr/bin/%)
 	mkisofs -R -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -boot-info-table -o $@ root
 
 
@@ -115,6 +123,10 @@ $(ROOT)boot/grub/%: grub/%
 #compile modules
 $(MODULES):
 	make -C modules MODULE=$@ all
+
+#compile apps
+$(APPS):
+	make -C apps APP=$@ all
 
 $(ROOT)boot/%.so: $(BUILD)%.so
 	cp $^ $@

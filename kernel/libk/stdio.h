@@ -16,7 +16,7 @@ typedef bindings::Binding FILE;
 extern "C" {
 #endif
 
-//extern FILE* stdout;
+extern FILE* stdout;
 
 int printf(const char* format, ...);
 int sprintf(char* target, const char* format, ...);

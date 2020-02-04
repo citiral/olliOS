@@ -4,7 +4,7 @@
 
 #include "ata.h"
 #include "atapiodevice.h"
-#include "cpu.h"
+#include "cpu/cpu.h"
 #include <string.h>
 
 namespace ata {

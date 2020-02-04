@@ -1,4 +1,4 @@
-#include "fs/bindings.h"
+#include "bindings.h"
 #include <stdio.h>
 
 using namespace bindings;
