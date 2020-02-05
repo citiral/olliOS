@@ -154,8 +154,8 @@ extern "C" void main(multiboot_info* multiboot) {
     if ((features.edx & (int)cpuid_feature::EDX_APIC) != 0) {
         LOG_STARTUP("Initializing APIC.");
         apic::Init();
-        apic::StartAllCpus(&cpu_main);
-        apic::disableIrq(0x22);
+        //apic::StartAllCpus(&cpu_main);
+        //apic::disableIrq(0x22);
     } else {
         LOG_STARTUP("APIC not supported, skipping. (Threading will not be supported)");
     }

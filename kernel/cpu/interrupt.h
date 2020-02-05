@@ -21,7 +21,7 @@
 typedef void (*InterruptCallback)(u32);
 
 ///A single entry in the Idt table
-class IdtDescriptor {
+class __attribute__((packed)) IdtDescriptor {
 	public:
 		IdtDescriptor();
 		IdtDescriptor(u32 lower, u32 higher);
@@ -35,7 +35,7 @@ class IdtDescriptor {
 };
 
 
-class Idt {
+class __attribute__((packed)) Idt {
 public:
 	u32 getLength();
 	void setLength(u32 length);

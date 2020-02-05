@@ -1,6 +1,7 @@
 #ifndef __ELF_H
 #define __ELF_H
 
+#include "bindings.h"
 #include "types.h"
 #include "symbolmap.h"
 #include "kstd/unordered_map.h"
@@ -112,6 +113,8 @@ struct elf_rela {
 class elf {
 public:
     elf(u8* data, bool in_kernel);
+
+    void load();
 
     int is_valid();
     int link(SymbolMap& map);

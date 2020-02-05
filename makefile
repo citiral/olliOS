@@ -11,12 +11,12 @@ OUTPUT=ollios.bin
 ISO=ollios.iso
 
 INCLUDE = -I $(ROOT)usr/include -I $(ROOT)usr/include/libk
-CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O0 -Wall -Wextra -fno-exceptions -fno-rtti $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -nostdlib -fno-threadsafe-statics -Werror=return-type -m32 -g -mgeneral-regs-only -MD
+CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O0 -Wall -Wextra -fno-exceptions -fno-rtti $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -nostdlib -fno-threadsafe-statics -Werror=return-type -m32 -mgeneral-regs-only -MD
 LDFLAGS = -ffreestanding -O0 -nostdlib -lgcc
-#LIBS = $(ROOT)/usr/lib/libk.a
 
 MODULES = keyboard shell vga pci ata mbr iso9660 sysint
 APPS = hello_world
+LIBS = libc
 
 KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/*/*.cpp)
 KERNEL_C = $(wildcard kernel/libk/*/*.c)
@@ -33,9 +33,9 @@ CRTEND_OBJ:=$(shell $(CC) $(CCFLAGS) -print-file-name=crtend.o)
 OBJECTS = $(addprefix $(BUILD), $(filter-out crti.o crtn.o, $(notdir $(KERNEL_CPP:.cpp=.o)) $(notdir $(KERNEL_C:.c=.o)) $(notdir $(KERNEL_ASM:.s=.o))  $(notdir $(KERNEL_NASM:.asm=.o))))
 DEPS = $(OBJECTS:.o=.d)
 
-.PHONY: all compile-kernel clean dir install install-headers $(MODULES) $(APPS)
+.PHONY: all compile-kernel clean dir install install-headers $(MODULES) $(LIBS) $(APPS)
 
-all: dir install-headers $(BUILD)$(OUTPUT) $(MODULES) $(APPS) $(ISO)
+all: dir install-headers $(BUILD)$(OUTPUT) $(MODULES) $(LIBS) $(APPS) $(ISO)
 
 -include $(DEPS)
 	
@@ -101,7 +101,7 @@ $(BUILD)%.o: kernel/**/**/%.asm
 #$(ISO): install
 
 install-headers: $(addprefix $(ROOT)usr/include/, $(HEADERS:kernel/%=%))
-$(ISO): $(addprefix $(ROOT)usr/include/, $(HEADERS:kernel/%=%)) $(ROOT)boot/$(OUTPUT) $(ROOT)boot/ollios.sym $(ROOT)boot/$(OUPUT) $(ROOT)boot/grub/menu.lst $(ROOT)boot/grub/stage2_eltorito $(MODULES:%=$(ROOT)boot/%.so) $(APPS:%=$(ROOT)usr/bin/%)
+$(ISO): $(addprefix $(ROOT)usr/include/, $(HEADERS:kernel/%=%)) $(ROOT)boot/$(OUTPUT) $(ROOT)boot/ollios.sym $(ROOT)boot/$(OUPUT) $(ROOT)boot/grub/menu.lst $(ROOT)boot/grub/stage2_eltorito $(MODULES:%=$(ROOT)boot/%.so) $(LIBS:%=$(ROOT)usr/lib/%.a) $(APPS:%=$(ROOT)usr/bin/%)
 	mkisofs -R -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -boot-info-table -o $@ root
 
 
@@ -127,6 +127,10 @@ $(MODULES):
 #compile apps
 $(APPS):
 	make -C apps APP=$@ all
+
+#compile libs
+$(LIBS):
+	make -C libs LIB=$@ all
 
 $(ROOT)boot/%.so: $(BUILD)%.so
 	cp $^ $@

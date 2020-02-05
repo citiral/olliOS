@@ -5,7 +5,7 @@
 
 void intHandlerUndefined(u32 interrupt)
 {
-	LOG_ERROR("Unhandled interrupt %d", interrupt);
+	//LOG_ERROR("Unhandled interrupt %d", interrupt);
 	end_interrupt(interrupt);
 }
 

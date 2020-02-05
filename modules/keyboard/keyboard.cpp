@@ -39,7 +39,7 @@ VirtualKeyEvent MakeVirtualKeyEvent(VirtualKeycode vkey, u8 status)
 }
 
 KeyboardDriver::KeyboardDriver():
-	_code1(0), _code2(0), _code3(0), _bufferPos(0), _bufferLength(0), _status(0)
+	_code1(0), _code2(0), _code3(0), _bufferPos(0), _bufferLength(0), _status(0), dataMutex()
 {
 	//set the command byte to make the keyboard know we are working with interrupts.
 	enableIRQ();

@@ -7,24 +7,28 @@ SECTIONS
 {
 	. = 0x40000000;
 
-	.text ALIGN(0x1000) : AT(ADDR(.text) - 0xC0000000)
+	ENTRY(main)
+
+	.text ALIGN(0x1000) : AT(ADDR(.text))
 	{
+		*(.start);
    		*(.init);
    		*(.fini);
 		*(.text*);
 		*(.rodata);
 	}
 
-   	.data ALIGN (0x1000) : AT(ADDR(.data) - 0xC0000000) {
+   	.data ALIGN (0x1000) : AT(ADDR(.data))
+	{
        *(.data);
    	}
    
-   	.eh_frame ALIGN (0x1000) : AT(ADDR(.eh_frame) - 0xC0000000) {
+   	.eh_frame ALIGN (0x1000) : AT(ADDR(.eh_frame)) {
    		*(.eh_frame*);
    	}
 
 	/* Read-write data (uninitialized) and stack */
-   .bss ALIGN(0x1000) : AT(ADDR(.bss) - 0xC0000000)
+   .bss ALIGN(0x1000) : AT(ADDR(.bss))
 	{
 		*(COMMON);
 		*(.bss);

@@ -14,7 +14,7 @@ enum class Dpl: u8 {
 };
 
 ///Represents an IDT pointer that can be stord in the IDTR register
-struct DescriptorTablePointer {
+struct __attribute__((packed)) DescriptorTablePointer {
 	///the length of the IDT in bytes - 1; Ie: 0x1000 means 0x200 interrupts
 	u16 limit;
 	///address of where the IDT is stored
