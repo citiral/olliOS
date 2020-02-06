@@ -4,6 +4,8 @@ extern sysint_handler_c;
 global sysint_handler:
 sysint_handler:;(void)
 
+cld
+
 push ebp
 push edi
 push esi
@@ -14,12 +16,6 @@ push eax
 
 call sysint_handler_c
 
-pop eax
-pop ebx
-pop ecx
-pop esi
-pop edx
-pop edi
-pop ebp
+add esp,28
 
 iret

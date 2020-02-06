@@ -173,7 +173,7 @@ extern "C" void main(multiboot_info* multiboot) {
             while (1);
         }
 
-        if (e->link(*symbolMap) != 0 && 0) {
+        if (e->link_as_kernel_module(*symbolMap) != 0 && 0) {
             printf("failed linking elf\n");
         } else {
             void (*module_load)(bindings::Binding*);

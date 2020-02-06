@@ -21,6 +21,8 @@ namespace bindings {
     typedef bool(*read_cb)(Binding* binding, size_t size, const void* data, bool done);
     typedef size_t(*on_read_cb)(OwnedBinding* binding, void* buffer, size_t size, size_t offset);
 
+    typedef size_t(*on_get_size_cb)(OwnedBinding* binding);
+
     class Binding_on_create {
     public:
         Binding_on_create* next;
@@ -52,6 +54,7 @@ namespace bindings {
         Binding* on_data(on_data_cb cb);
         void write(const void* data, size_t size);
         size_t read(void* buffer, size_t size, size_t offset);
+        size_t get_size();
 
         template<class T>
         T read() {            
@@ -116,6 +119,7 @@ namespace bindings {
         Binding_on_data* _on_data_cbs;
         Binding_on_write* _on_write_cbs;
         on_read_cb _on_read_cb;
+        on_get_size_cb _on_get_size_cb;
     };
 
     class OwnedBinding: public Binding {
@@ -124,6 +128,7 @@ namespace bindings {
 
         OwnedBinding* on_write(on_write_cb cb);
         OwnedBinding* on_read(on_read_cb cb);
+        OwnedBinding* on_get_size(on_get_size_cb cb);
         void provide(const void* data, size_t size);
     };
 

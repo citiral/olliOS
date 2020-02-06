@@ -12,6 +12,7 @@
 #include "cpu/apic.h"
 #include <string.h>
 #include "stdio.h"
+#include "process.h"
 #include "elf/elf.h"
 
 #if __KERNEL_ALLOCATOR == __KERNEL_ALLOCATOR_BUCKET
@@ -53,6 +54,24 @@ void cat(KernelShell* shell, std::vector<std::string>* args)
 			putchar(buffer[i]);
 		total += read;
 	} while (read > 0);
+}
+
+void stat(KernelShell* shell, std::vector<std::string>* args)
+{
+	bindings::Binding* bind;
+	
+	if (args->size() > 1) {
+		bind = shell->working_directory->get(args->at(1).c_str());
+	} else {
+		bind = shell->working_directory;
+	}
+
+	if (bind == NULL && args->size() > 1) {
+		printf("Invalid path: %s\n", args->at(1).c_str());
+		return;
+	}
+
+	printf("Size: %d\n", bind->get_size());
 }
 
 void hex(KernelShell* shell, std::vector<std::string>* args)
@@ -164,7 +183,28 @@ void run(KernelShell* shell, std::vector<std::string>* args)
 {
 	if (args->size() != 2)
 	{
-		printf("Usage: run program\n");
+		printf("Usage: load program\n");
+		return;
+	}
+
+	bindings::Binding* bind = shell->working_directory->get(args->at(1).c_str());
+	if (bind == NULL) {
+		printf("Invalid path: %s\n");
+		return;
+	}
+	
+	Process* p = new Process();
+	p->init(bind);
+	p->start();
+	p->wait();
+	delete p;
+}
+
+void load(KernelShell* shell, std::vector<std::string>* args)
+{
+	if (args->size() != 2)
+	{
+		printf("Usage: load program\n");
 		return;
 	}
 
@@ -174,36 +214,33 @@ void run(KernelShell* shell, std::vector<std::string>* args)
 		return;
 	}
 
-    memory::PageDirectory* pagedir = memory::kernelPageDirectory.clone();
+	size_t filesize = bind->get_size();
+	if (filesize == 0) {
+		printf("Filesize is 0.\n");
+		return;
+	}
 
-	((memory::PageDirectory*)(memory::kernelPageDirectory.getPhysicalAddress(pagedir)))->use();
-
-	u8* start = (u8*)0x40000000;
-	memory::kernelPageDirectory.bindVirtualPage(start);
-
+	u8* buffer = new u8[filesize];
 	size_t total = 0;
-	size_t read;
-	do {
-		read = bind->read((void*)(((u32)start) + total), 4096 - total, total);
-		total += read;
-	} while (read != 0);
 
-	elf::elf* e = new elf::elf(start, false);
+	do {
+		size_t read = bind->read((void*)(buffer + total), filesize - total, total);
+		total += read;
+	} while (total != filesize);
+
+	elf::elf* e = new elf::elf(buffer, true);
 	if (e == nullptr) {
 		printf("Failed allocating elf\n");
 		while (1);
 	}
 
-	if (e->link(*symbolMap) != 0 && 0) {
+	if (e->link_as_kernel_module(*symbolMap) != 0 && 0) {
 		printf("failed linking elf\n");
 	} else {
-		void (*app_main)(void);
-		e->get_symbol_value("main", (u32*) &app_main);
-		app_main();
+		void (*module_load)(bindings::Binding*);
+		e->get_symbol_value("module_load", (u32*) &module_load);
+		module_load(bindings::root);
 	}
-
-	((memory::PageDirectory*)(((char*)&memory::kernelPageDirectory) - 0xC0000000))->use();
-	memory::freePageDirectory(pagedir);
 }
 /*
 void set(KernelShell* shell, std::vector<std::string>* args)
@@ -255,12 +292,14 @@ KernelShell::KernelShell(): _commands()
     _commands.push_back(std::pair<const char*, CommandFunction>("help", &help));
     _commands.push_back(std::pair<const char*, CommandFunction>("ls", &ls));
 	_commands.push_back(std::pair<const char*, CommandFunction>("cat", &cat));
+	_commands.push_back(std::pair<const char*, CommandFunction>("stat", &stat));
 	_commands.push_back(std::pair<const char*, CommandFunction>("hex", &hex));
 	_commands.push_back(std::pair<const char*, CommandFunction>("cd", &cd));
 	_commands.push_back(std::pair<const char*, CommandFunction>("touch", &touch));
+	_commands.push_back(std::pair<const char*, CommandFunction>("load", &load));
 	_commands.push_back(std::pair<const char*, CommandFunction>("run", &run));
 
-	working_directory = bindings::root;
+	working_directory = bindings::root->get("dev/ata0/root/usr/bin");
 	prompt();
 }
 

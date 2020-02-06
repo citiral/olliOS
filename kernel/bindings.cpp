@@ -15,7 +15,7 @@ namespace bindings
         root = new OwnedBinding("");
     }
 
-    Binding::Binding(std::string name): id(id_generator.next()), name(name), _first_child(NULL), _next_sibling(NULL), _parent(NULL), _on_create_cbs(NULL), _on_data_cbs(NULL), _on_write_cbs(NULL), _on_read_cb(NULL)
+    Binding::Binding(std::string name): id(id_generator.next()), name(name), _first_child(NULL), _next_sibling(NULL), _parent(NULL), _on_create_cbs(NULL), _on_data_cbs(NULL), _on_write_cbs(NULL), _on_read_cb(NULL), _on_get_size_cb(NULL)
     {
     }
 
@@ -102,6 +102,14 @@ namespace bindings
             return 0;
     }
 
+    size_t Binding::get_size() {
+        if (_on_get_size_cb) {
+            return _on_get_size_cb((OwnedBinding*)this);
+        } else {
+            return 0;
+        }
+    }
+
     void OwnedBinding::provide(const void* data, size_t size)
     {
         iterate<Binding_on_data>(&_on_data_cbs, this, size, data);
@@ -163,6 +171,12 @@ namespace bindings
     OwnedBinding* OwnedBinding::on_read(on_read_cb cb)
     {
         _on_read_cb = cb;
+        return this;
+    }
+
+    OwnedBinding* OwnedBinding::on_get_size(on_get_size_cb cb)
+    {
+        _on_get_size_cb = cb;
         return this;
     }
 

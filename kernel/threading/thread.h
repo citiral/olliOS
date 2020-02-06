@@ -3,6 +3,7 @@
 
 #include <types.h>
 #include "cdefs.h"
+#include "memory/virtual.h"
 #include "kstd/utility.h"
 #include "util/unique.h"
 #include <string.h>
@@ -19,6 +20,8 @@ void threadingFunctionWrapper(void(T::*func)(ARGS...), T* c, ARGS ... args) {
     (c->*func)(args...);
 }
 
+class Process;
+
 namespace threading {
     
     extern UniqueGenerator<u32> pidGenerator;
@@ -33,7 +36,7 @@ namespace threading {
     public:
         // initializes a thread were the called function gets passed the given arguments
         template<class ... ARGS>
-        Thread(void(*entry)(ARGS...), ARGS ... args): _finished(false), _id(pidGenerator.next()), _blocking(false) {
+        Thread(Process* process, void(*entry)(ARGS...), ARGS ... args): _finished(false), _id(pidGenerator.next()), _blocking(false), _process(process) {
             // A new thread allocates his own stack
             _stack = new char[THREAD_STACK_SIZE];
             memset(_stack, 0, THREAD_STACK_SIZE);
@@ -55,7 +58,7 @@ namespace threading {
 
         // initializes a thread were the called function gets passed the given arguments
         template<class T, class ... ARGS>
-        Thread(void(T::*entry)(ARGS...), T* c, ARGS ... args): _finished(false), _id(pidGenerator.next()), _blocking(false) {
+        Thread(Process* process, void(T::*entry)(ARGS...), T* c, ARGS ... args): _finished(false), _id(pidGenerator.next()), _blocking(false), _process(process) {
             // A new thread allocates his own stack
             _stack = new char[THREAD_STACK_SIZE];
             memset(_stack, 0, THREAD_STACK_SIZE);
@@ -90,6 +93,8 @@ namespace threading {
 
         bool blocking();
         void setBlocking(bool blocking);
+
+        Process* process();
 
         // Kills the thread by setting finished to true. If the thread is still running, it will only be shut down next time it is scheduled.
         void kill();
@@ -132,6 +137,9 @@ namespace threading {
 
         // Whether or not the current thread is blocking, by for example waiting on a semphore or a mutex
         bool _blocking;
+
+        // Optional process of the thread
+        Process* _process;
     };
 
     // Exits the current thread and saves it state, so it can be resumed at a later date.

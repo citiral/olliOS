@@ -11,7 +11,7 @@ SECTIONS
 
 	.text ALIGN(0x1000) : AT(ADDR(.text))
 	{
-		*(.start);
+		*(.text._start);
    		*(.init);
    		*(.fini);
 		*(.text*);

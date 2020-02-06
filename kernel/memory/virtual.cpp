@@ -67,7 +67,7 @@ namespace memory {
 		((PageDirectory*)(((char*)&kernelPageDirectory) - 0xC0000000))->use();
 
 		// we also make sure a directory is allocated for the kernel (last gb)
-		for (int i = 256*2; i < 256*3; i++) {
+		for (int i = 256*3; i < 256*4; i++) {
 			kernelPageDirectory.allocateEntry(i);
 		}
 	}
@@ -186,18 +186,22 @@ namespace memory {
 		int pageindex = (((u32)page) % 0x400000) / 0x1000;
 		//printf("%d %d %x\n", dirindex, pageindex, getReadableEntryPointer(dirindex));
 		// if the directory does not exist, allocate one
-		if (!getReadableEntryPointer(dirindex)->getFlag(PFLAG_PRESENT))
+		if (!getReadableEntryPointer(dirindex)->getFlag(PFLAG_PRESENT)) {
 			allocateEntry(dirindex);
+		}
 
-		// then we get us a physical page to use
-		void* physpage = physicalMemoryManager.allocatePhysicalMemory();
+		// Only bind it if it isn't already mapped
+		if (!getReadableTablePointer(dirindex, pageindex)->getFlag(PFLAG_PRESENT)) {
+			// then we get us a physical page to use
+			void* physpage = physicalMemoryManager.allocatePhysicalMemory();
 
-		// put it in the page
-		getReadableTablePointer(dirindex, pageindex)->setAddress(physpage);
-		getReadableTablePointer(dirindex, pageindex)->enableFlag(PFLAG_RW | PFLAG_PRESENT | PFLAG_OWNED);
+			// put it in the page
+			getReadableTablePointer(dirindex, pageindex)->setAddress(physpage);
+			getReadableTablePointer(dirindex, pageindex)->enableFlag(PFLAG_RW | PFLAG_PRESENT | PFLAG_OWNED);
 
-		// and then clear the memory
-		memset(page, 0, 0x1000);
+			// and then clear the memory
+			memset(page, 0, 0x1000);
+		}
 	}
 
 	// makes sure the given physical 4kb space is bound to some random virtual memory
@@ -249,7 +253,6 @@ namespace memory {
 				if (!getReadableEntryPointer(dirindex)->getFlag(PFLAG_PRESENT))
 					continue;
 
-				// check if the table is used. if not, we allocate and return that one
 				if (!getReadableTablePointer(dirindex, pageindex)->getFlag(PFLAG_PRESENT))
 					continue;
 

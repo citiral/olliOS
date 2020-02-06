@@ -23,7 +23,7 @@ mov edi, [esp+48]
 push ebp
 mov ebp, [esp+56]
 
-int 0x80
+int 0x80 
 
 pop ebp
 pop edi
@@ -31,6 +31,6 @@ pop esi
 pop edx
 pop ecx
 pop ebx
-pop eax
+add esp,4
 
 ret

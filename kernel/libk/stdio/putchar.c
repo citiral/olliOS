@@ -5,7 +5,7 @@ int putchar(int character)
 {
     if (stdout == NULL) {
         if (bindings::root != NULL) {
-            stdout = bindings::root->get("vga");
+            stdout = bindings::root->get("sys/vga");
         }
     }
 

@@ -134,8 +134,8 @@ namespace std {
 					_keys[bucket][i].~K();
 				}
 
-				delete[] _values[bucket];
-				delete[] _keys[bucket];
+				free(_values[bucket]);
+				free(_keys[bucket]);
 			}
 			delete[] _values;
 			delete[] _keys;

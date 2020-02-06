@@ -31,6 +31,16 @@ enum class section_type: u32 {
     NUM = 0x13,
 };
 
+enum class program_type: u32 {
+    UNUSED = 0,
+    LOAD = 1,
+    DYNAMIC = 2,
+    INTERP = 3,
+    NOTE = 4,
+    SHLIB = 5,
+    PHDR = 6,
+};
+
 enum class relocation_type: u32 {
     R_386_NONE = 0,
     R_386_32 = 1,
@@ -43,7 +53,7 @@ enum class relocation_type: u32 {
 };
 
 struct program_header {
-    u32 type;
+    program_type type;
     u32 offset;
     void* virtual_address;
     void* physical_address;
@@ -114,14 +124,15 @@ class elf {
 public:
     elf(u8* data, bool in_kernel);
 
-    void load();
-
     int is_valid();
-    int link(SymbolMap& map);
+    int link_as_kernel_module(SymbolMap& map);
+    int link_in_userspace();
+
     int get_symbol_value(const char* name, u32* out);
     
 private:
     section_header* get_section_header(u32 header_index);
+    program_header* get_program_header(u32 header_index);
     const char* get_section_name(u32 section_index);
     void allocate_nobits(section_header* section);
     const char* get_symbol_name(section_header* section, u32 symbol_index);

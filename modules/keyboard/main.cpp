@@ -32,5 +32,5 @@ extern "C" void module_load(Binding* root)
 	driver->setScanCodeSet(SCANSET_2);
 	driver->setScanCodeTranslation(false);
 
-	threading::scheduler->schedule(new threading::Thread(KeyboardDriverThread, driver, keyboard));
+	threading::scheduler->schedule(new threading::Thread(nullptr, KeyboardDriverThread, driver, keyboard));
 }

@@ -1,6 +1,6 @@
 #structure: folders never start /, always end with /
 
-CC = i686-elf-g++
+CC = i686-elf-gcc
 AS = i686-elf-as
 ARCH = arch/i686/
 MAKE = make
@@ -10,14 +10,15 @@ BUILD = ../build/
 OUTDIR = $(BUILD)program/$(APP)/
 
 INCLUDE = -I $(ROOT)usr/include -I $(ROOT)usr/include/libk
-CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O0 -Wall -Wextra -fno-exceptions -fno-rtti $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -nostdlib -fno-threadsafe-statics -Werror=return-type -m32 -mgeneral-regs-only -MD
-LDFLAGS =  -std=gnu++11 -Wall -Wextra -nostdlib -m32 -L$(ROOT)usr/lib -lc
+CCFLAGS = -D__is_kernel -ffreestanding -O0 -Wall -Wextra -fno-exceptions $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -Werror=return-type -m32 -mgeneral-regs-only -MD
+LDFLAGS =  -std=gnu++11 -Wall -Wextra -nostdlib -m32 -L$(ROOT)usr/lib -lc -Xlinker '--require-defined=_start'
 
 
 APP_CPP = $(wildcard $(APP)/*.cpp)
+APP_C = $(wildcard $(APP)/*.c)
 APP_ASM = $(wildcard $(APP)/*.asm)
 HEADERS = $(wildcard $(APP)/*.h)
-OBJECTS = $(addprefix $(OUTDIR), $(notdir $(APP_CPP:.cpp=.o)) $(notdir $(APP_ASM:.asm=.o)))
+OBJECTS = $(addprefix $(OUTDIR), $(notdir $(APP_CPP:.cpp=.o)) $(notdir $(APP_C:.c=.o)) $(notdir $(APP_ASM:.asm=.o)))
 
 DEPS = $(OBJECTS:.o=.d)
 
@@ -46,6 +47,8 @@ $(OUTDIR)$(APP): $(OUTDIR) $(OBJECTS) linker.ld
 	$(CC) -T linker.ld -o $@ $(OBJECTS) $(LDFLAGS)
 
 $(OUTDIR)%.o: $(APP)/%.cpp
+	$(CC) -c $< -o $@ $(CCFLAGS)
+$(OUTDIR)%.o: $(APP)/%.c
 	$(CC) -c $< -o $@ $(CCFLAGS)
 
 $(OUTDIR)%.o: $(APP)/%.asm

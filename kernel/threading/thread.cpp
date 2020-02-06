@@ -1,6 +1,7 @@
 #include "threading/thread.h"
 #include "cpu/apic.h"
 #include "cdefs.h"
+#include "process.h"
 
 using namespace threading;
 
@@ -72,6 +73,10 @@ void Thread::enter() {
         // keep track that we are in a thread
         running_thread[apic::id()] = this;
 
+        // load the thread's pagetable
+        if (_process)
+	        ((memory::PageDirectory*)(memory::kernelPageDirectory.getPhysicalAddress(_process->pagetable())))->use();
+
         // prepare the thread stack for entering
         volatile u32* parent_pointer = parent_stack_pointers + apic::id();
         *(volatile u32*)(_stack + THREAD_STACK_SIZE - 4) = (u32)parent_pointer;
@@ -79,10 +84,14 @@ void Thread::enter() {
         // enter the thread
         volatile u32 status = thread_enter(parent_pointer, &esp);
 
+        // load the thread's pagetable
+        if (_process)
+	        ((memory::PageDirectory*)(memory::kernelPageDirectory.getPhysicalAddress(&memory::kernelPageDirectory)))->use();
+
         // check if the thread quit because it finished
         if (status == 0)
             _finished = true;
-        
+
         // keep track that we are not in a thread anymore
         running_thread[apic::id()] = nullptr;
 
@@ -106,6 +115,11 @@ void Thread::setBlocking(bool blocking) {
     _blocking = blocking;
 }
 
+Process* Thread::process()
+{
+    return _process;
+}
+
 void Thread::kill() {
     _finished = true;
 }
@@ -117,6 +131,7 @@ void threading::exit() {
         thread_exit(parent_stack_pointers + apic::id());
     }
 }
+
 // Returns true if the given physical core is currently running a thread
 bool threading::is_core_in_thread(u8 core) {
     return running_thread[core] != nullptr;

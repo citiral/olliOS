@@ -84,6 +84,11 @@ Iso9660Binding::Iso9660Binding(Iso9660FileSystem* fs, u8* record): _fs(fs), _rec
         return t->read(buffer, size, offset);
     });
 
+    on_get_size([](OwnedBinding* binding) {
+        Iso9660Binding* t = (Iso9660Binding*)binding;
+        return (size_t) readType<u32>(t->_record, 10);
+    });
+
     if (_record[25] & DIRECTORY_RECORD_IS_DIRECTORY) {
         create_children();
     }

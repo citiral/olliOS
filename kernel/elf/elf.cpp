@@ -14,6 +14,13 @@ section_header* elf::get_section_header(u32 header_index)
     return &headers[header_index];
 }
 
+program_header* elf::get_program_header(u32 header_index)
+{
+    u8* data = (u8*) _header;
+    program_header* headers = (program_header*)(data + _header->program_header_table_offset);
+    return headers + header_index;
+}
+
 const char* elf::get_section_name(u32 section_index)
 {
     u8* data = (u8*) _header;
@@ -193,7 +200,7 @@ int elf::is_valid()
     return 0;
 }
 
-int elf::link(SymbolMap& map)
+int elf::link_as_kernel_module(SymbolMap& map)
 {
     // Allocate NOBITS sections (.bss)
     for (int i = 0 ; i < _header->section_header_table_entries ; i++) {
@@ -218,6 +225,31 @@ int elf::link(SymbolMap& map)
     return 0;
 }
 
+int elf::link_in_userspace()
+{
+    // Load all sections in memory
+    for (int i = 0 ; i < _header->program_header_table_entries ; i++) {
+        program_header* header = get_program_header(i);
+        if (header->type == program_type::LOAD) {
+
+            // Make sure the VMEM the program header points to exists
+            size_t page_count = header->memory_size / 4096;
+            if (header->memory_size % 4096 > 0)
+                page_count = page_count + 1;
+
+            for (size_t i = 0 ; i < page_count ; i++) {
+                memory::PageDirectory::current()->bindVirtualPage(header->virtual_address + i * 4096);
+            }
+
+            // And copy the contents of the file into memory
+            memcpy(header->virtual_address, ((u8*)_header) + header->offset, header->file_size);
+
+        }
+    }
+
+    return 0;
+}
+
 int elf::get_symbol_value(const char* name, u32* out)
 {
     // Look through all symbol tables
@@ -237,7 +269,10 @@ int elf::get_symbol_value(const char* name, u32* out)
                 // If it matches, return his value
                 if (strcmp(name, symbol_name) == 0) {
                     section_header* ndx_header = get_section_header(symbol->section_index);
-                    *out = (u32)((u8*)_header) + ndx_header->offset + symbol->value;
+                    if (!_in_kernel)
+                        *out = symbol->value;
+                    else
+                        *out = (u32)((u8*)_header) + ndx_header->offset + symbol->value;
                     return 0;
                 }
             }
