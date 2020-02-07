@@ -1,6 +1,7 @@
 #include "memory/virtual.h"
 #include "memory/physical.h"
 #include "linker.h"
+#include "stdlib.h"
 
 namespace memory {
 
@@ -349,21 +350,24 @@ namespace memory {
 	}
 
 	void PageDirectory::freeEntry(int index) {
+		//printf("index %d\n", index);
 		// if the entry doesn't exist, don't do anything
 		if (!getReadableEntryPointer(index)->getFlag(PFLAG_PRESENT))
 			return;
 
-		// deallocate the memory if this page is owned
-		if (getReadableEntryPointer(index)->getFlag(PFLAG_OWNED))
-			physicalMemoryManager.freePhysicalMemory(getReadableEntryPointer(index)->getAddress());
+		// deallocate the memory if this directory is owned
+		if (!getReadableEntryPointer(index)->getFlag(PFLAG_OWNED))
+			return;
 
 		// then we loop over all tables in the entry
 		for (int i = 0 ; i < 1024 ; i++) {
 			// if the page is owned, free it
-			if (getReadableTablePointer(index, i)->getFlag(PFLAG_OWNED))
+			if (getReadableTablePointer(index, i)->getFlag(PFLAG_PRESENT))
 				physicalMemoryManager.freePhysicalMemory(getReadableTablePointer(index, i)->getAddress());
 		}
 
+		physicalMemoryManager.freePhysicalMemory(getReadableEntryPointer(index)->getAddress());
+		
 		// and then clear the entry
 		getReadableEntryPointer(index)->value = 0;
 	}
@@ -424,6 +428,56 @@ namespace memory {
 		return dir;
 	}
 
+	PageDirectory* PageDirectory::deep_clone() {
+		PageDirectory* dir = clone();
+
+		u8* buffer = (u8*) malloc(0x1000);
+		
+		CLI();
+
+		((PageDirectory*)getPhysicalAddress(dir))->use();
+		
+		for (int i = 1 ; i < 256*3 ; i++) {
+			if (entries[i].getFlag(PFLAG_PRESENT)) {
+				printf("Cloning %x\n", i);
+				//continue;
+				// Copy the directory to a buffer
+				memcpy(buffer, (PageTable*)(0xFFC00000 + i * 1024 * sizeof(void*)), 0x1000);
+				
+				// Allocate a new physical page
+				void* phys = physicalMemoryManager.allocatePhysicalMemory();
+
+				// put it in the entry
+				dir->getReadableEntryPointer(i)->setAddress(phys);
+
+				// And copy the buffer back to the new physical page
+				memcpy((((PageTableEntry*)0xFFC00000) + (i * 1024)), buffer, 0x1000);
+
+				// Now copy all pages of the directory
+				for (int k = 0 ; k < 1024 ; k++) {
+					if (dir->getReadableTablePointer(i, k)->getFlag(PFLAG_PRESENT)) {
+						printf("cloning %x:%x\n", i, k);
+						memcpy(buffer, (void*)(i * 0x1000*0x1000 + k * 0x1000), 0x1000);
+						phys = physicalMemoryManager.allocatePhysicalMemory();
+						dir->getReadableTablePointer(i, k)->enableFlag(PFLAG_RW | PFLAG_PRESENT | PFLAG_OWNED);
+						getReadableTablePointer(i, k)->setAddress(phys);
+						
+						memcpy((void*)(i * 0x1000000 + k * 0x1000), buffer, 0x1000);
+					}
+				}
+			}
+		}
+
+		((PageDirectory*)kernelPageDirectory.getPhysicalAddress(this))->use();
+		//while(1);
+
+		STI();
+
+		//free(buffer);
+
+		return dir;
+	}
+
 	PageDirectory* allocatePageDirectory() {
 		// get a virtual page to use, these are by definition page aligned
 		PageDirectory* page = (PageDirectory*)kernelPageDirectory.bindFirstFreeVirtualPage(KERNEL_END_VIRTUAL);
@@ -435,6 +489,18 @@ namespace memory {
 	}
 
 	void freePageDirectory(PageDirectory* page) {
+		CLI();
+		// First we bind the page directory so we can read all of it
+		((PageDirectory*)PageDirectory::current()->getPhysicalAddress(page))->use();
+
+		// Loop over all entries in the pagetable up to 0xC0000000
+		// We never free the kernel space in this way
+		for (size_t i = 0 ; i < 256*3 ; i++) {
+			page->freeEntry(i);
+		}
+
+		((PageDirectory*)PageDirectory::current()->getPhysicalAddress(&kernelPageDirectory))->use();
 		kernelPageDirectory.unbindVirtualPage(page);
+		STI();
 	}
 }

@@ -6,6 +6,8 @@
 #define SYSINT_CLOSE 2
 #define SYSINT_WRITE 3
 #define SYSINT_READ 4
+#define SYSINT_EXIT 5
+#define SYSINT_FORK 6
 
 i32 sysint(u32 eax, u32 ebx, u32 ecx, u32 edx, u32 esi, u32 edi, u32 ebp);
 
@@ -28,12 +30,22 @@ i32 read(i32 file, char *ptr, i32 len) {
   return sysint(SYSINT_READ, *((u32*)&file), (u32)ptr, *((u32*)&len), 0, 0, 0);
 }
 
+void exit(i32 status) {
+    sysint(SYSINT_EXIT, *((u32*)&status), 0, 0, 0, 0, 0);
+}
+
+void fork() {
+    sysint(SYSINT_FORK, 0, 0, 0, 0, 0, 0);
+}
+
 
 u8 data[100] = {1, 2, 3};
 
 
 int main(int argc, char** argv)
 {
+    fork();
+    return 0;
     char buffer[20];
 
     i32 file = open("dev/ata0/root/usr/include/types.h", 0, 0);
@@ -46,7 +58,6 @@ int main(int argc, char** argv)
             write(vga, buffer, stat);
         }
     }
-
     close(file);
     close(vga);
 

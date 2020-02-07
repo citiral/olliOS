@@ -12,6 +12,8 @@ extern "C" void sysint_handler(void);
 #define SYSINT_CLOSE 2
 #define SYSINT_WRITE 3
 #define SYSINT_READ 4
+#define SYSINT_EXIT 5
+#define SYSINT_FORK 6
 
 
 extern "C" i32 sysint_handler_c(u32 eax, u32 ebx, u32 ecx, u32 edx, u32 esi, u32 edi, u32 ebp) {
@@ -24,6 +26,10 @@ extern "C" i32 sysint_handler_c(u32 eax, u32 ebx, u32 ecx, u32 edx, u32 esi, u32
         return threading::currentThread()->process()->write(reinterpret_cast<i32&>(ebx), reinterpret_cast<char *>(ecx), reinterpret_cast<i32&>(edx));
     } else if (eax == SYSINT_READ) {
         return threading::currentThread()->process()->read(reinterpret_cast<i32&>(ebx), reinterpret_cast<char *>(ecx), reinterpret_cast<i32&>(edx));
+    } else if (eax == SYSINT_EXIT) {
+        return threading::currentThread()->process()->exit(reinterpret_cast<i32&>(ebx));
+    } else if (eax == SYSINT_FORK) {
+        return threading::currentThread()->process()->fork();
     }
 
     return -1;

@@ -113,6 +113,9 @@ namespace memory {
 
 		// (shallow) clones the current pagetable, the entries of the clone will point to the same directories as the original
 		PageDirectory* clone();
+		
+		// (deeps) clones the current pagetable, the entries of the clone (except the ones in kernelspace) will point to the new directies with copies of the physical memory
+		PageDirectory* deep_clone();
 
 		// the entries in the directory
 		PageDirectoryEntry entries[1024];

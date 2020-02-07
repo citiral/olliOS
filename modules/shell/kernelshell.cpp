@@ -192,12 +192,17 @@ void run(KernelShell* shell, std::vector<std::string>* args)
 		printf("Invalid path: %s\n");
 		return;
 	}
-	
-	Process* p = new Process();
-	p->init(bind);
-	p->start();
-	p->wait();
-	delete p;
+	//while (1) {
+		Process* p = new Process();
+		p->init(bind);
+		p->start();
+		p->wait();
+		//p->wait();
+
+		printf("%d", p->status_code());
+
+		delete p;
+	//}
 }
 
 void load(KernelShell* shell, std::vector<std::string>* args)

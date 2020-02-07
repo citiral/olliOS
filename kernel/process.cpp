@@ -1,15 +1,19 @@
 #include "elf/elf.h"
 #include "process.h"
+#include "linker.h"
 #include "threading/scheduler.h"
 
-Process::Process(): _thread(nullptr), _pagetable(nullptr), _binding_ids(1)
+UniqueGenerator<u32> process_ids(0);
+
+Process::Process(): _thread(nullptr), _pagetable(nullptr), _binding_ids(1), _status_code(-1), _pid(process_ids.next()), _parent(NULL)
 {
 }
 
 Process::~Process()
 {
-    if (_pagetable)
+    if (_pagetable) {
         memory::freePageDirectory(_pagetable);
+    }
     if (_thread) {
         delete _thread;
     }
@@ -35,6 +39,11 @@ void Process::wait()
     }
 }
 
+i32 Process::status_code()
+{
+    return _status_code;
+}
+
 memory::PageDirectory* Process::pagetable()
 {
     return _pagetable;
@@ -57,19 +66,21 @@ void Process::load_binding_and_run(bindings::Binding* bind)
 		total += read;
 	} while (total != filesize);
 
-    // link it
-    elf::elf e(buffer, false);
+    i32 (*app_main)(int, char**) = 0;
 
-	if (e.link_in_userspace() == 0) {
+    {
+        // link it
+        elf::elf e(buffer, false);
+        if (e.link_in_userspace() == 0) {
+            e.get_symbol_value("main", (u32*) &app_main);
+        } else {
+            printf("failed linking elf\n");
+        }
+
         delete buffer;
-        // and execute the main
-		void (*app_main)(int, char**) = 0;
-		e.get_symbol_value("main", (u32*) &app_main);
-		app_main(110, NULL);
-	} else {
-        delete buffer;
-		printf("failed linking elf\n");
-	}
+    }
+    
+    _status_code = app_main(110, NULL);
 }
 
 i32 Process::open(const char* name, i32 flags, i32 mode)
@@ -123,4 +134,25 @@ i32 Process::read(i32 file, char* data, i32 len)
     desc.offset += status;
 
     return status;
+}
+
+i32 Process::exit(i32 status)
+{
+    _status_code = status;
+    _thread->kill();
+    threading::exit();
+
+    return 0;
+}
+
+i32 Process::fork()
+{
+    //Process* child = new Process();
+    //child->_parent = this;
+    
+    /*child->_pagetable =*/ _pagetable->deep_clone();
+
+    //while(1);
+
+    return 0;
 }
