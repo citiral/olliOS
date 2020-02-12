@@ -11,14 +11,14 @@ UniqueGenerator<u32> threading::pidGenerator;
 // global values that hold the parent stack pointer of a running thread. Each core will always use his own index.
 u32 parent_stack_pointers[MAX_CORE_COUNT];
 Thread* running_thread[MAX_CORE_COUNT];
-
+/*
 Thread::Thread(Thread& thread) {
     // Clone the stack of the thread we are copying
     _stack = new char[THREAD_STACK_SIZE];
     memcpy(_stack, thread._stack, THREAD_STACK_SIZE);
     esp = thread.esp;
     _finished = thread._finished;
-    _id = thread._id;
+    _id = pidGenerator.next();
     _blocking = thread._blocking;
 }
 
@@ -30,13 +30,13 @@ Thread::Thread(Thread&& thread) {
     _finished = thread._finished;
     _id = thread._id;
     _blocking = thread._blocking;
-}
+}*/
 
 Thread::~Thread() {
     if (_stack)
         delete[] _stack;
 }
-
+/*
 Thread& Thread::operator=(Thread& t) {
     if (_stack)
         delete[] _stack;
@@ -62,6 +62,34 @@ Thread& Thread::operator=(Thread&& t) {
     _blocking = t._blocking;
 
     return *this;
+}*/
+
+
+Thread* Thread::clone() {
+    Thread* child = new Thread();
+
+    child->_stack = new char[THREAD_STACK_SIZE];
+    memcpy(child->_stack, _stack, THREAD_STACK_SIZE);
+
+    printf("esp: %X, %x\n", &esp, esp);
+
+    //size_t i = 0;
+    /*while (1) {
+        i++;
+        printf("%d -> %x\n", i, ((u32*)esp)[-i]);
+        if (((u32*)esp)[i] == (u32)&esp) {
+            while(1);
+        }
+    }
+    while(1);*/
+
+    child->esp = esp - (u32)_stack + (u32)child->_stack;
+    child->_finished = _finished;
+    child->_id = pidGenerator.next();
+    child->_blocking = _blocking;
+    child->_process = _process;
+
+    return child;
 }
 
 void Thread::enter() {
@@ -69,7 +97,7 @@ void Thread::enter() {
         // whenever we enter the thread, we set the very first item on the stack to our parent stack pointer.
         // this way the child stack can access it when it finishes on its own.
         CLI();
-        
+
         // keep track that we are in a thread
         running_thread[apic::id()] = this;
 

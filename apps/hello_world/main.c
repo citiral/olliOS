@@ -46,6 +46,7 @@ int main(int argc, char** argv)
 {
     fork();
     return 0;
+
     char buffer[20];
 
     i32 file = open("dev/ata0/root/usr/include/types.h", 0, 0);

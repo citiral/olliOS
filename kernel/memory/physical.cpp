@@ -59,4 +59,14 @@ namespace memory {
         // and set it to 0
         _bitmap[index/8] &= ~(0b10000000 >> (index % 8));
     }
+
+    size_t PhysicalMemoryManager::countFreePhysicalMemory() {
+        size_t count = 0;
+        for (size_t index = 0; index < DEVICE_MAX_MEMORY / 0x1000; index++) {
+            if ((_bitmap[index/8] & (0b10000000 >> (index % 8))) == 0) {
+                count++;
+            }
+        }
+        return count;
+    }
 }

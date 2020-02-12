@@ -25,7 +25,7 @@ mov eax, 0
 ret
 
 global thread_enter:
-thread_enter:;(u32* parentESP, u32* threadESP)
+thread_enter:;(u32* parentESP, u32 threadESP)
 
 ;;; save the parent
 ; save current (parent) cpu data on the stack

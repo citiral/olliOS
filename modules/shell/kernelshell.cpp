@@ -6,6 +6,7 @@
 #include "linker.h"
 #include "memory/alloc.h"
 #include "memory/virtual.h"
+#include "memory/physical.h"
 #include "keyboard/keyboard.h"
 #include "threading/thread.h"
 #include "threading/scheduler.h"
@@ -202,6 +203,8 @@ void run(KernelShell* shell, std::vector<std::string>* args)
 		printf("%d", p->status_code());
 
 		delete p;
+
+		printf("Physical free: %dKB.\n", memory::physicalMemoryManager.countFreePhysicalMemory() * 0x1000 / 1024);
 	//}
 }
 

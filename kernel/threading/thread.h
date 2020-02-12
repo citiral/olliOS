@@ -44,7 +44,7 @@ namespace threading {
             // we want the arguments to be placed below the entry address, so starting from esp-8 to esp-X
             u32 argStackSize = stackSizeOfArguments(args...);
             initializeArguments(argStackSize + 4, args...);
-            
+
             // we first place the asm routine the thread will return to when finished
             *(u32*)(_stack + THREAD_STACK_SIZE - argStackSize - 8) = argStackSize;
 
@@ -66,7 +66,7 @@ namespace threading {
             // we want the arguments to be placed below the entry address, so starting from esp-8 to esp-X
             u32 argStackSize = stackSizeOfArguments(entry, c, args...);
             initializeArguments(argStackSize + 4, entry, c, args...);
-            
+
             // we first place the asm routine the thread will return to when finished
             *(u32*)(_stack + THREAD_STACK_SIZE - argStackSize - 8) = argStackSize;
 
@@ -78,12 +78,18 @@ namespace threading {
             esp = (u32)(_stack + THREAD_STACK_SIZE - argStackSize - 52);
         }
 
-        Thread(Thread& thread);
-        Thread(Thread&& thread);
+        Thread() {}
+
+        Thread(Thread& thread) = delete;
+        Thread(Thread&& thread) = delete;
         ~Thread();
 
-        Thread& operator=(Thread& t);
-        Thread& operator=(Thread&& t);
+        Thread& operator=(Thread& t) = delete;
+        Thread& operator=(Thread&& t) = delete;
+
+        // Clones the thread.
+        // Note: This function is not safe to execute while the given thread is running
+        Thread* clone();
 
         void enter();
 
@@ -141,6 +147,11 @@ namespace threading {
         // Optional process of the thread
         Process* _process;
     };
+
+    // Forks the current thread.
+    // Returns the child thread on the parent.
+    // Returns NULL for the child
+    Thread* fork();
 
     // Exits the current thread and saves it state, so it can be resumed at a later date.
     void exit();

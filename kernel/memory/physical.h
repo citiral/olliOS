@@ -16,6 +16,8 @@ namespace memory {
         // This can be used to allocate something on a specific boundary
         void* allocatePhysicalMemory(size_t reverseMask);
         void freePhysicalMemory(void* memory);
+        size_t countFreePhysicalMemory();
+
 
     private:
         // We have a bitmap where each bit represents a free page. Each byte can represent 8*4KB

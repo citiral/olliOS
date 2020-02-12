@@ -147,10 +147,15 @@ i32 Process::exit(i32 status)
 
 i32 Process::fork()
 {
-    //Process* child = new Process();
-    //child->_parent = this;
+    threading::Thread* childThread = _thread->clone();
+    Process* child = new Process();
     
-    /*child->_pagetable =*/ _pagetable->deep_clone();
+    child->_parent = this;
+    //child->
+    
+    memory::PageDirectory* childtable = _pagetable->deep_clone();
+    freePageDirectory(childtable);
+
 
     //while(1);
 

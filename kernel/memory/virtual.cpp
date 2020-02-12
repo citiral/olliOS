@@ -415,7 +415,7 @@ namespace memory {
 
 	PageDirectory* PageDirectory::clone() {
 		PageDirectory* dir = memory::allocatePageDirectory();
-		
+
 		memcpy(dir->entries, this->entries, sizeof(this->entries));
 
 		dir->entries[1023].setAddress(kernelPageDirectory.getPhysicalAddress(dir));
@@ -432,23 +432,24 @@ namespace memory {
 		PageDirectory* dir = clone();
 
 		u8* buffer = (u8*) malloc(0x1000);
-		
 		CLI();
 
 		((PageDirectory*)getPhysicalAddress(dir))->use();
-		
+
+		void* phys;
 		for (int i = 1 ; i < 256*3 ; i++) {
-			if (entries[i].getFlag(PFLAG_PRESENT)) {
-				printf("Cloning %x\n", i);
-				//continue;
-				// Copy the directory to a buffer
-				memcpy(buffer, (PageTable*)(0xFFC00000 + i * 1024 * sizeof(void*)), 0x1000);
-				
+			if (dir->entries[i].getFlag(PFLAG_PRESENT)) {
+
+				// Copy the old page
+				memcpy(buffer, (((PageTableEntry*)0xFFC00000) + (i * 1024)), 0x1000);
+
 				// Allocate a new physical page
 				void* phys = physicalMemoryManager.allocatePhysicalMemory();
 
 				// put it in the entry
 				dir->getReadableEntryPointer(i)->setAddress(phys);
+				dir->getReadableEntryPointer(i)->enableFlag(PFLAG_OWNED);
+				invalidatePage((u8*)(0xFFC00000 + i * 1024 * sizeof(void*)));
 
 				// And copy the buffer back to the new physical page
 				memcpy((((PageTableEntry*)0xFFC00000) + (i * 1024)), buffer, 0x1000);
@@ -456,24 +457,29 @@ namespace memory {
 				// Now copy all pages of the directory
 				for (int k = 0 ; k < 1024 ; k++) {
 					if (dir->getReadableTablePointer(i, k)->getFlag(PFLAG_PRESENT)) {
-						printf("cloning %x:%x\n", i, k);
+
+						// Copy the old page
 						memcpy(buffer, (void*)(i * 0x1000*0x1000 + k * 0x1000), 0x1000);
+
+						// Allocate a new physical page
 						phys = physicalMemoryManager.allocatePhysicalMemory();
-						dir->getReadableTablePointer(i, k)->enableFlag(PFLAG_RW | PFLAG_PRESENT | PFLAG_OWNED);
+
+						// Put it in the entry
+						invalidatePage((void*)(i * 0x1000*0x1000 + k * 0x1000));
 						getReadableTablePointer(i, k)->setAddress(phys);
-						
-						memcpy((void*)(i * 0x1000000 + k * 0x1000), buffer, 0x1000);
+						dir->getReadableTablePointer(i, k)->enableFlag(PFLAG_RW | PFLAG_PRESENT | PFLAG_OWNED);
+
+						// And copy the contents back
+						memcpy((void*)(i * 0x1000*0x1000 + k * 0x1000), buffer, 0x1000);
 					}
 				}
 			}
 		}
 
 		((PageDirectory*)kernelPageDirectory.getPhysicalAddress(this))->use();
-		//while(1);
-
 		STI();
 
-		//free(buffer);
+		free(buffer);
 
 		return dir;
 	}
@@ -490,17 +496,20 @@ namespace memory {
 
 	void freePageDirectory(PageDirectory* page) {
 		CLI();
+
 		// First we bind the page directory so we can read all of it
-		((PageDirectory*)PageDirectory::current()->getPhysicalAddress(page))->use();
+		PageDirectory* current = PageDirectory::current();
+		((PageDirectory*)current->getPhysicalAddress(page))->use();
 
 		// Loop over all entries in the pagetable up to 0xC0000000
 		// We never free the kernel space in this way
-		for (size_t i = 0 ; i < 256*3 ; i++) {
+		for (size_t i = 1 ; i < 256*3 ; i++) {
 			page->freeEntry(i);
 		}
 
-		((PageDirectory*)PageDirectory::current()->getPhysicalAddress(&kernelPageDirectory))->use();
-		kernelPageDirectory.unbindVirtualPage(page);
+		((PageDirectory*)page->getPhysicalAddress(current))->use();
+		current->unbindVirtualPage(page);
+
 		STI();
 	}
 }

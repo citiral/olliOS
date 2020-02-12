@@ -114,6 +114,13 @@ void cpu_main() {
     }
 }
 
+void thread_test() {
+    volatile int i = 0;
+    printf("P1 %d %d\n", threading::currentThread()->id(), ++i);
+    threading::exit();
+    printf("P2 %d %d\n", threading::currentThread()->id(), ++i);
+}
+
 extern "C" void main(multiboot_info* multiboot) {
     // init lowlevel CPU related stuff
     // None of these should be allowed to touch the memory allocator, etc
@@ -182,6 +189,19 @@ extern "C" void main(multiboot_info* multiboot) {
         }
 
         mod++;
+    }
+
+    threading::Thread* test = new threading::Thread(NULL, thread_test);
+    test->enter();
+    threading::Thread* clone = test->clone();
+    //threading::Thread* clone = new threading::Thread(NULL, thread_test);
+    clone->enter();
+    test->enter();
+    //clone->enter();
+    free(test);
+    free(clone);
+    printf("done\n");
+    while(1) {
     }
 
     cpu_main();
