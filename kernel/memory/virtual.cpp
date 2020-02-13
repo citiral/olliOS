@@ -432,10 +432,9 @@ namespace memory {
 		PageDirectory* dir = clone();
 
 		u8* buffer = (u8*) malloc(0x1000);
-		CLI();
+		memset(buffer, 0, sizeof(buffer));
 
 		((PageDirectory*)getPhysicalAddress(dir))->use();
-
 		void* phys;
 		for (int i = 1 ; i < 256*3 ; i++) {
 			if (dir->entries[i].getFlag(PFLAG_PRESENT)) {
@@ -450,35 +449,33 @@ namespace memory {
 				dir->getReadableEntryPointer(i)->setAddress(phys);
 				dir->getReadableEntryPointer(i)->enableFlag(PFLAG_OWNED);
 				invalidatePage((u8*)(0xFFC00000 + i * 1024 * sizeof(void*)));
-
+				
 				// And copy the buffer back to the new physical page
 				memcpy((((PageTableEntry*)0xFFC00000) + (i * 1024)), buffer, 0x1000);
 
 				// Now copy all pages of the directory
 				for (int k = 0 ; k < 1024 ; k++) {
 					if (dir->getReadableTablePointer(i, k)->getFlag(PFLAG_PRESENT)) {
-
 						// Copy the old page
-						memcpy(buffer, (void*)(i * 0x1000*0x1000 + k * 0x1000), 0x1000);
+						memcpy(buffer, (void*)(i * 0x400000 + k * 0x1000), 0x1000);
 
 						// Allocate a new physical page
 						phys = physicalMemoryManager.allocatePhysicalMemory();
 
 						// Put it in the entry
-						invalidatePage((void*)(i * 0x1000*0x1000 + k * 0x1000));
 						getReadableTablePointer(i, k)->setAddress(phys);
-						dir->getReadableTablePointer(i, k)->enableFlag(PFLAG_RW | PFLAG_PRESENT | PFLAG_OWNED);
-
+						dir->getReadableTablePointer(i, k)->enableFlag(PFLAG_RW | PFLAG_PRESENT);
+						invalidatePage((void*)(i * 0x400000 + k * 0x1000));
+						
 						// And copy the contents back
-						memcpy((void*)(i * 0x1000*0x1000 + k * 0x1000), buffer, 0x1000);
+						memcpy((void*)(i * 0x400000 + k * 0x1000), buffer, 0x1000);
 					}
 				}
 			}
 		}
 
-		((PageDirectory*)kernelPageDirectory.getPhysicalAddress(this))->use();
-		STI();
-
+		((PageDirectory*)dir->getPhysicalAddress(this))->use();
+		
 		free(buffer);
 
 		return dir;
@@ -495,7 +492,7 @@ namespace memory {
 	}
 
 	void freePageDirectory(PageDirectory* page) {
-		CLI();
+		bool eflag = CLI();
 
 		// First we bind the page directory so we can read all of it
 		PageDirectory* current = PageDirectory::current();
@@ -507,9 +504,10 @@ namespace memory {
 			page->freeEntry(i);
 		}
 
+		printf("page %x current %x\n", page, current);
 		((PageDirectory*)page->getPhysicalAddress(current))->use();
 		current->unbindVirtualPage(page);
 
-		STI();
+		STI(eflag);
 	}
 }

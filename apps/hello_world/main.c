@@ -45,6 +45,12 @@ u8 data[100] = {1, 2, 3};
 int main(int argc, char** argv)
 {
     fork();
+    fork();
+    fork();
+    fork();
+    fork();
+    fork();
+    fork();
     return 0;
 
     char buffer[20];
@@ -52,8 +58,10 @@ int main(int argc, char** argv)
     i32 file = open("dev/ata0/root/usr/include/types.h", 0, 0);
     i32 vga = open("sys/vga", 0, 0);
     
-    i32 stat;
+    i32 stat = 1;
+    int i = 0;
     while (stat > 0) {
+        i++;
         stat = read(file, buffer, 20);
         if (stat > 0) {
             write(vga, buffer, stat);
@@ -73,5 +81,5 @@ int main(int argc, char** argv)
     
     close(vga);*/
 
-    return 0;
+    return i;
 }

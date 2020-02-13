@@ -11,7 +11,7 @@ Semaphore::Semaphore(int count): _lock(), _count(count) {
 void Semaphore::lock() {
     // We keep trying to lock until we get it
     while (true) {
-        CLI();
+        bool eflag = CLI();
         // we make sure this a critical section using a spinlock
         _lock.lock();
 
@@ -19,19 +19,19 @@ void Semaphore::lock() {
         if (_count > 0) {
             _count--;
             _lock.release();
-            STI();
+            STI(eflag);
             return;
         }// if the value is zero, we can schedule ourselves and try again at a later time
         else {
             _lock.release();
-            STI();
+            STI(eflag);
             threading::exit();
         }
     }
 }
 
 bool Semaphore::try_lock() {
-    CLI();
+    bool eflag = CLI();
     // we make sure this a critical section using a spinlock
     _lock.lock();
 
@@ -39,20 +39,20 @@ bool Semaphore::try_lock() {
     if (_count > 0) {
         _count--;
         _lock.release();
-        STI();
+        STI(eflag);
         return true;
     }
     else {
         _lock.release();
-        STI();
+        STI(eflag);
         return false;
     }
 }
 
 void Semaphore::release() {
-    CLI();
+    bool eflag = CLI();
     _lock.lock();
     _count++;
     _lock.release();
-    STI();
+    STI(eflag);
 }

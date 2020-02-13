@@ -36,10 +36,13 @@ namespace threading {
     public:
         // initializes a thread were the called function gets passed the given arguments
         template<class ... ARGS>
-        Thread(Process* process, void(*entry)(ARGS...), ARGS ... args): _finished(false), _id(pidGenerator.next()), _blocking(false), _process(process) {
-            // A new thread allocates his own stack
-            _stack = new char[THREAD_STACK_SIZE];
-            memset(_stack, 0, THREAD_STACK_SIZE);
+        Thread(Process* process, char* stack, void(*entry)(ARGS...), ARGS ... args): _stack(stack), _finished(false), _id(pidGenerator.next()), _blocking(false), _process(process) {
+            // A new thread allocates his own stack, if none is supplied
+            _ownsStack = _stack == nullptr;
+            if (_stack == nullptr) {
+                _stack = new char[THREAD_STACK_SIZE];
+                memset(_stack, 0, THREAD_STACK_SIZE);
+            }
 
             // we want the arguments to be placed below the entry address, so starting from esp-8 to esp-X
             u32 argStackSize = stackSizeOfArguments(args...);
@@ -58,10 +61,13 @@ namespace threading {
 
         // initializes a thread were the called function gets passed the given arguments
         template<class T, class ... ARGS>
-        Thread(Process* process, void(T::*entry)(ARGS...), T* c, ARGS ... args): _finished(false), _id(pidGenerator.next()), _blocking(false), _process(process) {
+        Thread(Process* process, char* stack, void(T::*entry)(ARGS...), T* c, ARGS ... args): _stack(stack),  _finished(false), _id(pidGenerator.next()), _blocking(false), _process(process) {
             // A new thread allocates his own stack
-            _stack = new char[THREAD_STACK_SIZE];
-            memset(_stack, 0, THREAD_STACK_SIZE);
+            _ownsStack = _stack == nullptr;
+            if (_stack == nullptr) {
+                _stack = new char[THREAD_STACK_SIZE];
+                memset(_stack, 0, THREAD_STACK_SIZE);
+            }
 
             // we want the arguments to be placed below the entry address, so starting from esp-8 to esp-X
             u32 argStackSize = stackSizeOfArguments(entry, c, args...);
@@ -105,6 +111,10 @@ namespace threading {
         // Kills the thread by setting finished to true. If the thread is still running, it will only be shut down next time it is scheduled.
         void kill();
 
+
+        // Optional process of the thread
+        Process* _process;
+        
     private:
         void initializeArguments(u32) {
             
@@ -130,7 +140,11 @@ namespace threading {
         }
 
 
+        // The stack used by the thread
         char* _stack;
+
+        // True if the thread should deallocate the stack itself
+        bool _ownsStack;
         
         // The esp of the running thread
         volatile u32 esp;
@@ -143,9 +157,6 @@ namespace threading {
 
         // Whether or not the current thread is blocking, by for example waiting on a semphore or a mutex
         bool _blocking;
-
-        // Optional process of the thread
-        Process* _process;
     };
 
     // Forks the current thread.

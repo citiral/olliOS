@@ -33,8 +33,9 @@ Thread::Thread(Thread&& thread) {
 }*/
 
 Thread::~Thread() {
-    if (_stack)
+    if (_stack && _ownsStack) {
         delete[] _stack;
+    }
 }
 /*
 Thread& Thread::operator=(Thread& t) {
@@ -68,26 +69,13 @@ Thread& Thread::operator=(Thread&& t) {
 Thread* Thread::clone() {
     Thread* child = new Thread();
 
-    child->_stack = new char[THREAD_STACK_SIZE];
-    memcpy(child->_stack, _stack, THREAD_STACK_SIZE);
-
-    printf("esp: %X, %x\n", &esp, esp);
-
-    //size_t i = 0;
-    /*while (1) {
-        i++;
-        printf("%d -> %x\n", i, ((u32*)esp)[-i]);
-        if (((u32*)esp)[i] == (u32)&esp) {
-            while(1);
-        }
-    }
-    while(1);*/
-
-    child->esp = esp - (u32)_stack + (u32)child->_stack;
+    child->esp = esp;
     child->_finished = _finished;
     child->_id = pidGenerator.next();
     child->_blocking = _blocking;
     child->_process = _process;
+    child->_ownsStack = _ownsStack;
+    child->_stack = _stack;
 
     return child;
 }
@@ -96,10 +84,18 @@ void Thread::enter() {
     if (!_finished) {
         // whenever we enter the thread, we set the very first item on the stack to our parent stack pointer.
         // this way the child stack can access it when it finishes on its own.
-        CLI();
+        bool eflag = CLI();
 
         // keep track that we are in a thread
         running_thread[apic::id()] = this;
+
+        // If the thread has a process, and it is forking, do that first!
+        if (_process && _process->state() == ProcessState::Forking) {            
+            ((memory::PageDirectory*)memory::kernelPageDirectory.getPhysicalAddress(_process->pagetable()))->use();
+            memory::PageDirectory* clone = _process->pagetable()->deep_clone();
+            ((memory::PageDirectory*)clone->getPhysicalAddress(&memory::kernelPageDirectory))->use();
+            _process->finish_fork(clone);
+        }
 
         // load the thread's pagetable
         if (_process)
@@ -123,7 +119,7 @@ void Thread::enter() {
         // keep track that we are not in a thread anymore
         running_thread[apic::id()] = nullptr;
 
-        STI();
+        STI(eflag);
     }
 }
 

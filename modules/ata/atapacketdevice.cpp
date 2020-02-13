@@ -101,9 +101,6 @@ size_t AtaPacketDevice::read(void* data, size_t amount, size_t offset) {
             }
         }
     }
-    
-
-    // 
 
     // the device is going to send us one last interrupt
     driver.waitForInterrupt(_port);

@@ -20,8 +20,28 @@
 #define UNIMPLEMENTED(FUNC, R) FUNC { LOG_UNIMPLEMENTED(); CPU::panic(); return R; }
 #define UNUSED(X) ((void) X)
 
-#define CLI() __asm__ volatile ("cli")
-#define STI() __asm__ volatile ("sti")
+inline static bool CLI() {
+    unsigned long flags;
+     /*
+      * "=rm" is safe here, because "pop" adjusts the stack before
+      * it evaluates its effective address -- this is part of the
+      * documented behavior of the "pop" instruction.
+      */
+    asm volatile("# __raw_save_flags\n\t"
+              "pushf ; pop %0"
+              : "=rm" (flags)
+              : /* no input */
+              : "memory");
+    __asm__ volatile ("cli");
+    
+     return flags & 0x200;
+}
+
+inline static void STI(bool enable) {
+    if (enable) {
+        __asm__ volatile ("sti");
+    }
+}
 
 #define SIZEOF_GB 0x40000000
 #define SIZEOF_MB 0x100000

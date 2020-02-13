@@ -12,6 +12,13 @@ struct BindingDescriptor {
     size_t offset;
 };
 
+enum class ProcessState {
+    Initing,
+    Running,
+    Forking,
+    Stopped,
+};
+
 class Process {
 public:
     Process();
@@ -24,6 +31,10 @@ public:
     i32 status_code();
     
     memory::PageDirectory* pagetable();
+
+    ProcessState state();
+
+    void finish_fork(memory::PageDirectory* clone);
     
     // syscall routines
     i32 open(const char* name, i32 flags, i32 mode);
@@ -40,10 +51,12 @@ private:
     threading::Thread* _thread;
     memory::PageDirectory* _pagetable;
     std::unordered_map<i32, BindingDescriptor> _bindings;
+    std::vector<Process*> childs;
     UniqueGenerator<i32> _binding_ids;
     i32 _status_code;
     u32 _pid;
     Process* _parent;
+    ProcessState _state;
 };
 
 #endif

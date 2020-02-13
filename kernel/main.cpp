@@ -191,18 +191,18 @@ extern "C" void main(multiboot_info* multiboot) {
         mod++;
     }
 
-    threading::Thread* test = new threading::Thread(NULL, thread_test);
-    test->enter();
-    threading::Thread* clone = test->clone();
+    //threading::Thread* test = new threading::Thread(NULL, thread_test);
+    //test->enter();
+    //threading::Thread* clone = test->clone();
     //threading::Thread* clone = new threading::Thread(NULL, thread_test);
-    clone->enter();
-    test->enter();
     //clone->enter();
-    free(test);
-    free(clone);
-    printf("done\n");
-    while(1) {
-    }
+    //test->enter();
+    //clone->enter();
+    //free(test);
+    //free(clone);
+    //printf("done\n");
+    //while(1) {
+    //}
 
     cpu_main();
 }
