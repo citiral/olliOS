@@ -27,12 +27,8 @@ public:
     void init(bindings::Binding* file);
     void start();
     void wait();
-
-    i32 status_code();
     
     memory::PageDirectory* pagetable();
-
-    ProcessState state();
 
     void finish_fork(memory::PageDirectory* clone);
     
@@ -44,19 +40,19 @@ public:
     i32 exit(i32 status);
     i32 fork();
 
+    UniqueGenerator<i32> _binding_ids;
+    i32 status_code;
+    ProcessState state;
+    threading::Thread* thread;
+    std::vector<Process*> childs;
+
 private:
     void free_pagetable();
-    void load_binding_and_run(bindings::Binding* file);
 
-    threading::Thread* _thread;
     memory::PageDirectory* _pagetable;
     std::unordered_map<i32, BindingDescriptor> _bindings;
-    std::vector<Process*> childs;
-    UniqueGenerator<i32> _binding_ids;
-    i32 _status_code;
-    u32 _pid;
+    u32 pid;
     Process* _parent;
-    ProcessState _state;
 };
 
 #endif

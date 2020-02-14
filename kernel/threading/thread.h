@@ -41,8 +41,8 @@ namespace threading {
             _ownsStack = _stack == nullptr;
             if (_stack == nullptr) {
                 _stack = new char[THREAD_STACK_SIZE];
-                memset(_stack, 0, THREAD_STACK_SIZE);
             }
+            memset(_stack, 0, THREAD_STACK_SIZE);
 
             // we want the arguments to be placed below the entry address, so starting from esp-8 to esp-X
             u32 argStackSize = stackSizeOfArguments(args...);

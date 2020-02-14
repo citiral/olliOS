@@ -194,15 +194,16 @@ void run(KernelShell* shell, std::vector<std::string>* args)
 		return;
 	}
 	//while (1) {
-		Process* p = new Process();
-		p->init(bind);
-		p->start();
-		p->wait();
+		for (int i = 0 ; i < 1000 ; i++) {
+			Process* p = new Process();
+			p->init(bind);
+			p->start();
+		}
 		//p->wait();
 
-		printf("%d", p->status_code());
+		//printf("%d", p->status_code);
 
-		delete p;
+		//delete p;
 
 		printf("Physical free: %dKB.\n", memory::physicalMemoryManager.countFreePhysicalMemory() * 0x1000 / 1024);
 	//}

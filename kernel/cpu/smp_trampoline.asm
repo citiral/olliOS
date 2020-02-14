@@ -74,6 +74,7 @@ smp_enable_paging:
 mov esp, [smp_stack]
 
 ; enter our C++ entry point
+sti
 extern SmpEntryPoint
 call SmpEntryPoint
 

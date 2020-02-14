@@ -5,73 +5,17 @@
 
 UniqueGenerator<u32> process_ids(1);
 
-Process::Process(): _thread(nullptr), _pagetable(nullptr), _binding_ids(1), _status_code(-1), _pid(process_ids.next()), _parent(NULL), _state(ProcessState::Initing)
+void load_binding_and_run(bindings::Binding* bind)
 {
-}
-
-Process::~Process()
-{
-    if (_pagetable) {
-        memory::freePageDirectory(_pagetable);
-    }
-    if (_thread) {
-        delete _thread;
-    }
-}
-
-void Process::init(bindings::Binding* file)
-{
-    // Create a new pagetable for the process
-    _pagetable = memory::kernelPageDirectory.clone();
-
-    bool eflag = CLI();
-
-    // Allocate a stack in the process memory itself
-    memory::PageDirectory* current = memory::PageDirectory::current();
-	((memory::PageDirectory*)(current->getPhysicalAddress(_pagetable)))->use();
-    char* stackStart = (char*) (0xC0000000 - THREAD_STACK_SIZE);
-    for (size_t i = 0 ; i < THREAD_STACK_SIZE ; i += 0x1000) {
-        current->bindVirtualPage(stackStart + i);
-    }
-
-    // And create a thread that will init the process
-    _thread = new threading::Thread(this, stackStart, &Process::load_binding_and_run, this, file);
-    ((memory::PageDirectory*)(_pagetable->getPhysicalAddress(current)))->use();
-    _state = ProcessState::Running;
-
-    STI(eflag);
-}
-
-void Process::start()
-{
-    threading::scheduler->schedule(_thread);
-}
-
-void Process::wait()
-{
-    while (!_thread->finished()) {
+    int i = 0;
+    printf("thread started\n");
+    while (1) {
+        i = i > 10 ? 1 : i+1;
+        void* mem = malloc(1000 * i);
+        if (mem != nullptr)
+            free(mem);
         threading::exit();
     }
-}
-
-i32 Process::status_code()
-{
-    return _status_code;
-}
-
-memory::PageDirectory* Process::pagetable()
-{
-    return _pagetable;
-}
-
-ProcessState Process::state()
-{
-    return _state;
-}
-
-void Process::load_binding_and_run(bindings::Binding* bind)
-{
-    printf("thread started\n");
     
     // Get the filesize of the bind
 	size_t filesize = bind->get_size();
@@ -101,9 +45,87 @@ void Process::load_binding_and_run(bindings::Binding* bind)
 
         delete buffer;
     }
-    
-        printf("running main %x -> %x\n", &app_main, app_main);
-    _status_code = app_main(110, NULL);
+
+    threading::currentThread()->process()->status_code = app_main(110, NULL);
+
+    printf("childs: %d\n", threading::currentThread()->process()->childs.size());
+
+    for (size_t i = 0 ; i < threading::currentThread()->process()->childs.size() ; i++) {
+        threading::currentThread()->process()->childs[i]->thread->kill();
+    }
+
+    /*for (size_t i = 0 ; i < childs.size() ; i++) {
+        while (!childs[i]->thread->finished())
+            threading::exit();
+    }*/
+
+    threading::currentThread()->process()->state = ProcessState::Stopped;
+}
+
+Process::Process(): thread(nullptr), _pagetable(nullptr), _binding_ids(1), status_code(-1), pid(process_ids.next()), _parent(NULL), state(ProcessState::Initing), childs()
+{
+}
+
+Process::~Process()
+{
+    if (_pagetable) {
+       memory::freePageDirectory(_pagetable);
+    }
+
+    if (thread) {
+       delete thread;
+    }
+
+    for (size_t i = 0 ; i < childs.size() ; i++) {
+        while (!childs[i]->thread->finished())
+            threading::exit();
+    }
+
+    for (size_t i = 0 ; i < childs.size() ; i++) {
+        delete childs[i];
+    }
+}
+
+void Process::init(bindings::Binding* file)
+{
+    // Create a new pagetable for the process
+    _pagetable = memory::kernelPageDirectory.clone();
+
+    bool eflag = CLI();
+
+    // Allocate a stack in the process memory itself
+    memory::PageDirectory* current = memory::PageDirectory::current();
+	((memory::PageDirectory*)(current->getPhysicalAddress(_pagetable)))->use();
+    /*char* stackStart = (char*) (0xC0000000 - THREAD_STACK_SIZE - 0x10000);
+    for (size_t i = 0 ; i < THREAD_STACK_SIZE ; i += 0x1000) {
+        current->bindVirtualPage(stackStart + i);
+    }*/
+    char* stackStart = (char*) current->bindFirstFreeVirtualPages((char*) 0xC0000000 - THREAD_STACK_SIZE - 0x10000, THREAD_STACK_SIZE / 0x1000);
+    //printf("stack: %x\n", stackStart );
+
+    // And create a thread that will init the process
+    thread = new threading::Thread(this, stackStart, load_binding_and_run, file);
+    ((memory::PageDirectory*)(_pagetable->getPhysicalAddress(current)))->use();
+    state = ProcessState::Running;
+
+    STI(eflag);
+}
+
+void Process::start()
+{
+    threading::scheduler->schedule(thread);
+}
+
+void Process::wait()
+{
+    while (!thread->finished()) {
+        threading::exit();
+    }
+}
+
+memory::PageDirectory* Process::pagetable()
+{
+    return _pagetable;
 }
 
 i32 Process::open(const char* name, i32 flags, i32 mode)
@@ -161,28 +183,16 @@ i32 Process::read(i32 file, char* data, i32 len)
 
 i32 Process::exit(i32 status)
 {
-    _status_code = status;
-    _thread->kill();
+    status_code = status;
+    thread->kill();
     threading::exit();
 
     return 0;
 }
 
-void cloneHelper(memory::PageDirectory* parent, memory::PageDirectory** child)
-{
-    bool eflag = CLI();
-	((memory::PageDirectory*)memory::PageDirectory::current()->getPhysicalAddress(parent))->use();
-    memory::PageDirectory* clone = parent->deep_clone();
-    *child = clone;
-	((memory::PageDirectory*)clone->getPhysicalAddress(&memory::kernelPageDirectory))->use();
-    STI(eflag);
-    
-    return;
-}
-
 void Process::finish_fork(memory::PageDirectory* clone)
 {
-    _state = ProcessState::Running;
+    state = ProcessState::Running;
 
     Process* child = new Process();
     
@@ -190,28 +200,24 @@ void Process::finish_fork(memory::PageDirectory* clone)
     child->_pagetable = clone;
     child->_bindings = _bindings;
     child->_binding_ids = _binding_ids;
-    child->_thread = _thread->clone();
-    child->_thread->_process = child;
+    child->thread = thread->clone();
+    child->thread->_process = child;
+
+    childs.push_back(child);
     
-    threading::scheduler->schedule(child->_thread);
+    printf("adding child\n");
+    
+    threading::scheduler->schedule(child->thread);
 }
 
 i32 Process::fork()
 {
-    _state = ProcessState::Forking;
+    state = ProcessState::Forking;
     threading::exit();
 
-    if (threading::currentThread()->process()->_pid == _pid) {
-        /*bool eflag = CLI();
-        printf("finishing: %d\n", threading::currentThread()->process()->_pid);
-        printf("hello from parent\n");
-        STI(eflag);*/
-        return 1;
+    if (threading::currentThread()->process()->pid == pid) {
+        return childs[childs.size() - 1]->pid;
     } else {
-        /*bool eflag = CLI();
-        printf("finishing: %d\n", threading::currentThread()->process()->_pid);
-        printf("HELLO FROM CHILD!\n");
-        STI(eflag);*/
         return 0;
     }
 }

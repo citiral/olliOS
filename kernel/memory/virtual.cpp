@@ -504,7 +504,6 @@ namespace memory {
 			page->freeEntry(i);
 		}
 
-		printf("page %x current %x\n", page, current);
 		((PageDirectory*)page->getPhysicalAddress(current))->use();
 		current->unbindVirtualPage(page);
 

@@ -90,7 +90,7 @@ void Thread::enter() {
         running_thread[apic::id()] = this;
 
         // If the thread has a process, and it is forking, do that first!
-        if (_process && _process->state() == ProcessState::Forking) {            
+        if (_process && _process->state == ProcessState::Forking) {            
             ((memory::PageDirectory*)memory::kernelPageDirectory.getPhysicalAddress(_process->pagetable()))->use();
             memory::PageDirectory* clone = _process->pagetable()->deep_clone();
             ((memory::PageDirectory*)clone->getPhysicalAddress(&memory::kernelPageDirectory))->use();
@@ -149,7 +149,7 @@ void Thread::kill() {
 }
 
 void threading::exit() {
-    CLI();
+    //CLI();
     if (is_current_core_in_thread()) {
         // if we exit a thread, the thread_exit function will enable interrupts again
         thread_exit(parent_stack_pointers + apic::id());

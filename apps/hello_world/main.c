@@ -34,8 +34,8 @@ void exit(i32 status) {
     sysint(SYSINT_EXIT, *((u32*)&status), 0, 0, 0, 0, 0);
 }
 
-void fork() {
-    sysint(SYSINT_FORK, 0, 0, 0, 0, 0, 0);
+i32 fork() {
+    return sysint(SYSINT_FORK, 0, 0, 0, 0, 0, 0);
 }
 
 
@@ -44,9 +44,9 @@ u8 data[100] = {1, 2, 3};
 
 int main(int argc, char** argv)
 {
-    fork();
-    fork();
-    fork();
+    for (int i = 0 ; fork() && i < 10 ; i++);
+    
+    return 0;
     fork();
     fork();
     fork();
