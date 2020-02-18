@@ -85,7 +85,10 @@ void Thread::enter() {
         // whenever we enter the thread, we set the very first item on the stack to our parent stack pointer.
         // this way the child stack can access it when it finishes on its own.
         bool eflag = CLI();
-
+        if (!eflag) {
+            printf("entering with eflag %d\n", eflag);
+            while(1);
+        }
         // keep track that we are in a thread
         running_thread[apic::id()] = this;
 
@@ -108,7 +111,7 @@ void Thread::enter() {
         // enter the thread
         volatile u32 status = thread_enter(parent_pointer, &esp);
 
-        // load the thread's pagetable
+        // load the kernel pagetable again
         if (_process)
 	        ((memory::PageDirectory*)(memory::kernelPageDirectory.getPhysicalAddress(&memory::kernelPageDirectory)))->use();
 

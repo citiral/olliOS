@@ -99,8 +99,6 @@ extern is_current_core_in_thread
 global thread_interrupt:
 thread_interrupt:;()
 
-; disable interrupts for our routine
-cli
 
 ; make sure that once the thread resumes it instantly executes an iret
 push thread_interrupt_continue
@@ -113,6 +111,9 @@ pushad
 call is_current_core_in_thread
 cmp eax, 0
 je end
+
+; disable interrupts for our routine
+cli
 
 ; get the parent stack so we can load it
 call get_parent_stack

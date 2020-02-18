@@ -194,12 +194,14 @@ void run(KernelShell* shell, std::vector<std::string>* args)
 		return;
 	}
 	//while (1) {
+		Process* p;
 		for (int i = 0 ; i < 1000 ; i++) {
-			Process* p = new Process();
+			p = new Process();
 			p->init(bind);
 			p->start();
+			//p->wait();
 		}
-		//p->wait();
+		p->wait();
 
 		//printf("%d", p->status_code);
 

@@ -23,6 +23,15 @@ void intHandlerGeneralProtectionViolation(u32 interrupt)
 void intHandlerPageFault(u32 interrupt)
 {
 	UNUSED(interrupt);
+	u32 cr2;
+
+	// Read the CR2 register to get the address of the pagefault
+	asm volatile (
+		"mov %%cr2, %0\n"
+		: "=r" (cr2)
+	);
+
+	printf("Page fault: 0x%.8X\n", cr2);
 	CPU::panic("Page Fault occured");
 }
 

@@ -20,7 +20,7 @@ void Scheduler::schedule(Thread* thread) {
                 break;
             }
             STI(eflag);
-            threading::exit();
+            //threading::exit();
         }
 
         _threads.push_back(thread);

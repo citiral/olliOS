@@ -44,7 +44,7 @@ u8 data[100] = {1, 2, 3};
 
 int main(int argc, char** argv)
 {
-    for (int i = 0 ; fork() && i < 10 ; i++);
+    //for (int i = 0 ; fork() && i < 10 ; i++);
     
     return 0;
     fork();

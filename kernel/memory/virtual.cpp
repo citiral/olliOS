@@ -142,7 +142,7 @@ namespace memory {
 	void PageDirectory::use()
 	{
 		// convert the entries from virtual to physical (kernel is virtually at 0xc0000000 but physically at 0x0)
-		u32 pos = (u32)&entries;
+		u32 pos = (u32)entries;
 
 		// set the actualy control register determining which page is used
 		asm volatile (
@@ -157,6 +157,9 @@ namespace memory {
 			1: nop"
 			::: "eax"
 		);
+
+		for (int i = 0 ; i < 1024 ; i++)
+		invalidatePage((u32*)(0xFFC00000 + 0x1000*i));
 	}
 
 	void PageDirectory::forceUpdate() {
@@ -188,6 +191,7 @@ namespace memory {
 		//printf("%d %d %x\n", dirindex, pageindex, getReadableEntryPointer(dirindex));
 		// if the directory does not exist, allocate one
 		if (!getReadableEntryPointer(dirindex)->getFlag(PFLAG_PRESENT)) {
+			printf("allocating entry\n");
 			allocateEntry(dirindex);
 		}
 
@@ -195,6 +199,9 @@ namespace memory {
 		if (!getReadableTablePointer(dirindex, pageindex)->getFlag(PFLAG_PRESENT)) {
 			// then we get us a physical page to use
 			void* physpage = physicalMemoryManager.allocatePhysicalMemory();
+			if (physpage == nullptr) {
+				CPU::panic("failed allocating physical memory\n");
+			}
 
 			// put it in the page
 			getReadableTablePointer(dirindex, pageindex)->setAddress(physpage);
@@ -338,6 +345,9 @@ namespace memory {
 
 		// then we fetch some physical memory
 		void* phys = physicalMemoryManager.allocatePhysicalMemory();
+		if (phys == nullptr) {
+			CPU::panic("failed allocating physical memory\n");
+		}
 
 		// put it in the entry
 		getReadableEntryPointer(index)->setAddress(phys);
@@ -444,10 +454,13 @@ namespace memory {
 
 				// Allocate a new physical page
 				void* phys = physicalMemoryManager.allocatePhysicalMemory();
+				if (phys == nullptr) {
+					CPU::panic("failed allocating physical memory\n");
+				}
 
 				// put it in the entry
 				dir->getReadableEntryPointer(i)->setAddress(phys);
-				dir->getReadableEntryPointer(i)->enableFlag(PFLAG_OWNED);
+				dir->getReadableEntryPointer(i)->enableFlag(PFLAG_OWNED | PFLAG_PRESENT);
 				invalidatePage((u8*)(0xFFC00000 + i * 1024 * sizeof(void*)));
 				
 				// And copy the buffer back to the new physical page
@@ -461,6 +474,9 @@ namespace memory {
 
 						// Allocate a new physical page
 						phys = physicalMemoryManager.allocatePhysicalMemory();
+						if (phys == nullptr) {
+							CPU::panic("failed allocating physical memory\n");
+						}
 
 						// Put it in the entry
 						getReadableTablePointer(i, k)->setAddress(phys);
