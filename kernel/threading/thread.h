@@ -4,9 +4,11 @@
 #include <types.h>
 #include "cdefs.h"
 #include "memory/virtual.h"
+#include "kstd/shared_ptr.h"
 #include "kstd/utility.h"
 #include "util/unique.h"
 #include <string.h>
+#include "process.h"
 
 extern "C" void __attribute__ ((noinline)) thread_interrupt();
 extern "C" bool __attribute__ ((noinline)) is_current_core_in_thread();
@@ -19,8 +21,6 @@ template<class T, class ... ARGS>
 void threadingFunctionWrapper(void(T::*func)(ARGS...), T* c, ARGS ... args) {
     (c->*func)(args...);
 }
-
-class Process;
 
 namespace threading {
     
@@ -97,7 +97,7 @@ namespace threading {
         // Note: This function is not safe to execute while the given thread is running
         Thread* clone();
 
-        void enter();
+        bool enter();
 
         u32 id();
 

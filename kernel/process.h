@@ -2,10 +2,11 @@
 #define __PROCESS_H_
 
 #include "kstd/unordered_map.h"
-#include "threading/thread.h"
 #include "memory/virtual.h"
 #include "util/unique.h"
 #include "bindings.h"
+#include "kstd/shared_ptr.h"
+#include "kstd/vector.h"
 
 struct BindingDescriptor {
     bindings::Binding* binding;
@@ -19,12 +20,16 @@ enum class ProcessState {
     Stopped,
 };
 
+namespace threading {
+    class Thread;
+}
+
 class Process {
 public:
     Process();
     ~Process();
 
-    void init(bindings::Binding* file);
+    void init(Process* self, bindings::Binding* file);
     void start();
     void wait();
     
@@ -52,7 +57,7 @@ private:
     memory::PageDirectory* _pagetable;
     std::unordered_map<i32, BindingDescriptor> _bindings;
     u32 pid;
-    Process* _parent;
+    //std::shared_ptr<Process> _parent;
 };
 
 #endif

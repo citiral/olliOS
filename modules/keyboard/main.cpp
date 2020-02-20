@@ -8,8 +8,9 @@ using namespace bindings;
 using namespace keyboard;
 
 void KeyboardDriverThread(KeyboardDriver* driver, OwnedBinding* keyboard) {
+	static bool first = true;
 	while (1) {
-		//driver->dataMutex.lock();
+		driver->dataMutex.lock();
 
 		while (true) {
 			VirtualKeyEvent event;

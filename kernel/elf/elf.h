@@ -6,7 +6,7 @@
 #include "symbolmap.h"
 #include "kstd/unordered_map.h"
 
-#define ELF_GOT_SIZE 2048
+#define ELF_GOT_SIZE 4096
 
 namespace elf {
 

@@ -3,6 +3,7 @@
 
 #include "cpu/cpu.h"
 #include <stdio.h>
+#include <stdint.h>
 
 #define __PAGE_ALIGNED __attribute__((aligned(0x1000)))
 #define __PACKED __attribute__ ((__packed__))
@@ -19,6 +20,22 @@
 
 #define UNIMPLEMENTED(FUNC, R) FUNC { LOG_UNIMPLEMENTED(); CPU::panic(); return R; }
 #define UNUSED(X) ((void) X)
+
+inline static uint32_t EFLAGS() {
+    uint32_t flags;
+     /*
+      * "=rm" is safe here, because "pop" adjusts the stack before
+      * it evaluates its effective address -- this is part of the
+      * documented behavior of the "pop" instruction.
+      */
+    asm volatile("# __raw_save_flags\n\t"
+              "pushfl ; pop %0"
+              : "=rm" (flags)
+              : /* no input */
+              : "memory");
+
+     return flags;
+}
 
 inline static bool CLI() {
     unsigned long flags;

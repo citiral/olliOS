@@ -4,6 +4,7 @@
 #include "threading/spinlock.h"
 #include "threading/thread.h"
 #include "kstd/vector.h"
+#include "kstd/shared_ptr.h"
 
 namespace threading {
     class Scheduler {

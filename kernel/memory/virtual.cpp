@@ -191,7 +191,6 @@ namespace memory {
 		//printf("%d %d %x\n", dirindex, pageindex, getReadableEntryPointer(dirindex));
 		// if the directory does not exist, allocate one
 		if (!getReadableEntryPointer(dirindex)->getFlag(PFLAG_PRESENT)) {
-			printf("allocating entry\n");
 			allocateEntry(dirindex);
 		}
 
@@ -372,8 +371,9 @@ namespace memory {
 		// then we loop over all tables in the entry
 		for (int i = 0 ; i < 1024 ; i++) {
 			// if the page is owned, free it
-			if (getReadableTablePointer(index, i)->getFlag(PFLAG_PRESENT))
+			if (getReadableTablePointer(index, i)->getFlag(PFLAG_PRESENT)) {
 				physicalMemoryManager.freePhysicalMemory(getReadableTablePointer(index, i)->getAddress());
+			}
 		}
 
 		physicalMemoryManager.freePhysicalMemory(getReadableEntryPointer(index)->getAddress());
@@ -447,7 +447,7 @@ namespace memory {
 		((PageDirectory*)getPhysicalAddress(dir))->use();
 		void* phys;
 		for (int i = 1 ; i < 256*3 ; i++) {
-			if (dir->entries[i].getFlag(PFLAG_PRESENT)) {
+			if (getReadableEntryPointer(i)->getFlag(PFLAG_PRESENT)) {
 
 				// Copy the old page
 				memcpy(buffer, (((PageTableEntry*)0xFFC00000) + (i * 1024)), 0x1000);

@@ -4,11 +4,10 @@ timeout 0
 title   Ollios
 kernel  /boot/ollios.bin
 module /boot/ollios.sym
+module /boot/keyboard.so
 module /boot/vga.so
 module /boot/sysint.so
-module /boot/keyboard.so
 module /boot/ata.so
 module /boot/pci.so
-module /boot/mbr.so
 module /boot/iso9660.so
 module /boot/shell.so

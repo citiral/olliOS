@@ -80,7 +80,7 @@ Thread* Thread::clone() {
     return child;
 }
 
-void Thread::enter() {
+bool Thread::enter() {
     if (!_finished) {
         // whenever we enter the thread, we set the very first item on the stack to our parent stack pointer.
         // this way the child stack can access it when it finishes on its own.
@@ -93,7 +93,7 @@ void Thread::enter() {
         running_thread[apic::id()] = this;
 
         // If the thread has a process, and it is forking, do that first!
-        if (_process && _process->state == ProcessState::Forking) {            
+        if (_process != nullptr && _process->state == ProcessState::Forking) {
             ((memory::PageDirectory*)memory::kernelPageDirectory.getPhysicalAddress(_process->pagetable()))->use();
             memory::PageDirectory* clone = _process->pagetable()->deep_clone();
             ((memory::PageDirectory*)clone->getPhysicalAddress(&memory::kernelPageDirectory))->use();
@@ -101,7 +101,7 @@ void Thread::enter() {
         }
 
         // load the thread's pagetable
-        if (_process)
+        if (_process != nullptr)
 	        ((memory::PageDirectory*)(memory::kernelPageDirectory.getPhysicalAddress(_process->pagetable())))->use();
 
         // prepare the thread stack for entering
@@ -112,18 +112,21 @@ void Thread::enter() {
         volatile u32 status = thread_enter(parent_pointer, &esp);
 
         // load the kernel pagetable again
-        if (_process)
+        if (_process != nullptr)
 	        ((memory::PageDirectory*)(memory::kernelPageDirectory.getPhysicalAddress(&memory::kernelPageDirectory)))->use();
 
         // check if the thread quit because it finished
-        if (status == 0)
-            _finished = true;
+        if (status == 0) {
+            kill();
+        }
 
         // keep track that we are not in a thread anymore
         running_thread[apic::id()] = nullptr;
 
         STI(eflag);
     }
+
+    return _finished;
 }
 
 u32 Thread::id() {
@@ -152,11 +155,12 @@ void Thread::kill() {
 }
 
 void threading::exit() {
-    //CLI();
+    bool eflags = CLI();
     if (is_current_core_in_thread()) {
         // if we exit a thread, the thread_exit function will enable interrupts again
         thread_exit(parent_stack_pointers + apic::id());
     }
+    STI(eflags);
 }
 
 // Returns true if the given physical core is currently running a thread

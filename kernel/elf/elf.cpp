@@ -41,7 +41,7 @@ void elf::allocate_nobits(section_header* section)
         if (section->size % 0x1000 != 0) {
             pages++;
         }
-        void* mem = malloc(section->size);//memory::PageDirectory::current()->bindFirstFreeVirtualPages((void*)(_in_kernel ? 0xC0000000 : 0x40000000), pages);
+        void* mem = memory::PageDirectory::current()->bindFirstFreeVirtualPages((void*)(_in_kernel ? 0xC0000000 : 0x40000000), pages);
         memset(mem, 0, section->size);
         section->offset = ((u32)mem - ((u32)_header));
     }

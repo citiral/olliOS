@@ -11,7 +11,9 @@ mov ebx, [esp+4]
 add esp, 8
 
 ; jump to the function
+sti
 call [esp-8]
+cli
 
 ; then we remove all parameters from the stack
 add esp, ebx
@@ -46,7 +48,6 @@ popad
 popfd
 
 ;the thread eip is now the top value of the stack, so by returning we continue the thread
-sti
 ret
 
 global thread_finished:
@@ -107,13 +108,13 @@ push thread_interrupt_continue
 pushfd
 pushad
 
+; disable interrupts for our routine
+cli
+
 ; if we are not actually in a thread, leave the routine
 call is_current_core_in_thread
 cmp eax, 0
 je end
-
-; disable interrupts for our routine
-cli
 
 ; get the parent stack so we can load it
 call get_parent_stack

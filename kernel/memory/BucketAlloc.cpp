@@ -61,14 +61,14 @@ void* BucketAlloc::malloc(size_t size) {
         // we want to allocate pages that will fit that bucket or higher
         // so first we round up the bucketmemsize
 	    u32 allocsize = bucketmemsize + (bucketmemsize % 0x1000 == 0 ? 0 : (0x1000 - (bucketmemsize % 0x1000)));
-        
+
         // if allocsize without header is in the same bucket, add a page
         if (nextHighestPowerOfTwo(allocsize - 16) == bucket)
             allocsize += 0x1000;
 
         // then we allocate the virtual memory
-        void* page = memory::kernelPageDirectory.bindFirstFreeVirtualPages(KERNEL_END_VIRTUAL, allocsize / 0x1000);
-        
+        void* page = memory::PageDirectory::current()->bindFirstFreeVirtualPages((void*)0xD0000000, allocsize / 0x1000);
+
         // give it the the allocator, and try to allocate some memory
         if (page != nullptr) {
             init(page, allocsize);

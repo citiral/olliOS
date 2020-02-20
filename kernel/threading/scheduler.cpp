@@ -20,7 +20,7 @@ void Scheduler::schedule(Thread* thread) {
                 break;
             }
             STI(eflag);
-            //threading::exit();
+            threading::exit();
         }
 
         _threads.push_back(thread);
@@ -49,10 +49,13 @@ void Scheduler::enter() {
 
     // run the thread
     _lock.release();
-    thread->enter();
-
-    // if the thread is not finished, schedule it again
-    if (!thread->finished()) {
+    if (!thread->enter()) {
+        // if the thread is not finished, schedule it again
         schedule(thread);
+    } else {
+        if (thread->process() != nullptr) {
+            // Watch out, the moment this is set to Stopped the thread can get deleted
+            thread->process()->state = ProcessState::Stopped;
+        }
     }
 }

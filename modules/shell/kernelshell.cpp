@@ -193,22 +193,16 @@ void run(KernelShell* shell, std::vector<std::string>* args)
 		printf("Invalid path: %s\n");
 		return;
 	}
-	//while (1) {
-		Process* p;
-		for (int i = 0 ; i < 1000 ; i++) {
-			p = new Process();
-			p->init(bind);
-			p->start();
-			//p->wait();
-		}
-		p->wait();
 
-		//printf("%d", p->status_code);
+	Process* p = new Process();
+	p->init(p, bind);
+	p->start();
+	p->wait();
+	delete p;
 
-		//delete p;
+	printf("%d", p->status_code);
 
-		printf("Physical free: %dKB.\n", memory::physicalMemoryManager.countFreePhysicalMemory() * 0x1000 / 1024);
-	//}
+	printf("Physical free: %dKB.\n", memory::physicalMemoryManager.countFreePhysicalMemory() * 0x1000 / 1024);
 }
 
 void load(KernelShell* shell, std::vector<std::string>* args)

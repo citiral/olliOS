@@ -41,16 +41,38 @@ i32 fork() {
 
 u8 data[100] = {1, 2, 3};
 
+size_t strlen(const char* str) {
+    u32 l = 0;
+    while (*(str++)) l++;
+    return l;
+}
+
+void printf(char* str) {
+    i32 file = open("sys/vga", 0, 0);
+    write(file, str, strlen(str));
+    close(file);
+}
 
 int main(int argc, char** argv)
 {
-    //for (int i = 0 ; fork() && i < 10 ; i++);
+
+    fork();
+    i32 pid = fork();
+    char t[3];
+    t[1] = '\n';
+    t[2] = 0;
+    printf("test");
+    t[0] = '0' + pid;
+    printf(t);
+
+    return pid;
+    fork();
+    fork();
+    for (int i = 0 ; fork() && i < 10 ; i++);
+    return fork();
     
     return 0;
-    fork();
-    fork();
-    fork();
-    fork();
+    
     return 0;
 
     char buffer[20];
