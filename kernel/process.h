@@ -50,13 +50,13 @@ public:
     ProcessState state;
     threading::Thread* thread;
     std::vector<Process*> childs;
+    u32 pid;
 
 private:
     void free_pagetable();
 
     memory::PageDirectory* _pagetable;
     std::unordered_map<i32, BindingDescriptor> _bindings;
-    u32 pid;
     //std::shared_ptr<Process> _parent;
 };
 

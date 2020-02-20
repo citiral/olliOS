@@ -8,6 +8,7 @@
 #define SYSINT_READ 4
 #define SYSINT_EXIT 5
 #define SYSINT_FORK 6
+#define SYSINT_GETPID 7
 
 i32 sysint(u32 eax, u32 ebx, u32 ecx, u32 edx, u32 esi, u32 edi, u32 ebp);
 
@@ -34,10 +35,13 @@ void exit(i32 status) {
     sysint(SYSINT_EXIT, *((u32*)&status), 0, 0, 0, 0, 0);
 }
 
-i32 fork() {
+i32 fork(void) {
     return sysint(SYSINT_FORK, 0, 0, 0, 0, 0, 0);
 }
 
+i32 getpid(void) {
+    return sysint(SYSINT_GETPID, 0, 0, 0, 0, 0, 0);
+}
 
 u8 data[100] = {1, 2, 3};
 
@@ -62,7 +66,7 @@ int main(int argc, char** argv)
     t[1] = '\n';
     t[2] = 0;
     printf("test");
-    t[0] = '0' + pid;
+    t[0] = '0' + getpid();
     printf(t);
 
     return pid;
