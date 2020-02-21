@@ -123,8 +123,9 @@ namespace threading {
         template<class ARG, class... ARGS>
         void initializeArguments(u32 offset, ARG arg, ARGS ... args) {
             // first we place the current argument at the stack on the given offset
-            ARG* target = (ARG*)(_stack + THREAD_STACK_SIZE - offset);
-            *target = std::move(arg);
+            //ARG* target = (ARG*)();
+            new (_stack + THREAD_STACK_SIZE - offset) ARG(arg);
+            //*target = arg;
 
             // then we place the remaining arguments, and return the final offset
             initializeArguments(offset  - stackSizeOfArguments(arg), args...);
@@ -134,9 +135,14 @@ namespace threading {
             return 0;
         }
 
+        template<class ARG>
+        constexpr u32 stackSizeOfArguments(ARG) {
+            return std::roundup(sizeof(ARG),  alignof(ARG));
+        }
+
         template<class ARG, class... ARGS>
         constexpr u32 stackSizeOfArguments(ARG, ARGS ... args) {
-            return std::roundup(sizeof(ARG), 4ul) + stackSizeOfArguments(args...);
+            return std::roundup(sizeof(ARG),  alignof(ARG)) + stackSizeOfArguments(args...);
         }
 
 

@@ -182,9 +182,9 @@ void help(KernelShell* shell, std::vector<std::string>* args)
 
 void run(KernelShell* shell, std::vector<std::string>* args)
 {
-	if (args->size() != 2)
+	if (args->size() < 2)
 	{
-		printf("Usage: load program\n");
+		printf("Usage: load program [args...]\n");
 		return;
 	}
 
@@ -195,14 +195,12 @@ void run(KernelShell* shell, std::vector<std::string>* args)
 	}
 
 	Process* p = new Process();
-	p->init(p, bind);
+	p->init(bind, *args);
 	p->start();
 	p->wait();
 	delete p;
 
-	printf("%d", p->status_code);
-
-	printf("Physical free: %dKB.\n", memory::physicalMemoryManager.countFreePhysicalMemory() * 0x1000 / 1024);
+	printf("%d\n", p->status_code);
 }
 
 void load(KernelShell* shell, std::vector<std::string>* args)

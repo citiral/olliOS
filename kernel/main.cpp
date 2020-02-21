@@ -114,6 +114,30 @@ void cpu_main() {
     }
 }
 
+
+class test {
+public:
+    test(int v): _v(v) {
+        printf("+ test %d\n", _v);
+    }
+
+    test(test& t): _v(t._v) {        
+        printf("+ cp test %d\n", _v);
+    }
+
+    ~test() {
+        printf("- test %d\n", _v);
+    }
+
+    test& operator=(const test& t) {
+        _v = t._v;
+        printf("= test %d\n", _v);
+        return *this;
+    }
+
+    int _v;
+};
+
 extern "C" void main(multiboot_info* multiboot) {
     // init lowlevel CPU related stuff
     // None of these should be allowed to touch the memory allocator, etc

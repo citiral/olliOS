@@ -93,11 +93,18 @@ bool Thread::enter() {
         running_thread[apic::id()] = this;
 
         // If the thread has a process, and it is forking, do that first!
-        if (_process != nullptr && _process->state == ProcessState::Forking) {
-            ((memory::PageDirectory*)memory::kernelPageDirectory.getPhysicalAddress(_process->pagetable()))->use();
-            memory::PageDirectory* clone = _process->pagetable()->deep_clone();
-            ((memory::PageDirectory*)clone->getPhysicalAddress(&memory::kernelPageDirectory))->use();
-            _process->finish_fork(clone);
+        if (_process != nullptr) {
+            if (_process->state == ProcessState::Forking) {
+                ((memory::PageDirectory*)memory::kernelPageDirectory.getPhysicalAddress(_process->pagetable()))->use();
+                memory::PageDirectory* clone = _process->pagetable()->deep_clone();
+                ((memory::PageDirectory*)clone->getPhysicalAddress(&memory::kernelPageDirectory))->use();
+                _process->finish_fork(clone);
+            } else if (_process->state == ProcessState::Execve) {
+                running_thread[apic::id()] = nullptr;
+                _process->finish_execve();
+                STI(eflag);
+                return true;
+            }
         }
 
         // load the thread's pagetable

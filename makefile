@@ -15,7 +15,7 @@ CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O0 -Wall -Wextra -fno-excep
 LDFLAGS = -ffreestanding -O0 -nostdlib -lgcc
 
 MODULES = keyboard shell vga pci ata mbr iso9660 sysint
-APPS = hello_world
+APPS = hello_world echo
 LIBS = libc
 
 KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/*/*.cpp)

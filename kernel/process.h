@@ -18,6 +18,7 @@ enum class ProcessState {
     Running,
     Forking,
     Stopped,
+    Execve,
 };
 
 namespace threading {
@@ -29,13 +30,14 @@ public:
     Process();
     ~Process();
 
-    void init(Process* self, bindings::Binding* file);
+    void init(bindings::Binding* file, std::vector<std::string> args);
     void start();
     void wait();
     
     memory::PageDirectory* pagetable();
 
     void finish_fork(memory::PageDirectory* clone);
+    void finish_execve();
     
     // syscall routines
     i32 open(const char* name, i32 flags, i32 mode);
@@ -44,6 +46,7 @@ public:
     i32 read(i32 file, char* data, i32 len);
     i32 exit(i32 status);
     i32 fork();
+    i32 execve(const char* pathname, char *const *argv, char *const *envp);
 
     UniqueGenerator<i32> _binding_ids;
     i32 status_code;
@@ -57,6 +60,8 @@ private:
 
     memory::PageDirectory* _pagetable;
     std::unordered_map<i32, BindingDescriptor> _bindings;
+    std::vector<std::string> _args;
+    bindings::Binding* _file;
     //std::shared_ptr<Process> _parent;
 };
 

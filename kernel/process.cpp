@@ -6,11 +6,14 @@
 #include "kstd/shared_ptr.h"
 #include "threading/thread.h"
 
+#define MAX_ARGS 128
+#define MAX_ARGS_LENGTH 2048
+
 UniqueGenerator<u32> process_ids(1);
 
 void test_mem();
 
-void load_binding_and_run(bindings::Binding* bind)
+void load_binding_and_run(bindings::Binding* bind, std::vector<std::string>* args)
 {
     // Get the filesize of the bind
 	size_t filesize = bind->get_size();
@@ -41,8 +44,18 @@ void load_binding_and_run(bindings::Binding* bind)
         delete buffer;
     }
 
+    // Copy the arguments on the stack
+    int argdc = 0;
+    char* argv[MAX_ARGS];
+    char argd[MAX_ARGS_LENGTH];
+    for (size_t i = 0 ; i < args->size() ; i++) {
+        argv[i] = argd + argdc;
+        strcpy(argd + argdc, args->at(i).c_str());
+        argdc += args->at(i).length() + 1;
+    }
+
     // Run the entry point of the userspace application
-    i32 status = app_main(110, NULL);
+    i32 status = app_main(args->size(), argv);
 
     // And store the status. Note that if this is a fork'ed process, the this pointer will point to the parent. So we will have to explicitely fetch the current process
     Process* current = threading::currentThread()->process();
@@ -70,8 +83,11 @@ Process::~Process()
     }
 }
 
-void Process::init(Process* self, bindings::Binding* file)
+void Process::init(bindings::Binding* file, std::vector<std::string> args)
 {
+    _args = args;
+    _file = file;
+
     bool eflag = CLI();
 
     // Create a new pagetable for the process
@@ -88,7 +104,7 @@ void Process::init(Process* self, bindings::Binding* file)
 	((memory::PageDirectory*)(current->getPhysicalAddress(_pagetable)))->use();
 
     char* stackStart = (char*) current->bindFirstFreeVirtualPages((char*) 0xC0000000 - THREAD_STACK_SIZE, THREAD_STACK_SIZE / 0x1000);
-    
+
     if (stackStart != (char*)0xbfff0000) {
         printf("corrupt stack\n");
         memory::PageDirectory* current = memory::PageDirectory::current();
@@ -97,7 +113,7 @@ void Process::init(Process* self, bindings::Binding* file)
     }
 
     // And create a thread that will init the process
-    thread = new threading::Thread(this, stackStart, load_binding_and_run, file);
+    thread = new threading::Thread(this, stackStart, load_binding_and_run, _file, &_args);
     ((memory::PageDirectory*)(_pagetable->getPhysicalAddress(current)))->use();
     state = ProcessState::Running;
 
@@ -199,6 +215,21 @@ void Process::finish_fork(memory::PageDirectory* clone)
     threading::scheduler->schedule(child->thread);
 }
 
+void Process::finish_execve()
+{
+    printf("finishing execve");
+    
+    // Destroy old process state
+    /*if (_pagetable) {
+       memory::freePageDirectory(_pagetable);
+    }
+    delete thread;*/
+
+    // Reinitialize process and start
+    init(_file, _args);
+    start();
+}
+
 i32 Process::fork()
 {
     state = ProcessState::Forking;
@@ -209,4 +240,28 @@ i32 Process::fork()
     } else {
         return 0;
     }
+}
+
+i32 Process::execve(const char* pathname, char *const *argv, char *const *envp)
+{
+    bindings::Binding* child =  _file->_parent->get(pathname);
+
+    if (!child) {
+        return -1;
+    }
+
+    state = ProcessState::Execve;
+
+    // Copy the new process arguments to this process
+    _file = child;
+    _args.clear();
+    size_t i = 0;
+    while (argv[i] != nullptr) {
+        _args.push_back(argv[i]);
+        i++;
+    }
+    
+    // TODO copy environment
+    threading::exit();
+    return -2;
 }

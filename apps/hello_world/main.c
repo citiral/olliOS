@@ -9,6 +9,7 @@
 #define SYSINT_EXIT 5
 #define SYSINT_FORK 6
 #define SYSINT_GETPID 7
+#define SYSINT_EXECVE 8
 
 i32 sysint(u32 eax, u32 ebx, u32 ecx, u32 edx, u32 esi, u32 edi, u32 ebp);
 
@@ -43,6 +44,10 @@ i32 getpid(void) {
     return sysint(SYSINT_GETPID, 0, 0, 0, 0, 0, 0);
 }
 
+i32 execve(char *name, char **argv, char **env) {
+  return sysint(SYSINT_EXECVE, (u32)name, (u32)argv, (u32)env, 0, 0, 0);
+}
+
 u8 data[100] = {1, 2, 3};
 
 size_t strlen(const char* str) {
@@ -59,6 +64,19 @@ void printf(char* str) {
 
 int main(int argc, char** argv)
 {
+
+
+    char* path = "echo";
+    char* args[] = {"echo", "test", 0};
+    char** env = NULL;
+
+    return execve(path, args, env);
+
+    for (int i = 0 ; i < argc ; i++) {
+        printf("arg: ");
+        printf(argv[i]);
+        printf("\n");
+    }
 
     fork();
     i32 pid = fork();
@@ -97,15 +115,6 @@ int main(int argc, char** argv)
     close(vga);
 
     
-    /*write(vga, "Hello world!\n", 13);
-
-    for (int i = 0 ; i < 100 ; i++) {
-        char c = '0' + (data[i]);
-        write(vga, &c, 1);
-    }
-    data[4] = 4;
-    
-    close(vga);*/
 
     return i;
 }

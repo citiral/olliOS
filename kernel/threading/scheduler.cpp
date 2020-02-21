@@ -53,9 +53,9 @@ void Scheduler::enter() {
         // if the thread is not finished, schedule it again
         schedule(thread);
     } else {
-        if (thread->process() != nullptr) {
+        /*if (thread->process() != nullptr) {
             // Watch out, the moment this is set to Stopped the thread can get deleted
             thread->process()->state = ProcessState::Stopped;
-        }
+        }*/
     }
 }
