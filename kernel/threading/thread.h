@@ -36,7 +36,7 @@ namespace threading {
     public:
         // initializes a thread were the called function gets passed the given arguments
         template<class ... ARGS>
-        Thread(Process* process, char* stack, void(*entry)(ARGS...), ARGS ... args): _stack(stack), _finished(false), _id(pidGenerator.next()), _blocking(false), _process(process) {
+        Thread(Process* process, char* stack, void(*entry)(ARGS...), ARGS ... args): process(process), _stack(stack), _finished(false), _id(pidGenerator.next()), _blocking(false) {
             // A new thread allocates his own stack, if none is supplied
             _ownsStack = _stack == nullptr;
             if (_stack == nullptr) {
@@ -61,7 +61,7 @@ namespace threading {
 
         // initializes a thread were the called function gets passed the given arguments
         template<class T, class ... ARGS>
-        Thread(Process* process, char* stack, void(T::*entry)(ARGS...), T* c, ARGS ... args): _stack(stack),  _finished(false), _id(pidGenerator.next()), _blocking(false), _process(process) {
+        Thread(Process* process, char* stack, void(T::*entry)(ARGS...), T* c, ARGS ... args): process(process), _stack(stack),  _finished(false), _id(pidGenerator.next()), _blocking(false) {
             // A new thread allocates his own stack
             _ownsStack = _stack == nullptr;
             if (_stack == nullptr) {
@@ -106,14 +106,11 @@ namespace threading {
         bool blocking();
         void setBlocking(bool blocking);
 
-        Process* process();
-
         // Kills the thread by setting finished to true. If the thread is still running, it will only be shut down next time it is scheduled.
         void kill();
 
-
         // Optional process of the thread
-        Process* _process;
+        Process* process;
         
     private:
         void initializeArguments(u32) {

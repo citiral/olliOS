@@ -10,6 +10,7 @@
 #define SYSINT_FORK 6
 #define SYSINT_GETPID 7
 #define SYSINT_EXECVE 8
+#define SYSINT_WAIT 9
 
 i32 sysint(u32 eax, u32 ebx, u32 ecx, u32 edx, u32 esi, u32 edi, u32 ebp);
 
@@ -48,6 +49,10 @@ i32 execve(char *name, char **argv, char **env) {
   return sysint(SYSINT_EXECVE, (u32)name, (u32)argv, (u32)env, 0, 0, 0);
 }
 
+i32 wait(i32 *status) {
+  return sysint(SYSINT_WAIT, (u32)status, 0, 0, 0, 0, 0);
+}
+
 u8 data[100] = {1, 2, 3};
 
 size_t strlen(const char* str) {
@@ -64,13 +69,29 @@ void printf(char* str) {
 
 int main(int argc, char** argv)
 {
-
-
     char* path = "echo";
-    char* args[] = {"echo", "test", 0};
+    char* args[] = {"echo", "test", "123", 0};
     char** env = NULL;
 
-    return execve(path, args, env);
+    int pid = fork();
+    
+    if (pid == 0) {
+        execve(path, args, env);
+    } else {
+        return wait(NULL);
+    }
+
+    return 1;
+
+    if (fork() == 0) {
+        printf("hello child\n");//return execve(path, args, env);
+        return 2;
+    } else {
+        return wait(NULL);
+        //printf("hello world\n");
+        //return 0;
+    }
+
 
     for (int i = 0 ; i < argc ; i++) {
         printf("arg: ");
@@ -79,7 +100,7 @@ int main(int argc, char** argv)
     }
 
     fork();
-    i32 pid = fork();
+    //i32 pid = fork();
     char t[3];
     t[1] = '\n';
     t[2] = 0;

@@ -46,13 +46,12 @@ void printf(char* str) {
 
 int main(int argc, char** argv)
 {
-    return 1;
-    for (int i = 2 ; i < argc ; i++) {
+    for (int i = 1 ; i < argc ; i++) {
         printf(argv[i]);
         printf(" ");
     }
 
     printf("\n");
 
-    return 0;
+    return argc;
 }

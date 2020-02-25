@@ -19,6 +19,7 @@ enum class ProcessState {
     Forking,
     Stopped,
     Execve,
+    PendingDestruction,
 };
 
 namespace threading {
@@ -47,8 +48,8 @@ public:
     i32 exit(i32 status);
     i32 fork();
     i32 execve(const char* pathname, char *const *argv, char *const *envp);
+    i32 wait(i32* status);
 
-    UniqueGenerator<i32> _binding_ids;
     i32 status_code;
     ProcessState state;
     threading::Thread* thread;
@@ -58,6 +59,7 @@ public:
 private:
     void free_pagetable();
 
+    UniqueGenerator<i32> _binding_ids;
     memory::PageDirectory* _pagetable;
     std::unordered_map<i32, BindingDescriptor> _bindings;
     std::vector<std::string> _args;

@@ -34,7 +34,7 @@ namespace memory {
 			firstPage->entries[i].enableFlag(PFLAG_RW | PFLAG_PRESENT | PFLAG_OWNED);
 		}
 
-		// Then we have to allocate kernel pagetables, one for each 4MB of the kernel	
+		// Then we have to allocate kernel pagetables, one for each 4kb of the kernel	
 		for (u32 pos = 0 ; pos < (u32)KERNEL_END_PHYSICAL ; pos += 0x400000) {
 			int i = pos / 0x400000;
 			// again we allocate continueing from currentfree
@@ -66,7 +66,7 @@ namespace memory {
 
 		// and finally we can use the directory
 		((PageDirectory*)(((char*)&kernelPageDirectory) - 0xC0000000))->use();
-
+		
 		// we also make sure a directory is allocated for the kernel (last gb)
 		for (int i = 256*3; i < 256*4; i++) {
 			kernelPageDirectory.allocateEntry(i);
@@ -359,7 +359,6 @@ namespace memory {
 	}
 
 	void PageDirectory::freeEntry(int index) {
-		//printf("index %d\n", index);
 		// if the entry doesn't exist, don't do anything
 		if (!getReadableEntryPointer(index)->getFlag(PFLAG_PRESENT))
 			return;
@@ -510,8 +509,9 @@ namespace memory {
 	void freePageDirectory(PageDirectory* page) {
 		bool eflag = CLI();
 
-		// First we bind the page directory so we can read all of it
 		PageDirectory* current = PageDirectory::current();
+
+		// First we bind the page directory so we can read all of it
 		((PageDirectory*)current->getPhysicalAddress(page))->use();
 
 		// Loop over all entries in the pagetable up to 0xC0000000

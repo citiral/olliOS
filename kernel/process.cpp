@@ -11,8 +11,6 @@
 
 UniqueGenerator<u32> process_ids(1);
 
-void test_mem();
-
 void load_binding_and_run(bindings::Binding* bind, std::vector<std::string>* args)
 {
     // Get the filesize of the bind
@@ -58,11 +56,11 @@ void load_binding_and_run(bindings::Binding* bind, std::vector<std::string>* arg
     i32 status = app_main(args->size(), argv);
 
     // And store the status. Note that if this is a fork'ed process, the this pointer will point to the parent. So we will have to explicitely fetch the current process
-    Process* current = threading::currentThread()->process();
+    Process* current = threading::currentThread()->process;
     current->status_code = status;
 }
 
-Process::Process(): thread(nullptr), _pagetable(nullptr), _binding_ids(1), status_code(-1), pid(process_ids.next()), state(ProcessState::Initing), childs()
+Process::Process(): status_code(-1), state(ProcessState::Initing), thread(nullptr), childs(), pid(process_ids.next()), _binding_ids(1), _pagetable(nullptr)
 {
 }
 
@@ -203,27 +201,29 @@ void Process::finish_fork(memory::PageDirectory* clone)
 {
     state = ProcessState::Running;
     Process* child = new Process;
-    
+
     //child->_parent = this;
     child->_pagetable = clone;
+    child->_file = _file;
+    child->_args = _args;
     child->_bindings = _bindings;
     child->_binding_ids = _binding_ids;
+    child->state = state;
     child->thread = thread->clone();
-    child->thread->_process = child;
+    child->thread->process = child;
     childs.push_back(child);
     
     threading::scheduler->schedule(child->thread);
 }
 
 void Process::finish_execve()
-{
-    printf("finishing execve");
-    
+{    
     // Destroy old process state
-    /*if (_pagetable) {
+    if (_pagetable) {
        memory::freePageDirectory(_pagetable);
     }
-    delete thread;*/
+
+    delete thread;
 
     // Reinitialize process and start
     init(_file, _args);
@@ -235,7 +235,7 @@ i32 Process::fork()
     state = ProcessState::Forking;
     threading::exit();
 
-    if (threading::currentThread()->process()->pid == pid) {
+    if (threading::currentThread()->process->pid == pid) {
         return childs[childs.size() - 1]->pid;
     } else {
         return 0;
@@ -245,7 +245,6 @@ i32 Process::fork()
 i32 Process::execve(const char* pathname, char *const *argv, char *const *envp)
 {
     bindings::Binding* child =  _file->_parent->get(pathname);
-
     if (!child) {
         return -1;
     }
@@ -264,4 +263,24 @@ i32 Process::execve(const char* pathname, char *const *argv, char *const *envp)
     // TODO copy environment
     threading::exit();
     return -2;
+}
+
+i32 Process::wait(i32* status)
+{
+    while (childs.size() > 0) {
+        for (size_t i = 0 ; i < childs.size() ; i++) {
+            if (childs[i]->state == ProcessState::Stopped) {
+                i32 pid = childs[i]->pid;
+                Process* child = childs[i];
+                childs.erase(i);
+                child->state = ProcessState::PendingDestruction;
+                threading::scheduler->schedule(child->thread);
+                return pid;
+            }
+        }
+
+        threading::exit();
+    }
+
+    return -1;
 }

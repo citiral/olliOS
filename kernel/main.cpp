@@ -95,8 +95,7 @@ void initMemory(multiboot_info* multiboot) {
 
     // make sure the memory of the other modules isn't overwritten
     multiboot_module_t *mod = (multiboot_module_t*) multiboot->mods_addr;
-    for (size_t i = 0 ; i < multiboot->mods_count ; i++) {
-        u8* c = (u8*) mod->mod_start;
+    for (multiboot_uint32_t i = 0 ; i < multiboot->mods_count ; i++) {
         memory::physicalMemoryManager.reservePhysicalMemory((void*) mod->mod_start, mod->mod_end - mod->mod_start);
         mod++;
     }
@@ -185,7 +184,7 @@ extern "C" void main(multiboot_info* multiboot) {
     }
     mod++;
 
-    for (int i = 1 ; i < multiboot->mods_count ; i++) {
+    for (multiboot_uint32_t i = 1 ; i < multiboot->mods_count ; i++) {
         printf("loading module %d at 0x%X\n", i, mod->mod_start);
         u8* c = (u8*) mod->mod_start;
         u8* data = new u8[mod->mod_end - mod->mod_start];

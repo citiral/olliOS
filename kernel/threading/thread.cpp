@@ -73,7 +73,7 @@ Thread* Thread::clone() {
     child->_finished = _finished;
     child->_id = pidGenerator.next();
     child->_blocking = _blocking;
-    child->_process = _process;
+    child->process = process;
     child->_ownsStack = _ownsStack;
     child->_stack = _stack;
 
@@ -93,23 +93,29 @@ bool Thread::enter() {
         running_thread[apic::id()] = this;
 
         // If the thread has a process, and it is forking, do that first!
-        if (_process != nullptr) {
-            if (_process->state == ProcessState::Forking) {
-                ((memory::PageDirectory*)memory::kernelPageDirectory.getPhysicalAddress(_process->pagetable()))->use();
-                memory::PageDirectory* clone = _process->pagetable()->deep_clone();
+        if (process != nullptr) {
+            if (process->state == ProcessState::Forking) {
+                ((memory::PageDirectory*)memory::kernelPageDirectory.getPhysicalAddress(process->pagetable()))->use();
+                memory::PageDirectory* clone = process->pagetable()->deep_clone();
                 ((memory::PageDirectory*)clone->getPhysicalAddress(&memory::kernelPageDirectory))->use();
-                _process->finish_fork(clone);
-            } else if (_process->state == ProcessState::Execve) {
+                process->finish_fork(clone);
+            } else if (process->state == ProcessState::Execve) {
                 running_thread[apic::id()] = nullptr;
-                _process->finish_execve();
+                Process* p = process;
+                process = nullptr;
+                p->finish_execve();
+                STI(eflag);
+                return true;
+            } else if (process->state == ProcessState::PendingDestruction) {
+                running_thread[apic::id()] = nullptr;
                 STI(eflag);
                 return true;
             }
         }
 
         // load the thread's pagetable
-        if (_process != nullptr)
-	        ((memory::PageDirectory*)(memory::kernelPageDirectory.getPhysicalAddress(_process->pagetable())))->use();
+        if (process != nullptr)
+	        ((memory::PageDirectory*)(memory::kernelPageDirectory.getPhysicalAddress(process->pagetable())))->use();
 
         // prepare the thread stack for entering
         volatile u32* parent_pointer = parent_stack_pointers + apic::id();
@@ -119,7 +125,7 @@ bool Thread::enter() {
         volatile u32 status = thread_enter(parent_pointer, &esp);
 
         // load the kernel pagetable again
-        if (_process != nullptr)
+        if (process != nullptr)
 	        ((memory::PageDirectory*)(memory::kernelPageDirectory.getPhysicalAddress(&memory::kernelPageDirectory)))->use();
 
         // check if the thread quit because it finished
@@ -150,11 +156,6 @@ bool Thread::blocking() {
 
 void Thread::setBlocking(bool blocking) {
     _blocking = blocking;
-}
-
-Process* Thread::process()
-{
-    return _process;
 }
 
 void Thread::kill() {
