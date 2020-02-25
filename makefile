@@ -11,7 +11,7 @@ OUTPUT=ollios.bin
 ISO=ollios.iso
 
 INCLUDE = -I $(ROOT)usr/include -I $(ROOT)usr/include/libk
-CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O0 -Wall -Wextra -fno-exceptions -fno-rtti $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -nostdlib -fno-threadsafe-statics -Werror=return-type -m32 -mgeneral-regs-only -MD
+CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O0 -Wall -Wextra -fno-exceptions -fno-rtti $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -nostdlib -fno-threadsafe-statics -Werror=return-type -m32 -MD
 LDFLAGS = -ffreestanding -O0 -nostdlib -lgcc
 
 MODULES = keyboard shell vga pci ata mbr iso9660 sysint

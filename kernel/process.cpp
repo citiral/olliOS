@@ -29,12 +29,14 @@ void load_binding_and_run(bindings::Binding* bind, std::vector<std::string>* arg
 		total += read;
 	} while (total != filesize);
 
-    i32 (*app_main)(int, char**) = 0;
+    int (*app_main)(int argc, char** arv, char** environ) = 0;
     {
         // link it
         elf::elf e(buffer, false);
         if (e.link_in_userspace() == 0) {
-            e.get_symbol_value("main", (u32*) &app_main);
+            if (e.get_symbol_value("_start", (u32*) &app_main) != 0) {
+                printf("Failed fetching _start\n");
+            }
         } else {
             printf("failed linking elf\n");
         }
@@ -52,8 +54,11 @@ void load_binding_and_run(bindings::Binding* bind, std::vector<std::string>* arg
         argdc += args->at(i).length() + 1;
     }
 
+    printf("_start is at %x\n", app_main);
+
     // Run the entry point of the userspace application
-    i32 status = app_main(args->size(), argv);
+    i32 status = app_main(args->size(), argv, nullptr);
+    printf("done?\n");
 
     // And store the status. Note that if this is a fork'ed process, the this pointer will point to the parent. So we will have to explicitely fetch the current process
     Process* current = threading::currentThread()->process;
@@ -283,4 +288,9 @@ i32 Process::wait(i32* status)
     }
 
     return -1;
+}
+
+i32 Process::isatty(i32 file)
+{
+    return 1;
 }

@@ -17,6 +17,7 @@ extern "C" void sysint_handler(void);
 #define SYSINT_GETPID 7
 #define SYSINT_EXECVE 8
 #define SYSINT_WAIT 9
+#define SYSINT_ISATTY 10
 
 
 extern "C" i32 sysint_handler_c(u32 eax, u32 ebx, u32 ecx, u32 edx, u32 esi, u32 edi, u32 ebp) {
@@ -39,6 +40,8 @@ extern "C" i32 sysint_handler_c(u32 eax, u32 ebx, u32 ecx, u32 edx, u32 esi, u32
         return threading::currentThread()->process->execve(reinterpret_cast<const char*>(ebx), reinterpret_cast<char *const *>(ecx), reinterpret_cast<char *const *>(edx));
     } else if (eax == SYSINT_WAIT) {
         return threading::currentThread()->process->wait(reinterpret_cast<i32*>(ebx));
+    } else if (eax == SYSINT_ISATTY) {
+        return threading::currentThread()->process->isatty(reinterpret_cast<i32&>(ebx));
     }
 
     return -1;

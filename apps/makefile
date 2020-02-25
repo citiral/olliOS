@@ -9,9 +9,9 @@ ROOT = ../root/
 BUILD = ../build/
 OUTDIR = $(BUILD)program/$(APP)/
 
-INCLUDE = -I $(ROOT)usr/include -I $(ROOT)usr/include/libk
-CCFLAGS = -D__is_kernel -ffreestanding -O0 -Wall -Wextra -fno-exceptions $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -Werror=return-type -m32 -mgeneral-regs-only -MD
-LDFLAGS =  -std=gnu++11 -Wall -Wextra -nostdlib -m32 -L$(ROOT)usr/lib -lc -Xlinker '--require-defined=_start'
+INCLUDE = -I $(ROOT)include -I $(ROOT)usr/include/libk
+CCFLAGS = -D__is_kernel -O0 -Wall -Wextra -fno-exceptions $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -Werror=return-type -m32 -mgeneral-regs-only -MD --sysroot=$(ROOT)
+LDFLAGS =  -std=gnu++11 -Wall -Wextra -m32 -L$(ROOT)lib --sysroot=$(ROOT)
 
 
 APP_CPP = $(wildcard $(APP)/*.cpp)

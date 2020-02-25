@@ -1,6 +1,6 @@
 //#include "libc/libc.h"
-#include "types.h"
 #include <string.h>
+#include <unistd.h>
 
 #define SYSINT_OPEN 1
 #define SYSINT_CLOSE 2
@@ -11,7 +11,7 @@
 #define SYSINT_GETPID 7
 #define SYSINT_EXECVE 8
 #define SYSINT_WAIT 9
-
+/*
 i32 sysint(u32 eax, u32 ebx, u32 ecx, u32 edx, u32 esi, u32 edi, u32 ebp);
 
 i32 open(const char* name, i32 flags, i32 mode)
@@ -51,28 +51,33 @@ i32 execve(char *name, char **argv, char **env) {
 
 i32 wait(i32 *status) {
   return sysint(SYSINT_WAIT, (u32)status, 0, 0, 0, 0, 0);
-}
-
+}*/
+/*
 u8 data[100] = {1, 2, 3};
 
 size_t strlen(const char* str) {
     u32 l = 0;
     while (*(str++)) l++;
     return l;
-}
-
+} 
+ 
 void printf(char* str) {
     i32 file = open("sys/vga", 0, 0);
     write(file, str, strlen(str));
     close(file);
-}
+}*/
 
 int main(int argc, char** argv)
-{
+{ 
+    _exit();
+    
+    return _exit;
+/*
     char* path = "echo";
     char* args[] = {"echo", "test", "123", 0};
     char** env = NULL;
-
+ 
+    
     int pid = fork();
     
     if (pid == 0) {
@@ -137,5 +142,5 @@ int main(int argc, char** argv)
 
     
 
-    return i;
+    return i;*/
 }
