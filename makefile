@@ -16,7 +16,6 @@ LDFLAGS = -ffreestanding -O0 -nostdlib -lgcc
 
 MODULES = keyboard shell vga pci ata mbr iso9660 sysint
 APPS = hello_world echo
-LIBS = libc
 
 KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/*/*.cpp)
 KERNEL_C = $(wildcard kernel/libk/*/*.c)
@@ -33,12 +32,12 @@ CRTEND_OBJ:=$(shell $(CC) $(CCFLAGS) -print-file-name=crtend.o)
 OBJECTS = $(addprefix $(BUILD), $(filter-out crti.o crtn.o, $(notdir $(KERNEL_CPP:.cpp=.o)) $(notdir $(KERNEL_C:.c=.o)) $(notdir $(KERNEL_ASM:.s=.o))  $(notdir $(KERNEL_NASM:.asm=.o))))
 DEPS = $(OBJECTS:.o=.d)
 
-.PHONY: all compile-kernel clean dir install install-headers $(MODULES) $(LIBS) $(APPS)
+.PHONY: all newlib install-newlib compile-kernel clean dir install install-headers $(MODULES) $(LIBS) $(APPS)
 
-all: dir install-headers $(BUILD)$(OUTPUT) $(MODULES) $(LIBS) $(APPS) $(ISO)
+all: dir install-newlib install-headers $(BUILD)$(OUTPUT) $(MODULES) $(LIBS) $(APPS) $(ISO)
 
 -include $(DEPS)
-	
+
 dir: $(BUILD) $(ROOT) $(ROOT)boot $(ROOT)boot/grub $(ROOT)usr $(ROOT)usr/bin $(ROOT)usr/include $(ROOT)usr/lib
 
 $(BUILD):
@@ -135,6 +134,12 @@ $(LIBS):
 $(ROOT)boot/%.so: $(BUILD)%.so
 	cp $^ $@
 
+# newlib
+newlib:
+	bash -c "cd newlib/build; ./build.sh"
+
+install-newlib: dir
+	cp newlib/build/out/i686-ollios/* $(ROOT) -r
 
 # run an emulator
 qemu: all

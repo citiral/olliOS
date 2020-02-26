@@ -1,6 +1,6 @@
 //#include "libc/libc.h"
-#include "types.h"
 #include <string.h>
+#include <stdio.h>
 
 #define SYSINT_OPEN 1
 #define SYSINT_CLOSE 2
@@ -37,15 +37,16 @@ size_t strlen(const char* str) {
     while (*(str++)) l++;
     return l;
 }*/
-
+/*
 void printf(char* str) {
     i32 file = open("sys/vga", 0, 0);
     write(file, str, strlen(str));
     close(file);
-}
+}*/
 
 int main(int argc, char** argv)
 {
+    
     for (int i = 1 ; i < argc ; i++) {
         printf(argv[i]);
         printf(" ");

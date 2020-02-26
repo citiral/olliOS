@@ -1,6 +1,8 @@
 //#include "libc/libc.h"
 #include <string.h>
 #include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 #define SYSINT_OPEN 1
 #define SYSINT_CLOSE 2
@@ -67,11 +69,13 @@ void printf(char* str) {
     close(file);
 }*/
 
+
 int main(int argc, char** argv)
-{ 
-    _exit();
-    
-    return _exit;
+{
+    FILE* test = open("/sys/vga", "r");
+    write(test, "abc", 3);
+    close(test);
+    return getpid();
 /*
     char* path = "echo";
     char* args[] = {"echo", "test", "123", 0};

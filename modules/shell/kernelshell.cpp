@@ -201,7 +201,7 @@ void run(KernelShell* shell, std::vector<std::string>* args)
 
 		delete p;
 
-		printf("%X\n", p->status_code);
+		printf("%d\n", p->status_code);
 		printf("Free physical memory: %dKB\n", memory::physicalMemoryManager.countFreePhysicalMemory() * 4);
 	//}
 }
