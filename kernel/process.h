@@ -50,6 +50,7 @@ public:
     i32 execve(const char* pathname, char *const *argv, char *const *envp);
     i32 wait(i32* status);
     i32 isatty(i32 file);
+    i32 lseek(i32 file, i32 ptr, i32 dir);
 
     i32 status_code;
     ProcessState state;

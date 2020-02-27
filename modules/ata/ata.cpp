@@ -190,7 +190,7 @@ bool AtaDriver::waitForDataOrError(u16 p) {
 
 void AtaDriver::waitForInterrupt(u16 p) {
     while (_interrupted == false) {
-        //threading::exit();
+        threading::exit();
     }
     _interrupted = false;
 

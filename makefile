@@ -10,12 +10,12 @@ ROOT = root/
 OUTPUT=ollios.bin
 ISO=ollios.iso
 
-INCLUDE = -I $(ROOT)usr/include -I $(ROOT)usr/include/libk
+INCLUDE = -I $(ROOT)usr/include -I $(ROOT)include -I $(ROOT)usr/include/libk
 CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O0 -Wall -Wextra -fno-exceptions -fno-rtti $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -nostdlib -fno-threadsafe-statics -Werror=return-type -m32 -MD
 LDFLAGS = -ffreestanding -O0 -nostdlib -lgcc
 
 MODULES = keyboard shell vga pci ata mbr iso9660 sysint
-APPS = hello_world echo
+APPS = hello_world echo cat
 
 KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/*/*.cpp)
 KERNEL_C = $(wildcard kernel/libk/*/*.c)
@@ -32,9 +32,9 @@ CRTEND_OBJ:=$(shell $(CC) $(CCFLAGS) -print-file-name=crtend.o)
 OBJECTS = $(addprefix $(BUILD), $(filter-out crti.o crtn.o, $(notdir $(KERNEL_CPP:.cpp=.o)) $(notdir $(KERNEL_C:.c=.o)) $(notdir $(KERNEL_ASM:.s=.o))  $(notdir $(KERNEL_NASM:.asm=.o))))
 DEPS = $(OBJECTS:.o=.d)
 
-.PHONY: all newlib install-newlib compile-kernel clean dir install install-headers $(MODULES) $(LIBS) $(APPS)
+.PHONY: all newlib compile-kernel clean dir install install-headers $(MODULES) $(LIBS) $(APPS)
 
-all: dir install-newlib install-headers $(BUILD)$(OUTPUT) $(MODULES) $(LIBS) $(APPS) $(ISO)
+all: dir install-headers $(BUILD)$(OUTPUT) $(MODULES) $(LIBS) $(APPS) $(ISO)
 
 -include $(DEPS)
 
@@ -137,8 +137,6 @@ $(ROOT)boot/%.so: $(BUILD)%.so
 # newlib
 newlib:
 	bash -c "cd newlib/build; ./build.sh"
-
-install-newlib: dir
 	cp newlib/build/out/i686-ollios/* $(ROOT) -r
 
 # run an emulator

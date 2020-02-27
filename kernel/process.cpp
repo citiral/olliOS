@@ -5,6 +5,9 @@
 #include "threading/scheduler.h"
 #include "kstd/shared_ptr.h"
 #include "threading/thread.h"
+extern "C" {
+    #include <sys/types.h>
+}
 
 #define MAX_ARGS 128
 #define MAX_ARGS_LENGTH 2048
@@ -183,7 +186,7 @@ i32 Process::read(i32 file, char* data, i32 len)
     size_t status = desc.binding->read(data, len, desc.offset);
     desc.offset += status;
 
-    return 0;
+    return status;
 }
 
 i32 Process::exit(i32 status)
@@ -286,4 +289,23 @@ i32 Process::wait(i32* status)
 i32 Process::isatty(i32 file)
 {
     return 1;
+}
+
+i32 Process::lseek(i32 file, i32 ptr, i32 dir)
+{
+    if (_bindings.count(file) == 0) {
+        return -1;
+    }
+
+    BindingDescriptor& desc = _bindings[file];
+    
+    if (dir == SEEK_SET) {
+        desc.offset = ptr;
+    } else if (dir == SEEK_CUR) {
+        desc.offset += ptr;
+    } else if (dir == SEEK_END) {
+        desc.offset = desc.binding->get_size() + ptr;
+    }
+
+    return desc.offset;
 }
