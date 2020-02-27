@@ -51,6 +51,7 @@ public:
     i32 wait(i32* status);
     i32 isatty(i32 file);
     i32 lseek(i32 file, i32 ptr, i32 dir);
+    i32 fstat(i32 file, struct stat* st);
 
     i32 status_code;
     ProcessState state;

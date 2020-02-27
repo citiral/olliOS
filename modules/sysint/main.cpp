@@ -19,8 +19,15 @@ extern "C" void sysint_handler(void);
 #define SYSINT_WAIT 9
 #define SYSINT_ISATTY 10
 #define SYSINT_LSEEK 11
+#define SYSINT_FSTAT 12
+
+const char* sysint_names[] = {
+    "", "open", "close", "write", "read", "exit", "fork", "getpid", "execve", "wait", "isatty", "lseek", "fstat"
+};
 
 extern "C" i32 sysint_handler_c(u32 eax, u32 ebx, u32 ecx, u32 edx, u32 esi, u32 edi, u32 ebp) {
+    printf("SYS: [%s]\n", sysint_names[eax]);
+
     //printf("sysint: %d %d %d %d %d %d\n", eax, ebx, ecx, edx, esi, edi, ebp);
     if (eax == SYSINT_OPEN) {
         return threading::currentThread()->process->open(reinterpret_cast<const char*>(ebx), reinterpret_cast<i32&>(ecx), reinterpret_cast<i32&>(edx));
@@ -44,6 +51,8 @@ extern "C" i32 sysint_handler_c(u32 eax, u32 ebx, u32 ecx, u32 edx, u32 esi, u32
         return threading::currentThread()->process->isatty(reinterpret_cast<i32&>(ebx));
     } else if (eax == SYSINT_LSEEK) {
         return threading::currentThread()->process->lseek(reinterpret_cast<i32&>(ebx), reinterpret_cast<i32&>(ecx), reinterpret_cast<i32&>(edx));
+    } else if (eax == SYSINT_FSTAT) {
+        return threading::currentThread()->process->fstat(reinterpret_cast<i32&>(ebx),reinterpret_cast<struct stat*>(ebx));
     }
 
     return -1;

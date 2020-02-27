@@ -309,3 +309,10 @@ i32 Process::lseek(i32 file, i32 ptr, i32 dir)
 
     return desc.offset;
 }
+
+i32 Process::fstat(i32 file, struct stat* st)
+{
+    printf("fstat\n");
+
+    return -1;
+}
