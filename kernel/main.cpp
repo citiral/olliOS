@@ -22,7 +22,11 @@
 #include "elf/symbolmap.h"
 #include "elf/elf.h"
 
+#include "vga/vga.h"
+
 #include "bindings.h"
+
+VgaDriver* vgaDriver;
 
 extern void *__realmode_lma_start;
 extern void *__realmode_lma_end;
@@ -157,7 +161,7 @@ extern "C" void main(multiboot_info* multiboot) {
     /* Copy a DWORD at a time from source to destination */
     while (src_addr < src_end)
         *dst_addr++ = *src_addr++;
-    
+
     acpi::init();
 
     //set up pre-emptive multithreading
@@ -171,6 +175,14 @@ extern "C" void main(multiboot_info* multiboot) {
     printf("elf: %d\n", multiboot->u.elf_sec.size);
     symbolMap = new SymbolMap((const char*) mod->mod_start);
     printf("symbol map build.\n");
+
+    
+    vgaDriver = new VgaDriver();
+    bindings::root->get("sys")->add((new bindings::OwnedBinding("vga"))->on_write([](bindings::OwnedBinding* vga, size_t size, const void* data){
+        (void) vga;
+        vgaDriver->write(data, size);
+        return true;
+    }));
 
     // if APIC is supported, switch to it and enable multicore
     cpuid_field features = cpuid(1);

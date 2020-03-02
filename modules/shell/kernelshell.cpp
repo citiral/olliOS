@@ -182,17 +182,22 @@ void help(KernelShell* shell, std::vector<std::string>* args)
 
 void run(KernelShell* shell, std::vector<std::string>* args)
 {
+    printf("starting process\n");
 	if (args->size() < 2)
 	{
 		printf("Usage: load program [args...]\n");
 		return;
 	}
 
+    printf("Getting file: %x\n", shell->working_directory);
 	bindings::Binding* bind = shell->working_directory->get(args->at(1).c_str());
+    printf("Got file\n");
+
 	if (bind == NULL) {
 		printf("Invalid path: %s\n");
 		return;
 	}
+
 	//while (1) {
 		Process* p = new Process();
 		p->init(bind, *args);

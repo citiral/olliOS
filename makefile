@@ -10,11 +10,11 @@ ROOT = root/
 OUTPUT=ollios.bin
 ISO=ollios.iso
 
-INCLUDE = -I $(ROOT)usr/include -I $(ROOT)include -I $(ROOT)usr/include/libk
-CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O0 -Wall -Wextra -fno-exceptions -fno-rtti $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -nostdlib -fno-threadsafe-statics -Werror=return-type -m32 -MD
-LDFLAGS = -ffreestanding -O0 -nostdlib -lgcc
+INCLUDE = -I $(ROOT)usr/include -I $(ROOT)usr/include/libk -I $(ROOT)include
+CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O1 -Wall -Wextra -fno-exceptions -fno-rtti $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -nostdlib -fno-threadsafe-statics -Werror=return-type -m32 -MD
+LDFLAGS = -ffreestanding -O1 -nostdlib -lgcc
 
-MODULES = keyboard shell vga pci ata mbr iso9660 sysint
+MODULES = keyboard shell pci ata mbr iso9660 sysint
 APPS = hello_world echo cat
 
 KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/*/*.cpp)

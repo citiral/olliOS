@@ -54,7 +54,8 @@ namespace apic {
 
         // We remap the PIC , so they don't overlap with our PICs, which will replace them
         mapPics(0xE9, 0xF7);
-
+        
+ 
         // Then we disable the PIC by masking all IRQs
         outb(SLAVE_DATA, 0xFF);
         outb(MASTER_DATA, 0xFF);
@@ -67,7 +68,6 @@ namespace apic {
         registers[APIC_LAPIC_TIMER_REGISTER] = 1<<16;
         registers[APIC_LINT0_REGISTER] = 0;
         registers[APIC_LINT1_REGISTER] = 0;
-
         MADT* madt = (MADT*)findHeader("APIC");
         if (madt == nullptr) {
             LOG_ERROR("No MADT Header found.");
@@ -76,7 +76,6 @@ namespace apic {
             outb(MASTER_DATA, 0);
             mapPics(0x20, 0x28);
         }
-
         // Then we iterate over each entry in the madt table
         MADTEntryHeader* entry = &madt->firstEntry;
         while ((u32)entry < (u32)madt + madt->header.Length) {

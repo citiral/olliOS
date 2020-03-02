@@ -5,7 +5,6 @@ title   Ollios
 kernel  /boot/ollios.bin
 module /boot/ollios.sym
 module /boot/keyboard.so
-module /boot/vga.so
 module /boot/sysint.so
 module /boot/ata.so
 module /boot/pci.so

@@ -81,7 +81,6 @@ size_t AtaPacketDevice::read(void* data, size_t amount, size_t offset) {
 
     // now lets send the commands
     outsw(_port+PORT_DATA, commands, 6);
-
     // wait until the device is ready
     //driver.waitForInterrupt(_port);
     driver.waitForBusy(_port);

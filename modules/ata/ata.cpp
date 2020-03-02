@@ -41,9 +41,8 @@ void AtaDriver::initialize(Binding* pci) {
 	_interrupted = false;
 
     pci->enumerate([](Binding* pci, Binding* device) {
-
-        u32 dev_class = device->get("class")->read<u32>();
-        u32 dev_subclass = device->get("subclass")->read<u32>();
+        u32 dev_class = device->get("class")->read<u8>();
+        u32 dev_subclass = device->get("subclass")->read<u8>();
 
         if (dev_class == 1 && dev_subclass == 1) {
 
@@ -130,10 +129,10 @@ AtaDevice* AtaDriver::detectDevice(u16 p, int device) {
 
     // wait until the drive is ready
     waitForInterrupt(p);
-    /*waitForBusy();
+    waitForBusy(p);
 
     // if the drive is about to send an error, fail the detection
-    if (waitForDataOrError() == 0) {
+    /*if (waitForDataOrError() == 0) {
         return nullptr;
     }*/
 

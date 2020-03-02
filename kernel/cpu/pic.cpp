@@ -57,43 +57,43 @@ void disableIrq(u8 irq)
 }
 
 void mapPics(u8 masterOffset, u8 slaveOffset)
-{
+{ 
+	return;
 	//first get the old maps
 	u8 a1 = inb(MASTER_DATA);
-        for (volatile int i = 0 ; i < 100000 ; i++);
+        ///for (volatile int i = 0 ; i < 100000 ; i++);
 	u8 a2 = inb(SLAVE_DATA);
-        for (volatile int i = 0 ; i < 100000 ; i++);
-
+        ///for (volatile int i = 0 ; i < 100000 ; i++);
 	//begin the initialisation
 	outb(MASTER_COMMAND, INIT);
-        for (volatile int i = 0 ; i < 100000 ; i++);
+        ///for (volatile int i = 0 ; i < 100000 ; i++);
 	outb(SLAVE_COMMAND, INIT);
-        for (volatile int i = 0 ; i < 100000 ; i++);
-
+        ///for (volatile int i = 0 ; i < 100000 ; i++);
+ 
 	//send the offsets
 	outb(MASTER_DATA, masterOffset);
-        for (volatile int i = 0 ; i < 100000 ; i++);
+        ///for (volatile int i = 0 ; i < 100000 ; i++);
 	outb(SLAVE_DATA, slaveOffset);
-        for (volatile int i = 0 ; i < 100000 ; i++);
+        ///for (volatile int i = 0 ; i < 100000 ; i++);
 
 	//tell master it has a slave at iRQ2 (00000100)
 	outb(MASTER_DATA, 4);
-        for (volatile int i = 0 ; i < 100000 ; i++);
+        ///for (volatile int i = 0 ; i < 100000 ; i++);
 	//tell slave the cascade identity(??)
 	outb(SLAVE_DATA, 2);
-        for (volatile int i = 0 ; i < 100000 ; i++);
+        ///for (volatile int i = 0 ; i < 100000 ; i++);
 
 	//and tell them they must operate in 8086 mode
 	outb(MASTER_DATA, ICW4_8086);
-        for (volatile int i = 0 ; i < 100000 ; i++);
+        ///for (volatile int i = 0 ; i < 100000 ; i++);
 	outb(SLAVE_DATA, ICW4_8086);
-        for (volatile int i = 0 ; i < 100000 ; i++);
+        ///for (volatile int i = 0 ; i < 100000 ; i++);
 
 	//and restore the old masks
 	outb(MASTER_DATA, a1);
-        for (volatile int i = 0 ; i < 100000 ; i++);
+        ///for (volatile int i = 0 ; i < 100000 ; i++);
 	outb(SLAVE_DATA, a2);
-        for (volatile int i = 0 ; i < 100000 ; i++);
+        ///for (volatile int i = 0 ; i < 100000 ; i++);
 }
 //initializes the pic and allows all interrupts
 //this also remaps the the pic so it doesn't conflict with intel reserved interrupts
