@@ -32,6 +32,7 @@ void load_binding_and_run(bindings::Binding* bind, std::vector<std::string>* arg
 		total += read;
 	} while (total != filesize);
 
+
     void (*app_entry)(int argc, char** arv, char** environ) = 0;
     {
         // link it
@@ -43,6 +44,9 @@ void load_binding_and_run(bindings::Binding* bind, std::vector<std::string>* arg
         } else {
             printf("failed linking elf\n");
         }
+
+        threading::currentThread()->process->set_program_break((char*) e.get_program_break());
+        printf("break at %X\n", e.get_program_break());
 
         delete buffer;
     }
@@ -56,6 +60,10 @@ void load_binding_and_run(bindings::Binding* bind, std::vector<std::string>* arg
         strcpy(argd + argdc, args->at(i).c_str());
         argdc += args->at(i).length() + 1;
     }
+
+    threading::currentThread()->process->open("/sys/vga", 0, 0);
+    threading::currentThread()->process->open("/sys/vga", 0, 0);
+    threading::currentThread()->process->open("/sys/vga", 0, 0);
 
     // Run the entry point of the userspace application
     app_entry(args->size(), argv, nullptr);
@@ -136,6 +144,11 @@ memory::PageDirectory* Process::pagetable()
     return _pagetable;
 }
 
+void Process::set_program_break(char* program_break)
+{
+    _program_break = program_break;
+}
+
 i32 Process::open(const char* name, i32 flags, i32 mode)
 {
     bindings::Binding* f = bindings::root->get(name);
@@ -173,7 +186,7 @@ i32 Process::write(i32 file, char* data, i32 len)
     BindingDescriptor& desc = _bindings[file];
     desc.binding->write(data, len);
 
-    return 0;
+    return len;
 }
 
 i32 Process::read(i32 file, char* data, i32 len)
@@ -315,4 +328,20 @@ i32 Process::fstat(i32 file, struct stat* st)
     printf("fstat\n");
 
     return -1;
+}
+
+void* Process::sbrk(i32 inc)
+{
+    char* cur_brk = _program_break;
+    char* new_brk = _program_break + inc;
+
+    size_t cur_brk_page = (u32)cur_brk / 0x1000;
+    size_t new_brk_page = (u32)new_brk / 0x1000;
+
+    for (size_t i = cur_brk_page ; i < new_brk_page ; i++) {
+        memory::PageDirectory::current()->bindVirtualPage((void*)(i * 0x1000));
+    }
+
+    _program_break = new_brk;
+    return cur_brk;
 }

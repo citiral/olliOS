@@ -36,9 +36,11 @@ public:
     void wait();
     
     memory::PageDirectory* pagetable();
+    void set_program_break(char* program_break);
 
     void finish_fork(memory::PageDirectory* clone);
     void finish_execve();
+
     
     // syscall routines
     i32 open(const char* name, i32 flags, i32 mode);
@@ -52,6 +54,7 @@ public:
     i32 isatty(i32 file);
     i32 lseek(i32 file, i32 ptr, i32 dir);
     i32 fstat(i32 file, struct stat* st);
+    void* sbrk(i32 inc);
 
     i32 status_code;
     ProcessState state;
@@ -67,6 +70,7 @@ private:
     std::unordered_map<i32, BindingDescriptor> _bindings;
     std::vector<std::string> _args;
     bindings::Binding* _file;
+    char* _program_break;
     //std::shared_ptr<Process> _parent;
 };
 

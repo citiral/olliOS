@@ -8,27 +8,31 @@ using namespace bindings;
 
 extern "C" void sysint_handler(void);
 
-#define SYSINT_OPEN 1
-#define SYSINT_CLOSE 2
-#define SYSINT_WRITE 3
-#define SYSINT_READ 4
-#define SYSINT_EXIT 5
-#define SYSINT_FORK 6
+#define SYSINT_OPEN   1
+#define SYSINT_CLOSE  2
+#define SYSINT_WRITE  3
+#define SYSINT_READ   4
+#define SYSINT_EXIT   5
+#define SYSINT_FORK   6
 #define SYSINT_GETPID 7
 #define SYSINT_EXECVE 8
-#define SYSINT_WAIT 9
+#define SYSINT_WAIT   9
 #define SYSINT_ISATTY 10
-#define SYSINT_LSEEK 11
-#define SYSINT_FSTAT 12
+#define SYSINT_LSEEK  11
+#define SYSINT_FSTAT  12
+#define SYSINT_KILL   13
+#define SYSINT_LINK   14
+#define SYSINT_SBRK   15
+#define SYSINT_TIMES  16
+#define SYSINT_UNLINK 17
 
 const char* sysint_names[] = {
-    "", "open", "close", "write", "read", "exit", "fork", "getpid", "execve", "wait", "isatty", "lseek", "fstat"
+    "", "open", "close", "write", "read", "exit", "fork", "getpid", "execve", "wait", "isatty", "lseek", "fstat", "kill", "link", "sbrk", "times", "link"
 };
 
 extern "C" i32 sysint_handler_c(u32 eax, u32 ebx, u32 ecx, u32 edx, u32 esi, u32 edi, u32 ebp) {
-    printf("SYS: [%s]\n", sysint_names[eax]);
+    //printf("SYS: [%s]: %x %x %x %x %x %x\n", sysint_names[eax], ebx, ecx, edx, esi, edi, ebp);
 
-    //printf("sysint: %d %d %d %d %d %d\n", eax, ebx, ecx, edx, esi, edi, ebp);
     if (eax == SYSINT_OPEN) {
         return threading::currentThread()->process->open(reinterpret_cast<const char*>(ebx), reinterpret_cast<i32&>(ecx), reinterpret_cast<i32&>(edx));
     } else if (eax == SYSINT_CLOSE) {
@@ -53,6 +57,9 @@ extern "C" i32 sysint_handler_c(u32 eax, u32 ebx, u32 ecx, u32 edx, u32 esi, u32
         return threading::currentThread()->process->lseek(reinterpret_cast<i32&>(ebx), reinterpret_cast<i32&>(ecx), reinterpret_cast<i32&>(edx));
     } else if (eax == SYSINT_FSTAT) {
         return threading::currentThread()->process->fstat(reinterpret_cast<i32&>(ebx),reinterpret_cast<struct stat*>(ebx));
+    } else if (eax == SYSINT_SBRK) {
+        void* result = threading::currentThread()->process->sbrk(reinterpret_cast<i32&>(ebx));
+        return reinterpret_cast<i32&>(result);
     }
 
     return -1;

@@ -123,7 +123,7 @@ namespace memory {
 
 	void initializePaging();
 	void enablePaging();
-	void eisablePaging();
+	void disablePaging();
 	void enablePSE();
 	void disablePSE();
 

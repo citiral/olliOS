@@ -157,7 +157,7 @@ int elf::relocate_section(section_header* section, SymbolMap& map, u32* got)
     for (size_t i = 0 ; i < section->size / sizeof(elf_rel) ; i += 1) {
         //printf("relocating.. %d\n", i);
         if (relocate_entry(section, relocation[i], map, got) != 0) {
-            printf("FAILED relocating.. %d\n", i);
+            printf("FAILED relocating.. %lu\n", i);
             return -1;
         }
     }
@@ -238,7 +238,7 @@ int elf::link_in_userspace()
                 page_count = page_count + 1;
 
             for (size_t i = 0 ; i < page_count ; i++) {
-                memory::PageDirectory::current()->bindVirtualPage(header->virtual_address + i * 4096);
+                memory::PageDirectory::current()->bindVirtualPage((char*)header->virtual_address + i * 4096);
             }
 
             // And copy the contents of the file into memory
@@ -280,6 +280,21 @@ int elf::get_symbol_value(const char* name, u32* out)
     }
     
     return -1;
+}
+
+void* elf::get_program_break()
+{
+    void* brk = 0;
+
+    for (int i = 0 ; i < _header->section_header_table_entries ; i++) {
+        section_header* section = get_section_header(i);
+        void* section_break = (char*)section->virtual_address + section->size;
+        if (section_break > brk) {
+            brk = section_break;
+        }
+    }
+
+    return brk;
 }
 
 

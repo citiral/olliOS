@@ -51,7 +51,7 @@ size_t AtaPacketDevice::read(void* data, size_t amount, size_t offset) {
 
     //driver.waitForInterrupt(_port);
     driver.waitForBusy(_port);
-    //driver.waitForDataOrError(_port);
+    driver.waitForDataOrError(_port);
 
     // generate the commands we are going to send
     unsigned char commands[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -83,7 +83,7 @@ size_t AtaPacketDevice::read(void* data, size_t amount, size_t offset) {
     outsw(_port+PORT_DATA, commands, 6);
 
     // wait until the device is ready
-    driver.waitForInterrupt(_port);
+    //driver.waitForInterrupt(_port);
     driver.waitForBusy(_port);
     //driver.waitForInterrupt(_port);
 

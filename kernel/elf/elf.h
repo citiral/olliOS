@@ -129,6 +129,8 @@ public:
     int link_in_userspace();
 
     int get_symbol_value(const char* name, u32* out);
+
+    void* get_program_break();
     
 private:
     section_header* get_section_header(u32 header_index);

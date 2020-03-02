@@ -88,7 +88,7 @@ void initMemory(multiboot_info* multiboot) {
             // and let the physical memory manager know that memory is free.
             // we have to round it up the the nearest page though
             u32 offset = (0x1000 - (u32)addr % 0x1000);
-            LOG_INFO("reserving %X bytes starting at %X.", length - offset, (size_t) addr + offset);
+            LOG_INFO("reserving %lX bytes starting at %lX.", length - offset, (size_t) addr + offset);
             memory::physicalMemoryManager.registerAvailableMemory((void*) ((size_t) addr + offset), length - offset);
         }
     }
