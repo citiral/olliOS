@@ -46,7 +46,7 @@ namespace acpi {
         MADTEntryHeader header;
         uint8_t apicId;
         uint8_t reserved;
-        uint32_t* apicAddress;
+        volatile uint32_t* apicAddress;
         uint32_t globalBase;
     } __attribute__ ((packed));
         

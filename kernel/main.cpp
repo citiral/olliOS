@@ -26,7 +26,7 @@
 
 #include "bindings.h"
 
-VgaDriver* vgaDriver;
+VgaDriver* vgaDriver = nullptr;
 
 extern void *__realmode_lma_start;
 extern void *__realmode_lma_end;

@@ -54,8 +54,7 @@ namespace apic {
 
         // We remap the PIC , so they don't overlap with our PICs, which will replace them
         mapPics(0xE9, 0xF7);
-        
- 
+
         // Then we disable the PIC by masking all IRQs
         outb(SLAVE_DATA, 0xFF);
         outb(MASTER_DATA, 0xFF);
@@ -87,11 +86,11 @@ namespace apic {
                 LOG_INFO("found IO APIC %d", ((MADTIoEntry*)entry)->apicId);
                 ioApics.push_back(ioentry);
                 // We also make sure that the registers are addressable
-                if (memory::kernelPageDirectory.getVirtualAddress(ioentry->apicAddress) != 0) {
-                    ioentry->apicAddress = (uint32_t*)memory::kernelPageDirectory.getVirtualAddress(ioentry->apicAddress);
+                if (memory::kernelPageDirectory.getVirtualAddress((void*) ioentry->apicAddress) != 0) {
+                    ioentry->apicAddress = (uint32_t*)memory::kernelPageDirectory.getVirtualAddress((void*) ioentry->apicAddress);
                 } else {
-                    memory::physicalMemoryManager.reservePhysicalMemory(ioentry->apicAddress, 8);
-                    ioentry->apicAddress = (uint32_t*)memory::kernelPageDirectory.bindPhysicalPage(ioentry->apicAddress, KERNEL_END_VIRTUAL);
+                    memory::physicalMemoryManager.reservePhysicalMemory((void*) ioentry->apicAddress, 8);
+                    ioentry->apicAddress = (uint32_t*)memory::kernelPageDirectory.bindPhysicalPage((void*) ioentry->apicAddress, KERNEL_END_VIRTUAL);
                 }
             } else if (entry->type == 4) {
                 MADTNonMaskableInterruptsEntry* nmi = (MADTNonMaskableInterruptsEntry*)entry;
@@ -112,7 +111,6 @@ namespace apic {
             }
             entry = (MADTEntryHeader*)((char*)entry + entry->length);
         }
-
         // Now we are going to map all IO interrupts to 0x20 - 0x3F (32 to 64), like they would be mapped with the PIC
         for (uint32_t i = 0 ; i < ioApics.size() ; i++) {
             LOG_INFO("Mapping %d", i);
@@ -120,11 +118,10 @@ namespace apic {
             
             // and set their taskpriority to 0
             ((uint32_t volatile*) apic->apicAddress)[APIC_TASKPRIOR] = 0;
-            //LOG_INFO("set task prior");
 
             // We get the # of irqs this apic can handle
             apic->apicAddress[APIC_IO_SEL] = APIC_IO_VER_OFFSET;
-            unsigned int maxIrqs = ((apic->apicAddress[APIC_IO_WIN] & 0x00FF0000) >> 16) + 1;
+            volatile unsigned int maxIrqs = ((apic->apicAddress[APIC_IO_WIN] & 0x00FF0000) >> 16) + 1;
             LOG_INFO("Max irqs: %d", maxIrqs);
 
             // and redirect each to globalBase + irq + 0x20
@@ -140,33 +137,35 @@ namespace apic {
         }
 
         // Lastly, we are going to set the timer. First, we initialize the timer
-        registers[APIC_TIMER_DIVIDE_REGISTER] = 11;
-        registers[APIC_TIMER_INITIAL_COUNT_REGISTER] = 0xFFFFFFFFu;
-        registers[APIC_LAPIC_TIMER_REGISTER] = INT_PREEMPT;
+        for (int i = 0 ; i < 2 ; i++) {
+            registers[APIC_TIMER_DIVIDE_REGISTER] = 11;
+            registers[APIC_TIMER_INITIAL_COUNT_REGISTER] = 0xFFFFFFFFu;
+            registers[APIC_LAPIC_TIMER_REGISTER] = INT_PREEMPT;
 
-        // Then we wait until the next second begins
-        outb(0x70, 0x00);
-        int curSecond = inb(0x71);
-        int now;
-        do {
+            // Then we wait until the next second begins
             outb(0x70, 0x00);
-            now = inb(0x71);
-        } while (now != curSecond);
+            int curSecond = inb(0x71);
+            int now;
+            do {
+                outb(0x70, 0x00);
+                now = inb(0x71);
+            } while (now != curSecond);
 
-        // we reset the timer count
-        registers[APIC_TIMER_INITIAL_COUNT_REGISTER] = 0xFFFFFFFFu;
+            // we reset the timer count
+            registers[APIC_TIMER_INITIAL_COUNT_REGISTER] = 0xFFFFFFFFu;
 
-        // and wait for the next second again
-        do {
-            outb(0x70, 0x00);
-            curSecond = inb(0x71);
-        } while (now == curSecond);
+            // and wait for the next second again
+            do {
+                outb(0x70, 0x00);
+                curSecond = inb(0x71);
+            } while (now == curSecond);
 
-        // We read the elapsed ticks in 1 second, from this we can calculate the bus frequency.
-        uint32_t count = registers[APIC_TIMER_CURRENT_COUNT_REGISTER];
-        busFrequency = (0xFFFFFFFFu - count) * 16;
-        LOG_INFO("External bus frequency: %u Mhz", (int) (busFrequency / 1024) / 1024);
-        registers[APIC_TIMER_INITIAL_COUNT_REGISTER] = 0;
+            // We read the elapsed ticks in 1 second, from this we can calculate the bus frequency.
+            uint32_t count = registers[APIC_TIMER_CURRENT_COUNT_REGISTER];
+            busFrequency = (0xFFFFFFFFu - count) * 16;
+            LOG_INFO("External bus frequency: %u Mhz", (int) (busFrequency / 1024) / 1024);
+            registers[APIC_TIMER_INITIAL_COUNT_REGISTER] = 0;
+        }
 
         // and we initialize the gdt offset in the smp trampoline to our gdt
         smp_gdt_size = GdtSize();
