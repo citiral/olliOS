@@ -27,7 +27,7 @@ u32 string_to_offset(const char* str)
 
 SymbolMap::SymbolMap(const char* data): symbols_map()
 {
-
+    data+=100;
     while (*data != 0) {
         std::string line = "";
         u32 offset = string_to_offset(data);
@@ -37,10 +37,12 @@ SymbolMap::SymbolMap(const char* data): symbols_map()
         while (*data != '\n') {
             line += *data;
             data++;
+            //printf("line: %s", line.c_str());
         }
         data++;
 
         SymbolMapEntry& entry = symbols_map[line];
+        printf("adding %s\n", symbols_map[line]);
         entry.type = type;
         entry.offset = offset;
         entry.name = line;

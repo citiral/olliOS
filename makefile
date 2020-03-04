@@ -11,8 +11,8 @@ OUTPUT=ollios.bin
 ISO=ollios.iso
 
 INCLUDE = -I $(ROOT)usr/include -I $(ROOT)usr/include/libk -I $(ROOT)include
-CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O1 -Wall -Wextra -fno-exceptions -fno-rtti $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -nostdlib -fno-threadsafe-statics -Werror=return-type -m32 -MD
-LDFLAGS = -ffreestanding -O1 -nostdlib -lgcc
+CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -nostdlib -fno-threadsafe-statics -Werror=return-type -mgeneral-regs-only  -m32 -MD
+LDFLAGS = -ffreestanding -O2 -nostdlib -lgcc
 
 MODULES = keyboard shell pci ata mbr iso9660 sysint
 APPS = hello_world echo cat
@@ -101,7 +101,8 @@ $(BUILD)%.o: kernel/**/**/%.asm
 
 install-headers: $(addprefix $(ROOT)usr/include/, $(HEADERS:kernel/%=%))
 $(ISO): $(addprefix $(ROOT)usr/include/, $(HEADERS:kernel/%=%)) $(ROOT)boot/$(OUTPUT) $(ROOT)boot/ollios.sym $(ROOT)boot/$(OUPUT) $(ROOT)boot/grub/menu.lst $(ROOT)boot/grub/stage2_eltorito $(MODULES:%=$(ROOT)boot/%.so) $(LIBS:%=$(ROOT)usr/lib/%.a) $(APPS:%=$(ROOT)usr/bin/%)
-	mkisofs -R -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -boot-info-table -o $@ root
+	#mkisofs -R -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -boot-info-table -o $@ root
+	grub-mkrescue root -o ollios.iso
 
 
 # installs files to root

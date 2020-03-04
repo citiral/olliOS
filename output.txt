@@ -1,0 +1,121 @@
+mkdir root/usr/include/cpu -p
+cp kernel/cpu/interrupt.h root/usr/include/cpu/interrupt.h
+i686-elf-g++ -c kernel/main.cpp -o build/main.o -D__is_kernel -std=gnu++11 -ffreestanding -O1 -Wall -Wextra -fno-exceptions -fno-rtti -I root/usr/include -I root/usr/include/libk -I root/include -Wno-write-strings --sysroot=root/ -nostdlib -fno-threadsafe-statics -Werror=return-type -m32 -MD
+kernel/main.cpp: In function 'void test_thread(int)':
+kernel/main.cpp:145:10: warning: unused variable 'test' [-Wunused-variable]
+  145 |     char test[100];
+      |          ^~~~
+i686-elf-g++ -c kernel/cpu/apic.cpp -o build/apic.o -D__is_kernel -std=gnu++11 -ffreestanding -O1 -Wall -Wextra -fno-exceptions -fno-rtti -I root/usr/include -I root/usr/include/libk -I root/include -Wno-write-strings --sysroot=root/ -nostdlib -fno-threadsafe-statics -Werror=return-type -m32 -MD
+i686-elf-g++ -c kernel/cpu/interrupt.cpp -o build/interrupt.o -D__is_kernel -std=gnu++11 -ffreestanding -O1 -Wall -Wextra -fno-exceptions -fno-rtti -I root/usr/include -I root/usr/include/libk -I root/include -Wno-write-strings --sysroot=root/ -nostdlib -fno-threadsafe-statics -Werror=return-type -m32 -MD
+i686-elf-g++ -c kernel/cpu/interruptHandlers.cpp -o build/interruptHandlers.o -D__is_kernel -std=gnu++11 -ffreestanding -O1 -Wall -Wextra -fno-exceptions -fno-rtti -I root/usr/include -I root/usr/include/libk -I root/include -Wno-write-strings --sysroot=root/ -nostdlib -fno-threadsafe-statics -Werror=return-type -m32 -MD
+i686-elf-g++ -c kernel/cpu/sleep.cpp -o build/sleep.o -D__is_kernel -std=gnu++11 -ffreestanding -O1 -Wall -Wextra -fno-exceptions -fno-rtti -I root/usr/include -I root/usr/include/libk -I root/include -Wno-write-strings --sysroot=root/ -nostdlib -fno-threadsafe-statics -Werror=return-type -m32 -MD
+i686-elf-g++ -c kernel/threading/scheduler.cpp -o build/scheduler.o -D__is_kernel -std=gnu++11 -ffreestanding -O1 -Wall -Wextra -fno-exceptions -fno-rtti -I root/usr/include -I root/usr/include/libk -I root/include -Wno-write-strings --sysroot=root/ -nostdlib -fno-threadsafe-statics -Werror=return-type -m32 -MD
+i686-elf-g++ -c kernel/threading/thread.cpp -o build/thread.o -D__is_kernel -std=gnu++11 -ffreestanding -O1 -Wall -Wextra -fno-exceptions -fno-rtti -I root/usr/include -I root/usr/include/libk -I root/include -Wno-write-strings --sysroot=root/ -nostdlib -fno-threadsafe-statics -Werror=return-type -m32 -MD
+i686-elf-g++ -T kernel/linker.ld -o build/ollios.bin  build/crti.o /usr/lib/gcc/i686-elf/9.2.0/crtbegin.o build/bindings.o build/main.o build/process.o build/acpi.o build/apic.o build/cpu.o build/cpuid.o build/descriptor.o build/gdt.o build/interrupt.o build/interruptHandlers.o build/io.o build/pic.o build/sleep.o build/elf.o build/symbolmap.o build/abi.o build/linkedlist.o build/new.o build/string.o build/alloc.o build/BucketAlloc.o build/LinearAlloc.o build/physical.o build/virtual.o build/mutex.o build/scheduler.o build/semaphore.o build/spinlock.o build/thread.o build/rtti.o build/vga.o build/fseek.o build/printf.o build/putchar.o build/sprintf.o build/stdio.o build/calloc.o build/free.o build/malloc.o build/realloc.o build/memcmp.o build/memcpy.o build/memmove.o build/memset.o build/strcmp.o build/strcpy.o build/strcspn.o build/strlen.o build/strtok_r.o build/boot.o build/descriptor_asm.o build/smp_trampoline.o build/thread_asm.o /usr/lib/gcc/i686-elf/9.2.0/crtend.o build/crtn.o -ffreestanding -O1 -nostdlib -lgcc
+make -C modules MODULE=keyboard all
+make[1]: Entering directory '/home/nxf58324/Source/ollios/modules'
+i686-elf-g++ -c keyboard/keyboard.cpp -o ../build/keyboard/keyboard.o -D__is_kernel -std=gnu++11 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti -I ../root/usr/include -I ../root/usr/include/libk -Wno-write-strings --sysroot=../root/ -nostdlib -fno-threadsafe-statics -Werror=return-type -m32 -mgeneral-regs-only -MD
+In file included from keyboard/keyboard.cpp:1:
+keyboard/keyboard.h: In constructor 'keyboard::KeyboardDriver::KeyboardDriver()':
+keyboard/keyboard.h:79:6: warning: 'keyboard::KeyboardDriver::_status' will be initialized after [-Wreorder]
+   79 |   u8 _status;
+      |      ^~~~~~~
+keyboard/keyboard.h:54:20: warning:   'threading::Mutex keyboard::KeyboardDriver::dataMutex' [-Wreorder]
+   54 |   threading::Mutex dataMutex;
+      |                    ^~~~~~~~~
+keyboard/keyboard.cpp:41:1: warning:   when initialized here [-Wreorder]
+   41 | KeyboardDriver::KeyboardDriver():
+      | ^~~~~~~~~~~~~~
+i686-elf-g++ -fpic -o ../build/keyboard.so ../build/keyboard/keyboard.o ../build/keyboard/main.o -std=gnu++11 -Wall -Wextra -nostdlib -O2 -m32 -r -Xlinker '-Ur'
+cp ../build/keyboard.so ../root/boot/keyboard.so
+make[1]: Leaving directory '/home/nxf58324/Source/ollios/modules'
+make -C modules MODULE=shell all
+make[1]: Entering directory '/home/nxf58324/Source/ollios/modules'
+i686-elf-g++ -c shell/kernelshell.cpp -o ../build/shell/kernelshell.o -D__is_kernel -std=gnu++11 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti -I ../root/usr/include -I ../root/usr/include/libk -Wno-write-strings --sysroot=../root/ -nostdlib -fno-threadsafe-statics -Werror=return-type -m32 -mgeneral-regs-only -MD
+shell/kernelshell.cpp: In function 'void allocinfo(KernelShell*, std::vector<std::string>*)':
+shell/kernelshell.cpp:20:62: warning: unused parameter 'args' [-Wunused-parameter]
+   20 | void allocinfo(KernelShell* shell, std::vector<std::string>* args)
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~
+shell/kernelshell.cpp: In function 'void allocmerge(KernelShell*, std::vector<std::string>*)':
+shell/kernelshell.cpp:27:63: warning: unused parameter 'args' [-Wunused-parameter]
+   27 | void allocmerge(KernelShell* shell, std::vector<std::string>* args)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~
+i686-elf-g++ -fpic -o ../build/shell.so ../build/shell/inputformatter.o ../build/shell/kernelshell.o ../build/shell/main.o -std=gnu++11 -Wall -Wextra -nostdlib -O2 -m32 -r -Xlinker '-Ur'
+cp ../build/shell.so ../root/boot/shell.so
+make[1]: Leaving directory '/home/nxf58324/Source/ollios/modules'
+make -C modules MODULE=pci all
+make[1]: Entering directory '/home/nxf58324/Source/ollios/modules'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/nxf58324/Source/ollios/modules'
+make -C modules MODULE=ata all
+make[1]: Entering directory '/home/nxf58324/Source/ollios/modules'
+i686-elf-g++ -c ata/ata.cpp -o ../build/ata/ata.o -D__is_kernel -std=gnu++11 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti -I ../root/usr/include -I ../root/usr/include/libk -Wno-write-strings --sysroot=../root/ -nostdlib -fno-threadsafe-statics -Werror=return-type -m32 -mgeneral-regs-only -MD
+ata/ata.cpp: In lambda function:
+ata/ata.cpp:43:32: warning: unused parameter 'pci' [-Wunused-parameter]
+   43 |     pci->enumerate([](Binding* pci, Binding* device) {
+      |                       ~~~~~~~~~^~~
+i686-elf-g++ -fpic -o ../build/ata.so ../build/ata/ata.o ../build/ata/atadevice.o ../build/ata/atapacketdevice.o ../build/ata/atapiodevice.o ../build/ata/main.o -std=gnu++11 -Wall -Wextra -nostdlib -O2 -m32 -r -Xlinker '-Ur'
+cp ../build/ata.so ../root/boot/ata.so
+make[1]: Leaving directory '/home/nxf58324/Source/ollios/modules'
+make -C modules MODULE=mbr all
+make[1]: Entering directory '/home/nxf58324/Source/ollios/modules'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/nxf58324/Source/ollios/modules'
+make -C modules MODULE=iso9660 all
+make[1]: Entering directory '/home/nxf58324/Source/ollios/modules'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/nxf58324/Source/ollios/modules'
+make -C modules MODULE=sysint all
+make[1]: Entering directory '/home/nxf58324/Source/ollios/modules'
+i686-elf-g++ -c sysint/main.cpp -o ../build/sysint/main.o -D__is_kernel -std=gnu++11 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti -I ../root/usr/include -I ../root/usr/include/libk -Wno-write-strings --sysroot=../root/ -nostdlib -fno-threadsafe-statics -Werror=return-type -m32 -mgeneral-regs-only -MD
+sysint/main.cpp: In function 'i32 sysint_handler_c(u32, u32, u32, u32, u32, u32, u32)':
+sysint/main.cpp:62:39: warning: dereferencing type-punned pointer will break strict-aliasing rules [-Wstrict-aliasing]
+   62 |         return reinterpret_cast<i32&>(result);
+      |                                       ^~~~~~
+sysint/main.cpp:33:73: warning: unused parameter 'esi' [-Wunused-parameter]
+   33 | extern "C" i32 sysint_handler_c(u32 eax, u32 ebx, u32 ecx, u32 edx, u32 esi, u32 edi, u32 ebp) {
+      |                                                                     ~~~~^~~
+sysint/main.cpp:33:82: warning: unused parameter 'edi' [-Wunused-parameter]
+   33 | extern "C" i32 sysint_handler_c(u32 eax, u32 ebx, u32 ecx, u32 edx, u32 esi, u32 edi, u32 ebp) {
+      |                                                                              ~~~~^~~
+sysint/main.cpp:33:91: warning: unused parameter 'ebp' [-Wunused-parameter]
+   33 | extern "C" i32 sysint_handler_c(u32 eax, u32 ebx, u32 ecx, u32 edx, u32 esi, u32 edi, u32 ebp) {
+      |                                                                                       ~~~~^~~
+sysint/main.cpp: In function 'void module_load(bindings::Binding*)':
+sysint/main.cpp:68:38: warning: unused parameter 'root' [-Wunused-parameter]
+   68 | extern "C" void module_load(Binding* root)
+      |                             ~~~~~~~~~^~~~
+i686-elf-g++ -fpic -o ../build/sysint.so ../build/sysint/main.o ../build/sysint/sysint.o -std=gnu++11 -Wall -Wextra -nostdlib -O2 -m32 -r -Xlinker '-Ur'
+cp ../build/sysint.so ../root/boot/sysint.so
+make[1]: Leaving directory '/home/nxf58324/Source/ollios/modules'
+make -C apps APP=hello_world all
+make[1]: Entering directory '/home/nxf58324/Source/ollios/apps'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/nxf58324/Source/ollios/apps'
+make -C apps APP=echo all
+make[1]: Entering directory '/home/nxf58324/Source/ollios/apps'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/nxf58324/Source/ollios/apps'
+make -C apps APP=cat all
+make[1]: Entering directory '/home/nxf58324/Source/ollios/apps'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/nxf58324/Source/ollios/apps'
+mkdir root/boot -p
+cp build/ollios.bin root/boot/ollios.bin
+nm build/ollios.bin | sort > build/ollios.sym
+mkdir root/boot -p
+cp build/ollios.sym root/boot/ollios.sym
+mkisofs -R -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -boot-info-table -o ollios.iso root
+Setting input-charset to 'UTF-8' from locale.
+Using FUNCT000.H;1 for  root/usr/include/kstd/functional.h (function.h)
+Using INTER000.H;1 for  root/usr/include/cpu/interrupt.h (interruptHandlers.h)
+Size of boot image is 4 sectors -> No emulation
+ 56.22% done, estimate finish Wed Mar  4 15:52:18 2020
+Total translation table size: 2048
+Total rockridge attributes bytes: 25287
+Total directory bytes: 71680
+Path table size(bytes): 350
+Max brk space used 45000
+8899 extents written (17 MB)
+./qemu.sh
+

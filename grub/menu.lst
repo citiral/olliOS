@@ -1,8 +1,8 @@
 default 0
-timeout 0
-
+timeout 3
+set gfxpayload=1920x1080
 title   Ollios
-kernel  /boot/ollios.bin
+kernel /boot/ollios.bin vga=785
 module /boot/ollios.sym
 module /boot/keyboard.so
 module /boot/sysint.so

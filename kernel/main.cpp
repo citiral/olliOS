@@ -159,30 +159,38 @@ extern "C" void main(multiboot_info* multiboot) {
     uint32_t *src_end  = (uint32_t *)&__realmode_lma_end;
 
     /* Copy a DWORD at a time from source to destination */
-    while (src_addr < src_end)
-        *dst_addr++ = *src_addr++;
+    //while (src_addr < src_end)
+    //    *dst_addr++ = *src_addr++;
 
     acpi::init();
 
     //set up pre-emptive multithreading
-    idt.getEntry(INT_PREEMPT).setOffset((u32)thread_interrupt);
-    threading::scheduler = new threading::Scheduler();
+    //idt.getEntry(INT_PREEMPT).setOffset((u32)thread_interrupt);
+    //threading::scheduler = new threading::Scheduler();
+
+    vgaDriver = new VgaDriver();
+
+    bindings::root->get("sys")->add((new bindings::OwnedBinding("vga"))->on_write([](bindings::OwnedBinding* vga, size_t size, const void* data) {
+        (void) vga;
+        vgaDriver->write(data, size);
+        return true;
+    }));
 
     printf("Flags: %X\n", multiboot->flags);
     printf("mods count: %d\n", multiboot->mods_count);
     multiboot_module_t *mod = (multiboot_module_t*) multiboot->mods_addr;
+    
+    for (int i = 0 ; i < 9000 ; i++)
+        putchar(((char*)mod->mod_start)[i]);
+    while(1);
+    printf("mod1 size: %x\n", ((char*)mod->mod_end)[1]);
+
 
     printf("elf: %d\n", multiboot->u.elf_sec.size);
     symbolMap = new SymbolMap((const char*) mod->mod_start);
     printf("symbol map build.\n");
 
-    
-    vgaDriver = new VgaDriver();
-    bindings::root->get("sys")->add((new bindings::OwnedBinding("vga"))->on_write([](bindings::OwnedBinding* vga, size_t size, const void* data){
-        (void) vga;
-        vgaDriver->write(data, size);
-        return true;
-    }));
+
 
     // if APIC is supported, switch to it and enable multicore
     cpuid_field features = cpuid(1);
@@ -218,6 +226,9 @@ extern "C" void main(multiboot_info* multiboot) {
 
         mod++;
     }
+
+    //printf("grub Video info:\ncontrol: %x\nmode_info: %x\nmode: %x\ninterface_seg: %x\ninterface_off: %x\ninterface_len: %x\n", multiboot->vbe_control_info, multiboot->vbe_mode_info, multiboot->vbe_mode, multiboot->vbe_interface_seg, multiboot->vbe_interface_off, multiboot->vbe_interface_len);
+    printf("flags: %x\n", multiboot->flags);
 
     cpu_main();
 }
