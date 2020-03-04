@@ -9,7 +9,7 @@ using namespace threading;
 UniqueGenerator<u32> threading::pidGenerator;
 
 // global values that hold the parent stack pointer of a running thread. Each core will always use his own index.
-u32 parent_stack_pointers[MAX_CORE_COUNT];
+volatile u32 parent_stack_pointers[MAX_CORE_COUNT];
 Thread* running_thread[MAX_CORE_COUNT];
 /*
 Thread::Thread(Thread& thread) {
@@ -162,7 +162,7 @@ void Thread::kill() {
     _finished = true;
 }
 
-void threading::exit() {
+__attribute__((optimize("O0"))) void threading::exit() {
     bool eflags = CLI();
     if (is_current_core_in_thread()) {
         // if we exit a thread, the thread_exit function will enable interrupts again
@@ -176,7 +176,7 @@ bool threading::is_core_in_thread(u8 core) {
     return running_thread[core] != nullptr;
 }
 
-extern "C" u32* __attribute__ ((noinline)) get_parent_stack() {
+extern "C" volatile u32* __attribute__ ((noinline)) get_parent_stack() {
     return parent_stack_pointers + apic::id();
 }
 

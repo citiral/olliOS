@@ -36,37 +36,37 @@ namespace threading {
     public:
         // initializes a thread were the called function gets passed the given arguments
         template<class ... ARGS>
-        Thread(Process* process, char* stack, void(*entry)(ARGS...), ARGS ... args): process(process), _stack(stack), _finished(false), _id(pidGenerator.next()), _blocking(false) {
+        Thread(Process* process, volatile char* stack, void(*entry)(ARGS...), ARGS ... args): process(process), _stack(stack), _finished(false), _id(pidGenerator.next()), _blocking(false) {
             // A new thread allocates his own stack, if none is supplied
             _ownsStack = _stack == nullptr;
             if (_stack == nullptr) {
                 _stack = new char[THREAD_STACK_SIZE];
             }
-            memset(_stack, 0, THREAD_STACK_SIZE);
+            memset((void*) _stack, 0, THREAD_STACK_SIZE);
 
             // we want the arguments to be placed below the entry address, so starting from esp-8 to esp-X
             u32 argStackSize = stackSizeOfArguments(args...);
             initializeArguments(argStackSize + 4, args...);
 
             // we first place the asm routine the thread will return to when finished
-            *(u32*)(_stack + THREAD_STACK_SIZE - argStackSize - 8) = argStackSize;
+            *(volatile u32*)(_stack + THREAD_STACK_SIZE - argStackSize - 8) = argStackSize;
 
             // then we place the entry address
-            *(u32*)(_stack + THREAD_STACK_SIZE - argStackSize - 12) = (u32)entry;
-            *(u32*)(_stack + THREAD_STACK_SIZE - argStackSize - 16) = (u32)thread_entry;
+            *(volatile u32*)(_stack + THREAD_STACK_SIZE - argStackSize - 12) = (u32)entry;
+            *(volatile u32*)(_stack + THREAD_STACK_SIZE - argStackSize - 16) = (u32)thread_entry;
 
             // then 36 bytes zero (pushad + pushfd) but those are already zero with memset
             esp = (u32)(_stack + THREAD_STACK_SIZE - argStackSize - 52);
         }
 
-        // initializes a thread were the called function gets passed the given arguments
+        // initializes a thread where the called function gets passed the given arguments
         template<class T, class ... ARGS>
-        Thread(Process* process, char* stack, void(T::*entry)(ARGS...), T* c, ARGS ... args): process(process), _stack(stack),  _finished(false), _id(pidGenerator.next()), _blocking(false) {
+        Thread(Process* process, volatile char* stack, void(T::*entry)(ARGS...), T* c, ARGS ... args): process(process), _stack(stack),  _finished(false), _id(pidGenerator.next()), _blocking(false) {
             // A new thread allocates his own stack
             _ownsStack = _stack == nullptr;
             if (_stack == nullptr) {
                 _stack = new char[THREAD_STACK_SIZE];
-                memset(_stack, 0, THREAD_STACK_SIZE);
+                memset((void*) _stack, 0, THREAD_STACK_SIZE);
             }
 
             // we want the arguments to be placed below the entry address, so starting from esp-8 to esp-X
@@ -74,11 +74,11 @@ namespace threading {
             initializeArguments(argStackSize + 4, entry, c, args...);
 
             // we first place the asm routine the thread will return to when finished
-            *(u32*)(_stack + THREAD_STACK_SIZE - argStackSize - 8) = argStackSize;
+            *(volatile u32*)(_stack + THREAD_STACK_SIZE - argStackSize - 8) = argStackSize;
 
             // then we place the entry address
-            *(u32*)(_stack + THREAD_STACK_SIZE - argStackSize - 12) = (u32)threadingFunctionWrapper<T, ARGS...>;
-            *(u32*)(_stack + THREAD_STACK_SIZE - argStackSize - 16) = (u32)thread_entry;
+            *(volatile u32*)(_stack + THREAD_STACK_SIZE - argStackSize - 12) = (u32)threadingFunctionWrapper<T, ARGS...>;
+            *(volatile u32*)(_stack + THREAD_STACK_SIZE - argStackSize - 16) = (u32)thread_entry;
 
             // then 36 bytes zero (pushad + pushfd) but those are already zero with memset
             esp = (u32)(_stack + THREAD_STACK_SIZE - argStackSize - 52);
@@ -121,7 +121,7 @@ namespace threading {
         void initializeArguments(u32 offset, ARG arg, ARGS ... args) {
             // first we place the current argument at the stack on the given offset
             //ARG* target = (ARG*)();
-            new (_stack + THREAD_STACK_SIZE - offset) ARG(arg);
+            new ((void*) _stack + THREAD_STACK_SIZE - offset) ARG(arg);
             //*target = arg;
 
             // then we place the remaining arguments, and return the final offset
@@ -144,7 +144,7 @@ namespace threading {
 
 
         // The stack used by the thread
-        char* _stack;
+        volatile char* _stack;
 
         // True if the thread should deallocate the stack itself
         bool _ownsStack;
