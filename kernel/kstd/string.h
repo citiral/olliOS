@@ -51,6 +51,8 @@ namespace std {
         const char* c_str() const;
         const char* data() const;
 
+        string substr(size_t pos = 0, size_t len = npos) const;
+
         static const size_t npos = -1;
     private:
         char* _data;

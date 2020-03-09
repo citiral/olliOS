@@ -5,7 +5,7 @@
 
 using namespace bindings;
 
-extern "C" void module_load(Binding* root)
+extern "C" void module_load(Binding* root, const char* argv)
 {
     PCI::init(root->get("sys")->add(new OwnedBinding("pci")));
 }

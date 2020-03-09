@@ -23,7 +23,7 @@ void check_mbr(Binding* bind)
     printf("found mbr\n");
 }
 
-extern "C" void module_load(Binding* root)
+extern "C" void module_load(Binding* root, const char* argv)
 {
     root->get("dev")->enumerate([](Binding* parent, Binding* child) {
         printf("Device %s found\n", child->name.c_str());

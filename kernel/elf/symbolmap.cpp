@@ -37,12 +37,10 @@ SymbolMap::SymbolMap(const char* data): symbols_map()
         while (*data != '\n') {
             line += *data;
             data++;
-            //printf("line: %s", line.c_str());
         }
         data++;
 
         SymbolMapEntry& entry = symbols_map[line];
-        printf("adding %s\n", symbols_map[line]);
         entry.type = type;
         entry.offset = offset;
         entry.name = line;

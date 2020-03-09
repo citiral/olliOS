@@ -5,7 +5,7 @@
 
 using namespace bindings;
 
-extern "C" void module_load(Binding* root)
+extern "C" void module_load(Binding* root, const char* argv)
 {
 	root->get("dev")->enumerate([](bindings::Binding* parent, bindings::Binding* child) {
 		new Iso9660FileSystem(child);

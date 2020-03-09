@@ -65,7 +65,7 @@ extern "C" i32 sysint_handler_c(u32 eax, u32 ebx, u32 ecx, u32 edx, u32 esi, u32
     return -1;
 }
 
-extern "C" void module_load(Binding* root)
+extern "C" void module_load(Binding* root, const char* argv)
 {
     idt.getEntry(0x80).setOffset((u32) sysint_handler);
 }

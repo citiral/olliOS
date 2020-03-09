@@ -228,4 +228,24 @@ const char* string::data() const {
     return _data;
 }
 
+string string::substr(size_t pos, size_t len) const {
+    size_t slen = length();
+
+    size_t start = pos;
+    if (start >= slen)
+        start = slen - 1;
+
+    if (len == npos) {
+        return string(_data + start);
+    } else {
+        size_t end = start + len;
+        if (end >= slen)
+            end = slen - 1;
+
+        string sub(end - start, 0);
+        memcpy(sub._data, _data + start, end - start);
+        return sub;
+    }
+}
+
 }

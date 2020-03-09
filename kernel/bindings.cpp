@@ -220,4 +220,54 @@ namespace bindings
             return size;
         });
     }
+
+    std::string get_path(std::string& path)
+    {
+        // Path of empty string is empty string
+        if (path.length() == 0) {
+            return "";
+        }
+
+        // Path ending with / has no filename, so whole string is path
+        if (path[path.length() - 1] == '/') {
+            return path;
+        }
+
+        i32 last_slash = -1;
+        size_t len = path.size();
+        for (i32 i = 0 ; i < len ; i++) {
+            if (path[i] == '/')
+                last_slash = i;
+        }
+
+        if (last_slash == -1)
+            return "";
+        else
+            return path.substr(0, last_slash + 1);
+    }
+
+    std::string get_filename(std::string& path)
+    {
+        // name of empty string is empty string
+        if (path.length() == 0) {
+            return "";
+        }
+
+        // path ending with / has no filename
+        if (path[path.length() - 1] == '/') {
+            return "";
+        }
+
+        i32 last_slash = -1;
+        size_t len = path.size();
+        for (i32 i = 0 ; i < len ; i++) {
+            if (path[i] == '/')
+                last_slash = i;
+        }
+
+        if (last_slash == -1)
+            return path;
+        else
+            return path.substr(last_slash + 1);
+    }
 }

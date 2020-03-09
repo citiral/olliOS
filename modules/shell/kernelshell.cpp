@@ -213,7 +213,7 @@ void run(KernelShell* shell, std::vector<std::string>* args)
 
 void load(KernelShell* shell, std::vector<std::string>* args)
 {
-	if (args->size() != 2)
+	if (args->size() < 2)
 	{
 		printf("Usage: load program\n");
 		return;
@@ -248,9 +248,16 @@ void load(KernelShell* shell, std::vector<std::string>* args)
 	if (e->link_as_kernel_module(*symbolMap) != 0 && 0) {
 		printf("failed linking elf\n");
 	} else {
-		void (*module_load)(bindings::Binding*);
+		std::string argv = "";
+
+		for (int i = 1 ; i < args->size() ; i++) {
+			argv += args->at(i);
+			argv += " ";
+		}
+
+		void (*module_load)(bindings::Binding*, const char*);
 		e->get_symbol_value("module_load", (u32*) &module_load);
-		module_load(bindings::root);
+		module_load(bindings::root, argv.c_str());
 	}
 }
 /*
@@ -310,7 +317,7 @@ KernelShell::KernelShell(): _commands()
 	_commands.push_back(std::pair<const char*, CommandFunction>("load", &load));
 	_commands.push_back(std::pair<const char*, CommandFunction>("run", &run));
 
-	working_directory = bindings::root->get("dev/ata0/root/usr/bin");
+	working_directory = bindings::root->get("dev/ata0/root/boot");
 	prompt();
 }
 

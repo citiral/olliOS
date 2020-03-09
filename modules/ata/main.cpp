@@ -4,7 +4,7 @@
 
 using namespace bindings;
 
-extern "C" void module_load(Binding* root)
+extern "C" void module_load(Binding* root, const char* argv)
 {
     root->get("sys")->enumerate([](Binding* root, Binding* child) {
         if (child->name == "pci") {

@@ -153,7 +153,9 @@ namespace bindings {
     void init();
 
     extern Binding* root;
-    // Global bindings lock
+
+    std::string get_path(std::string& path);
+    std::string get_filename(std::string& path);
 }
 
 #endif

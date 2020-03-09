@@ -16,7 +16,7 @@ void test() {
     }
 }
 
-extern "C" void module_load(Binding* root)
+extern "C" void module_load(Binding* root, const char* argv)
 {
     shell = new KernelShell();
 

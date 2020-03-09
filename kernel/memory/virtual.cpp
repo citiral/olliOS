@@ -14,14 +14,14 @@ namespace memory {
 
 		// Then we can start allocating pages
 		// The current whole first GB is mapped to the 4th GB, so we can start allocating pages from KERNEL_END_PHYSICAL (making sure we are rounded to 4kbs)
-		char* currentFree = (char*)KERNEL_END_PHYSICAL;
+		char* currentFree = (char*) memory::physicalMemoryManager.allocatePhysicalMemory();
 		currentFree += 0x1000 - (((u32)currentFree) % 0x1000);
 		
 		// firstpage is the virtual address to reach the physical page we just allocated
 		PageTable* firstPage = (PageTable*) (currentFree + 0xC0000000);
 		
 		// we reserve the memory in the physical manager so it isn't used again, and then clear the page
-		physicalMemoryManager.reservePhysicalMemory(currentFree, 0x1000);
+		//physicalMemoryManager.reservePhysicalMemory(currentFree, 0x1000);
 		memset(firstPage, 0, 0x1000);
 
 		// the first MB is mapped to itself
@@ -38,13 +38,13 @@ namespace memory {
 		for (u32 pos = 0 ; pos < (u32)KERNEL_END_PHYSICAL ; pos += 0x400000) {
 			int i = pos / 0x400000;
 			// again we allocate continueing from currentfree
-			currentFree += 0x1000;
+			currentFree = (char*) memory::physicalMemoryManager.allocatePhysicalMemory();
 
 			// and again page is an alias of the virtual address to the freshly allocated table
 			PageTable* page = (PageTable*)(currentFree + 0xC0000000);
 
 			// and again we reserve it and clear it
-			physicalMemoryManager.reservePhysicalMemory(currentFree, 0x1000);
+			//physicalMemoryManager.reservePhysicalMemory(currentFree, 0x1000);
 			memset(page, 0, 0x1000);
 
 			// and putting it in the directory. since we want this to map to the 4th gigabyte, we start at 768 (0xC0000000)

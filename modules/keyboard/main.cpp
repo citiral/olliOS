@@ -25,13 +25,13 @@ void KeyboardDriverThread(KeyboardDriver* driver, OwnedBinding* keyboard) {
 	}
 }
 
-extern "C" void module_load(Binding* root)
+extern "C" void module_load(Binding* root, const char* argv)
 {
     OwnedBinding* keyboard = root->get("sys")->add(new OwnedBinding("keyboard"));
 
 	driver = new KeyboardDriver();
 	driver->setScanCodeSet(SCANSET_2);
 	driver->setScanCodeTranslation(false);
-
+	
 	threading::scheduler->schedule(new threading::Thread(nullptr, nullptr, KeyboardDriverThread, driver, keyboard));
 }
