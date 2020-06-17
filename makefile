@@ -42,6 +42,8 @@ dir: $(BUILD) $(ROOT) $(ROOT)boot $(ROOT)boot/grub $(ROOT)usr $(ROOT)usr/bin $(R
 
 $(BUILD):
 	mkdir -p $@
+$(BUILD)newlib:
+	mkdir -p $@
 $(ROOT):
 	mkdir -p $@
 $(ROOT)boot:
@@ -135,9 +137,13 @@ $(ROOT)boot/%.so: $(BUILD)%.so
 	cp $^ $@
 
 # newlib
-newlib:
-	bash -c "cd newlib/build; ./build.sh"
-	cp newlib/build/out/i686-ollios/* $(ROOT) -r
+newlib: $(BUILD) $(BUILD)newlib $(BUILD)newlib/Makefile
+	make -C $(BUILD)newlib all install
+	cp $(BUILD)newlib/out/i686-ollios/* root/ -r
+
+$(BUILD)newlib/Makefile:
+	cd $(BUILD)newlib; ../../newlib/configure --prefix=$(shell pwd)/$(BUILD)newlib/out --target=i686-ollios
+
 
 # run an emulator
 qemu: all

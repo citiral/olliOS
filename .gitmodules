@@ -1,0 +1,3 @@
+[submodule "newlib-cygwin"]
+	path = newlib
+	url = https://github.com/citiral/newlib-cygwin
