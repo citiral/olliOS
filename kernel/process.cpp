@@ -6,7 +6,9 @@
 #include "kstd/shared_ptr.h"
 #include "threading/thread.h"
 extern "C" {
-    #include <sys/types.h>
+#include <sys/types.h>
+#include <unistd.h>"
+#include <sys/wait.h>
 }
 
 #define MAX_ARGS 128
@@ -46,7 +48,6 @@ void load_binding_and_run(bindings::Binding* bind, std::vector<std::string>* arg
         }
 
         threading::currentThread()->process->set_program_break((char*) e.get_program_break());
-        printf("break at %X\n", e.get_program_break());
 
         delete buffer;
     }
@@ -75,19 +76,19 @@ Process::Process(): status_code(-1), state(ProcessState::Initing), thread(nullpt
 
 Process::~Process()
 {
-    for (size_t i = 0 ; i < childs.size() ; i++) {
-        childs[i]->thread->kill();
-    }
+    //for (size_t i = 0 ; i < childs.size() ; i++) {
+    //    childs[i]->thread->kill();
+    //}
 
     if (_pagetable) {
        memory::freePageDirectory(_pagetable);
     }
     delete thread;
     
-    for (size_t i = 0 ; i < childs.size() ; i++) {
-        childs[i]->wait();
-        delete childs[i];
-    }
+    //for (size_t i = 0 ; i < childs.size() ; i++) {
+    //    childs[i]->wait();
+    //    delete childs[i];
+    //}
 }
 
 void Process::init(bindings::Binding* file, std::vector<std::string> args)
@@ -222,6 +223,7 @@ void Process::finish_fork(memory::PageDirectory* clone)
     child->_args = _args;
     child->_bindings = _bindings;
     child->_binding_ids = _binding_ids;
+    child->_program_break = _program_break;
     child->state = state;
     child->thread = thread->clone();
     child->thread->process = child;
@@ -339,7 +341,7 @@ void* Process::sbrk(i32 inc)
     size_t new_brk_page = (u32)new_brk / 0x1000;
 
     for (size_t i = cur_brk_page ; i < new_brk_page ; i++) {
-        memory::PageDirectory::current()->bindVirtualPage((void*)(i * 0x1000));
+        memory::PageDirectory::current()->bindVirtualPage((void*)((i+1) * 0x1000));
     }
 
     _program_break = new_brk;
