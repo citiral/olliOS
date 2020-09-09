@@ -189,26 +189,22 @@ void run(KernelShell* shell, std::vector<std::string>* args)
 		return;
 	}
 
-    printf("Getting file: %x\n", shell->working_directory);
 	bindings::Binding* bind = shell->working_directory->get(args->at(1).c_str());
-    printf("Got file\n");
 
 	if (bind == NULL) {
 		printf("Invalid path: %s\n");
 		return;
 	}
 
-	//while (1) {
-		Process* p = new Process();
-		p->init(bind, *args);
-		p->start();
-		p->wait();
+	Process* p = new Process();
+	p->init(bind, *args);
+	p->start();
+	p->wait();
 
-		delete p;
+	delete p;
 
-		printf("%d\n", p->status_code);
-		printf("Free physical memory: %dKB\n", memory::physicalMemoryManager.countFreePhysicalMemory() * 4);
-	//}
+	printf("%d\n", p->status_code);
+	printf("Free physical memory: %dKB\n", memory::physicalMemoryManager.countFreePhysicalMemory() * 4);
 }
 
 void load(KernelShell* shell, std::vector<std::string>* args)
@@ -317,7 +313,7 @@ KernelShell::KernelShell(): _commands()
 	_commands.push_back(std::pair<const char*, CommandFunction>("load", &load));
 	_commands.push_back(std::pair<const char*, CommandFunction>("run", &run));
 
-	working_directory = bindings::root->get("dev/ata0/root/boot");
+	working_directory = bindings::root->get("dev/ata0/root/usr/bin");
 	prompt();
 }
 

@@ -350,15 +350,15 @@ void KeyboardDriver::pushBuffer(VirtualKeyEvent key)
 
 VirtualKeycode KeyboardDriver::convertMakeScancodeToKeycode() {
 	
-	/*if (_code1 == 0xF0 || (_code1 == 0xE0 && _code2 == 0xF0)) {
+	if (_code1 == 0xF0 || (_code1 == 0xE0 && _code2 == 0xF0)) {
 		return VirtualKeycode::INVALID;
-	} else {*/
+	} else {
 		VirtualKeycode k1 = scanset2_map1[_code1];
 		if (k1 == VirtualKeycode::INVALID && _code2 != 0) {
 			return scanset2_map2[_code2];
 		}
 		return k1;
-	//}
+	}
 }
 
 VirtualKeycode KeyboardDriver::convertBreakScancodeToKeycode() {
@@ -448,7 +448,7 @@ VirtualKeycode scanset2_map1[255] = {
 	VirtualKeycode::T_9,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
+	VirtualKeycode::DOT,
 	VirtualKeycode::SLASH,
 	VirtualKeycode::L,
 	VirtualKeycode::COLON,

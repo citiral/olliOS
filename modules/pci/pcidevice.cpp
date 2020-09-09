@@ -53,6 +53,7 @@ PCIDevice::PCIDevice(bindings::OwnedBinding* root, u8 bus, u8 dev, u8 func)
 
 	// Register it to the binding tree
 	char name[32];
+	sprintf(name, "%.2X:%.2X:%.2X", _bus, _device, _func);
 
 	binding = new bindings::OwnedBinding(name);
 	binding->add(new bindings::RefMemoryBinding("bus", &_bus, sizeof(_bus)));

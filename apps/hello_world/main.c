@@ -72,10 +72,36 @@ void printf(char* str) {
 
 int main(int argc, char** argv)
 {
-    FILE* test = open("/sys/vga", "r");
+	void* args = {NULL};
+
+	/*while (1) {
+		printf("hello world\n");
+		execve("hello_world", &args, &args);
+	}*/
+
+	int a;
+
+	for (int i = 0 ; i < 6 ; i++) {
+		if (fork()) {
+			printf("Hello world master %d\n", i);
+			malloc(100);
+		}
+		printf("Hello world slave %d\n", i);
+	}
+	while (wait(&a) != -1);
+	exit(0);
+
+
+    printf("Hello world!\n");
+    FILE* out = fopen("/sys/vga", "r");
+    fputs("Hello world!\n", out);
+    fclose(out);
+    return 0;
+
+    /*FILE* test = open("/sys/vga", "r");
     write(test, "abc", 3);
     close(test);
-    return getpid();
+    return getpid();*/
 /*
     char* path = "echo";
     char* args[] = {"echo", "test", "123", 0};

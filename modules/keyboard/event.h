@@ -71,6 +71,7 @@ enum class VirtualKeycode : u8 {
     PAGE_DOWN,
     TILDE,
     COLON,
+    DOT,
     SLASH,
     T_0,
     T_1,

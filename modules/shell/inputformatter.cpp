@@ -64,7 +64,7 @@ void InputFormatter::handleVirtualKeyEvent(VirtualKeyEvent event)
         addChar('/');
     } else if (event.vkey == VirtualKeycode::N_MINUS) {
         addChar('-');
-    } else if (event.vkey == VirtualKeycode::N_DOT) {
+    } else if (event.vkey == VirtualKeycode::N_DOT || event.vkey == VirtualKeycode::DOT) {
         addChar('.');
     } else if (event.vkey == VirtualKeycode::U_ARROW) {
 		if (_logIndex > 0)
