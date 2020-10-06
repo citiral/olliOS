@@ -6,9 +6,9 @@
 #include "kstd/shared_ptr.h"
 #include "threading/thread.h"
 extern "C" {
-#include <sys/types.h>
-#include <unistd.h>"
-#include <sys/wait.h>
+    #include <sys/types.h>
+    #include <unistd.h>
+    #include <sys/wait.h>
 }
 
 #define MAX_ARGS 128
@@ -70,8 +70,18 @@ void load_binding_and_run(bindings::Binding* bind, std::vector<std::string>* arg
     app_entry(args->size(), argv, nullptr);
 }
 
-Process::Process(): status_code(-1), state(ProcessState::Initing), thread(nullptr), childs(), pid(process_ids.next()), _binding_ids(1), _pagetable(nullptr)
+Process::Process(): status_code(-1), state(ProcessState::Initing), thread(nullptr), childs(), pid(process_ids.next()), _binding_ids(1), _pagetable(nullptr), _descriptor(nullptr)
 {
+    // Make a binding for the process
+    char name[32];
+    sprintf(name, "%d", pid);
+    _descriptor = new bindings::OwnedBinding(name);
+
+    // And create three other bindings for stdin, stdout, stderr
+    bindings::OwnedBinding* pipes = _descriptor->add(new bindings::OwnedBinding("pipes"));
+    pipes->add(new bindings::OwnedBinding("stdin"));
+    pipes->add(new bindings::OwnedBinding("stdout"));
+    pipes->add(new bindings::OwnedBinding("stderr"));
 }
 
 Process::~Process()
@@ -192,12 +202,15 @@ i32 Process::write(i32 file, char* data, i32 len)
 
 i32 Process::read(i32 file, char* data, i32 len)
 {
+    size_t status;
+
     if (_bindings.count(file) == 0) {
         return -1;
     }
 
     BindingDescriptor& desc = _bindings[file];
-    size_t status = desc.binding->read(data, len, desc.offset);
+
+    status = desc.binding->read(data, len, desc.offset);
     desc.offset += status;
 
     return status;

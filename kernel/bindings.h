@@ -132,6 +132,10 @@ namespace bindings {
         void provide(const void* data, size_t size);
     };
 
+    class StreamBinding: public OwnedBinding {
+        StreamBinding(std::string name);
+    };
+
     class MemoryBinding: public OwnedBinding {
     public:
         MemoryBinding(std::string name, const void* data, size_t size);        

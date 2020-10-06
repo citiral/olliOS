@@ -121,7 +121,7 @@ namespace threading {
         void initializeArguments(u32 offset, ARG arg, ARGS ... args) {
             // first we place the current argument at the stack on the given offset
             //ARG* target = (ARG*)();
-            new ((void*) _stack + THREAD_STACK_SIZE - offset) ARG(arg);
+            new ((void*) (_stack + THREAD_STACK_SIZE - offset)) ARG(arg);
             //*target = arg;
 
             // then we place the remaining arguments, and return the final offset

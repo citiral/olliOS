@@ -24,6 +24,8 @@
 
 #include "vga/vga.h"
 
+#include "file.h"
+#include "virtualfile.h"
 #include "bindings.h"
 
 VgaDriver* vgaDriver = nullptr;
@@ -117,6 +119,37 @@ void cpu_main() {
     }
 }
 
+void print_tree(fs::File* f, int depth)
+{
+    fs::File* child;
+    for (int i = 0 ; i < depth ; i++) {
+        printf(" ");
+    }
+
+    printf("%s", f->get_name());
+
+    if (f->get_size() == 0) {
+        printf("\n");
+    } else {
+        char data;
+        fs::FileHandle* handle = f->open();
+        printf(": ");
+        while (handle->read(&data, 1) > 0) {
+            printf("%c", data);
+        }
+        printf("\n");
+
+        handle->close();
+    }
+
+    fs::FileHandle* handle = f->open();
+    while ((child = handle->next_child()) != NULL) {
+        print_tree(child, depth + 1);
+    }
+
+    handle->close();
+}
+
 extern "C" void main(multiboot_info* multiboot) {
     // init lowlevel CPU related stuff
     // None of these should be allowed to touch the memory allocator, etc
@@ -124,6 +157,10 @@ extern "C" void main(multiboot_info* multiboot) {
 
     // init the memory management, so we have proper paging and can allocate memory
     initMemory(multiboot);
+
+    fs::init();
+    fs::root->create("sys", FILE_CREATE_DIR);
+    fs::root->create("dev", FILE_CREATE_DIR);
 
     bindings::init();
     bindings::root->add(new bindings::OwnedBinding("sys"));
@@ -187,10 +224,10 @@ extern "C" void main(multiboot_info* multiboot) {
         if (e->link_as_kernel_module(*symbolMap) != 0 && 0) {
             printf("failed linking elf\n");
         } else {
-            void (*module_load)(bindings::Binding*, const char*);
+            void (*module_load)(fs::File*, const char*);
             e->get_symbol_value("module_load", (u32*) &module_load);
             printf("params: %s\n", mod->cmdline);
-            module_load(bindings::root, (const char*) mod->cmdline);
+            module_load(fs::root, (const char*) mod->cmdline);
         }
 
         mod++;
@@ -198,6 +235,17 @@ extern "C" void main(multiboot_info* multiboot) {
 
     printf("grub Video info:\ncontrol: %x\nmode_info: %x\nmode: %x\ninterface_seg: %x\ninterface_off: %x\ninterface_len: %x\n", multiboot->vbe_control_info, multiboot->vbe_mode_info, multiboot->vbe_mode, multiboot->vbe_interface_seg, multiboot->vbe_interface_off, multiboot->vbe_interface_len);
     printf("flags: %x\n", multiboot->flags);
+
+    fs::File* one = fs::root->create("1", FILE_CREATE_DIR);
+    fs::File* test = one->create("test", 0);
+    fs::FileHandle* testhandle = test->open();
+    testhandle->close();
+    fs::root->create("2", FILE_CREATE_DIR);
+    fs::root->create("3", FILE_CREATE_DIR);
+
+    printf("f: %s\n", fs::root->get("1/test/.")->get_name());
+
+    //print_tree(root, 0);
 
     cpu_main();
 }

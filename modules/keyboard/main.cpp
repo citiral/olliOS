@@ -1,14 +1,17 @@
 #include "types.h"
 #include "keyboard.h"
 #include "bindings.h"
+#include "file.h"
+#include "virtualfile.h"
 #include "threading/scheduler.h"
 #include <stdio.h>
 
-using namespace bindings;
+using namespace fs;
 using namespace keyboard;
 
-void KeyboardDriverThread(KeyboardDriver* driver, OwnedBinding* keyboard) {
+void KeyboardDriverThread(KeyboardDriver* driver, Stream* keyboard) {
 	static bool first = true;
+	FileHandle* handle = keyboard->open();
 	while (1) {
 		driver->dataMutex.lock();
 
@@ -19,19 +22,20 @@ void KeyboardDriverThread(KeyboardDriver* driver, OwnedBinding* keyboard) {
 			if (read == 0) {
 				break;
 			}
-
-            keyboard->provide(&event, sizeof(event));
+			printf("writing %d-%d\n", event.vkey, event.status);
+			handle->write(&event, sizeof(event));
 		}
 	}
 }
 
-extern "C" void module_load(Binding* root, const char* argv)
+extern "C" void module_load(File* root, const char* argv)
 {
-    OwnedBinding* keyboard = root->get("sys")->add(new OwnedBinding("keyboard"));
+	Stream* keyboardStream = new ChunkedStream("keyboard", sizeof(VirtualKeyEvent) * 128, sizeof(VirtualKeyEvent));
+    File* keyboard = root->get("sys")->bind(keyboardStream);
 
 	driver = new KeyboardDriver();
 	driver->setScanCodeSet(SCANSET_2);
 	driver->setScanCodeTranslation(false);
-	
-	threading::scheduler->schedule(new threading::Thread(nullptr, nullptr, KeyboardDriverThread, driver, keyboard));
+
+	threading::scheduler->schedule(new threading::Thread(nullptr, nullptr, KeyboardDriverThread, driver, keyboardStream));
 }

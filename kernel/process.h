@@ -71,6 +71,7 @@ private:
     std::vector<std::string> _args;
     bindings::Binding* _file;
     char* _program_break;
+    bindings::OwnedBinding* _descriptor;
     //std::shared_ptr<Process> _parent;
 };
 

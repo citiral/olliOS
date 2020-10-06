@@ -1,13 +1,12 @@
 #include "types.h"
 #include "kernelshell.h"
-#include "bindings.h"
+#include "file.h"
 #include "threading/scheduler.h"
 #include <stdio.h>
 
-using namespace bindings;
+using namespace fs;
 
 KernelShell* shell;
-
 
 void test() {
     while (true) {
@@ -16,17 +15,25 @@ void test() {
     }
 }
 
-extern "C" void module_load(Binding* root, const char* argv)
+void ShellThread(FileHandle* keyboard) {
+    while (1) {
+        VirtualKeyEvent key;
+        i32 ret;
+
+        do {
+            ret = keyboard->read(&key, sizeof(VirtualKeyEvent));
+			printf("read %d-%d\n", key.vkey, key.status);
+            shell->enter(key);
+        } while (ret > 0);
+
+        threading::exit();
+    }
+}
+
+extern "C" void module_load(File* root, const char* argv)
 {
     shell = new KernelShell();
 
-    root->get("sys")->get("keyboard")->on_data([](Binding* keyboard, size_t count, const void* data) {
-        const VirtualKeyEvent* keys = (VirtualKeyEvent*) data;
-
-        for (int i = 0 ; i < count / sizeof(VirtualKeyEvent) ; i++) {
-            shell->enter(keys[i]);
-        }
-        
-        return true;
-    });
+    File* keyboard = root->get("sys/keyboard");    
+	threading::scheduler->schedule(new threading::Thread(nullptr, nullptr, ShellThread, keyboard->open()));
 }
