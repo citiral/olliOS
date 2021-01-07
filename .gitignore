@@ -21,3 +21,7 @@ ollios.sym
 
 # Hard drive image
 disk.img
+
+# Local environment files
+cross
+env

@@ -53,6 +53,8 @@ i32 VirtualFileHandle::read(void* buffer, size_t size)
         size = _file->size - _offset;
     }
 
+    return size;
+
     i32 read = 0;
 
     size_t chunk = _offset / VIRTUAL_FILE_CHUNK_SIZE;
@@ -159,7 +161,7 @@ void VirtualFolderHandle::reset_child_iterator()
     _child_offset = 0;
 }
 
-VirtualFile::VirtualFile(std::string name): name(name), data()
+VirtualFile::VirtualFile(std::string name): name(name), data(), size(0)
 {
 
 }

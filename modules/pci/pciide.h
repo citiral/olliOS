@@ -3,11 +3,10 @@
 
 #include "pcidevice.h"
 #include "types.h"
-#include "bindings.h"
 
 class PCIIDE : public PCIDevice {
 public:
-	PCIIDE(bindings::OwnedBinding* bind, u8 bus, u8 dev, u8 func);
+	PCIIDE(fs::File* root, u8 bus, u8 dev, u8 func);
 	~PCIIDE();
 
 	u32 getBaseAddress(int drive);

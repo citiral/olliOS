@@ -36,6 +36,25 @@ namespace fs {
         virtual File* bind(File* child) = 0;
 
         File* get(const char* name);
+
+        template<class T>
+        T read() {
+            T t;
+
+            size_t total = 0;
+            size_t ret;
+
+            FileHandle* h = open();
+
+            do {
+                ret = h->read(((u8*)&t) + total, sizeof(T) - total);
+                total += ret;
+            } while (ret > 0);
+
+            h->close();
+
+            return t;
+        }
     };
 
     extern File* root;

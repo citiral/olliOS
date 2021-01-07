@@ -4,34 +4,26 @@
 #include "cdefs.h"
 #include "string.h"
 #include "stdio.h"
+#include "virtualfile.h"
+#include "interfacefile.h"
 
-class PCIBinding: public bindings::OwnedBinding {
-public:
-	PCIBinding(std::string name, PCIDevice* device, u32 bar): bindings::OwnedBinding(name), _device(device), _bar(bar)
-	{
-		on_read([](OwnedBinding* _binding, void* buffer, size_t size, size_t offset) {
-			PCIBinding* binding = (PCIBinding*) _binding;
+template<size_t BAR>
+int read_pci_bar(char* buffer, size_t length, void* context) {
+	PCIDevice* device = (PCIDevice*) context;
+	u32 result;
 
-			u32 result = binding->_device->readIOBAR(binding->_bar);
-			if (size + offset > 4) {
-				size = 4 - offset;
-			}
-
-			if (size > 0) {
-				memcpy(buffer, &result, size);
-			}
-			
-			return size;
-		});
+	if (length < sizeof(result)) {
+		return 0;
 	}
 
+	result = device->readIOBAR(BAR);
+	memcpy(buffer, &result, sizeof(result));
 
-private:
-	PCIDevice* _device;
-	u32 _bar;
-};
+	return sizeof(result);
 
-PCIDevice::PCIDevice(bindings::OwnedBinding* root, u8 bus, u8 dev, u8 func)
+}
+
+PCIDevice::PCIDevice(fs::File* root, u8 bus, u8 dev, u8 func)
 {
 	// Save these values
 	_bus = bus;
@@ -51,33 +43,46 @@ PCIDevice::PCIDevice(bindings::OwnedBinding* root, u8 bus, u8 dev, u8 func)
 	_subclassCode = configReadByte(10);
 	_headerType = configReadByte(14);
 
-	// Register it to the binding tree
 	char name[32];
+	sprintf(name, "%d:%d:%d", _bus, _device, _func);
 
-	binding = new bindings::OwnedBinding(name);
-	binding->add(new bindings::RefMemoryBinding("bus", &_bus, sizeof(_bus)));
-	binding->add(new bindings::RefMemoryBinding("device", &_device, sizeof(_device)));
-	binding->add(new bindings::RefMemoryBinding("func", &_func, sizeof(_func)));
-	binding->add(new bindings::RefMemoryBinding("vendor", &_vendorId, sizeof(_vendorId)));
-	binding->add(new bindings::RefMemoryBinding("device", &_deviceId, sizeof(_deviceId)));
-	binding->add(new bindings::RefMemoryBinding("revision", &_revisionId, sizeof(_revisionId)));
-	binding->add(new bindings::RefMemoryBinding("name", _deviceName, strlen(_deviceName)+1));
-	binding->add(new bindings::RefMemoryBinding("class", &_classCode, sizeof(_classCode)));
-	binding->add(new bindings::RefMemoryBinding("subclass", &_subclassCode, sizeof(_subclassCode)));
-	binding->add(new bindings::RefMemoryBinding("header_type", &_headerType, sizeof(_headerType)));
+	_file = new fs::VirtualFolder(name);
+
+	_file->bind(fs::InterfaceFile::read_only<sizeof(_bus)>("bus", &_bus));
+	_file->bind(fs::InterfaceFile::read_only<sizeof(_device)>("device", &_device));
+	_file->bind(fs::InterfaceFile::read_only<sizeof(_func)>("func", &_func));
+	_file->bind(fs::InterfaceFile::read_only<sizeof(_vendorId)>("vendor", &_vendorId));
+	_file->bind(fs::InterfaceFile::read_only<sizeof(_deviceId)>("device", &_deviceId));
+	_file->bind(fs::InterfaceFile::read_only<sizeof(_revisionId)>("revision", &_revisionId));
+	_file->bind(fs::InterfaceFile::read_only<sizeof(_classCode)>("class", &_classCode));
+	_file->bind(fs::InterfaceFile::read_only<sizeof(_subclassCode)>("subclass", &_subclassCode));
+	_file->bind(fs::InterfaceFile::read_only<sizeof(_headerType)>("header_type", &_headerType));
+	_file->bind(new fs::InterfaceFile("name", nullptr, [](char* buffer, size_t length, void* context) {
+		const char* name = (const char*) context;
+
+		if (length == 0) {
+			return 0;
+		}
+
+		int name_length = strlen(name);
+		int count = length > name_length ? name_length : length - 1;
+
+		memcpy(buffer, context, count);
+		buffer[count] = 0;
+		return count + 1;
+	}, (void*) _deviceName));
 
 	if (_headerType == 0) {
-		bindings::OwnedBinding* bars = new bindings::OwnedBinding("bars");
-		bars->add(new PCIBinding("0", this, 0));
-		bars->add(new PCIBinding("1", this, 1));
-		bars->add(new PCIBinding("2", this, 2));
-		bars->add(new PCIBinding("3", this, 3));
-		bars->add(new PCIBinding("4", this, 4));
-		bars->add(new PCIBinding("5", this, 5));
-		binding->add(bars);
+		fs::File* bars = _file->create("bars", FILE_CREATE_DIR);
+		bars->bind(new fs::InterfaceFile("0", nullptr, read_pci_bar<0>, this));
+		bars->bind(new fs::InterfaceFile("1", nullptr, read_pci_bar<1>, this));
+		bars->bind(new fs::InterfaceFile("2", nullptr, read_pci_bar<2>, this));
+		bars->bind(new fs::InterfaceFile("3", nullptr, read_pci_bar<3>, this));
+		bars->bind(new fs::InterfaceFile("4", nullptr, read_pci_bar<4>, this));
+		bars->bind(new fs::InterfaceFile("5", nullptr, read_pci_bar<5>, this));
 	}
 	
-	root->add(binding);
+	root->bind(_file);
 
 	// Print the name to the console
 	if (_deviceName[0] == '?')

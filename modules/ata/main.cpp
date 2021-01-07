@@ -1,17 +1,14 @@
-#include "bindings.h"
+#include "file.h"
 #include "ata.h"
 #include <stdio.h>
 
-using namespace bindings;
-
-extern "C" void module_load(Binding* root, const char* argv)
+extern "C" void module_load(fs::File* root, const char* argv)
 {
-    root->get("sys")->enumerate([](Binding* root, Binding* child) {
-        if (child->name == "pci") {
-            printf("initing ata\n");
-            ata::driver.initialize(child);
-            return false;
-        }
-        return true;
-    }, true);
+    fs::File* pci = root->get("sys/pci");
+    
+    if (pci) {
+            ata::driver.initialize(pci);
+    } else {
+        printf("Error: sys/pci not found.\n");
+    }
 }

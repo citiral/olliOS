@@ -9,7 +9,7 @@
 
 namespace ata {
 
-AtaPioDevice::AtaPioDevice(bindings::Binding* ata, u16 port, unsigned short* data, int device): AtaDevice(ata, port, data, device) {
+AtaPioDevice::AtaPioDevice(fs::File* ata, u16 port, unsigned short* data, int device): AtaDevice(ata, port, data, device) {
 }
 
 AtaPioDevice::~AtaPioDevice() {
@@ -37,7 +37,7 @@ size_t AtaPioDevice::write(char data)
 	return 0;
 }
 
-size_t AtaPioDevice::read(void* data, size_t amount, size_t offset)
+size_t AtaPioDevice::read(void* data, size_t amount)
 {
 	char* cdata = (char*) data;
 	read(_pointer, amount, cdata);

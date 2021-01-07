@@ -9,7 +9,7 @@
 #include "kstd/vector.h"
 #include "kstd/utility.h"
 #include "kstd/string.h"
-#include "bindings.h"
+#include "file.h"
 
 class KernelShell {
 using CommandFunction = void (*)(KernelShell* shell, std::vector<std::string>* args);
@@ -20,7 +20,7 @@ public:
     void enter(VirtualKeyEvent input);    
 
     std::vector<std::pair<const char*, CommandFunction>>& commands();
-    bindings::Binding* working_directory;
+    fs::File* working_directory;
 
 private:
     std::vector<std::string> splitCommand(std::string cmd);

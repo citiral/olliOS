@@ -10,13 +10,13 @@
 
 namespace ata {
 
-AtaPacketDevice::AtaPacketDevice(bindings::Binding* ata, u16 port, unsigned short* data, u8 drive): AtaDevice(ata, port, data, drive) {
+AtaPacketDevice::AtaPacketDevice(fs::File* ata, u16 port, unsigned short* data, u8 drive): AtaDevice(ata, port, data, drive) {
 }
 
 AtaPacketDevice::~AtaPacketDevice() {
 }
 
-size_t AtaPacketDevice::read(void* data, size_t amount, size_t offset) {
+size_t AtaPacketDevice::read(void* data, size_t amount) {
     driver.grab();
     driver.clearInterruptFlag();
     
@@ -25,13 +25,15 @@ size_t AtaPacketDevice::read(void* data, size_t amount, size_t offset) {
     outb(_port + PORT_DRIVE, 0 << 4);
     
     // round offset down, add count removed from offset to amount, and round amount up.
+    size_t offset = _pointer;
     size_t actual_amount = amount;
     size_t skip = offset % 2048;
     actual_amount += skip;
     offset -= skip;
     if (actual_amount % 2048 != 0)
         actual_amount += 2048 - (actual_amount % 2048);
-    
+    _pointer += amount;
+
     // we are not going to use DMA (set dma bit to zero)
     outb(_port+PORT_FEATURE, 0);
 
@@ -134,13 +136,24 @@ size_t AtaPacketDevice::write(char data)
 }
 
 size_t AtaPacketDevice::seek(i32 offset, int position) {
-    // we only accept 2kb boundaries
-    if (offset % 2048 != 0)
-        return 1;
+	if (position == SEEK_SET)
+	{
+		if (offset > 0)
+			_pointer = offset;
+	}
+	else if (position == SEEK_CUR)
+	{
+		if (offset < 0 && -offset > position)
+			_pointer = 0;
+		else
+			_pointer += offset;
+	}
+	else if (position == SEEK_END)
+	{
+		CPU::panic("NOT IMPLEMENTED");
+	}
 
-    offset /= 2048;
-
-    return 0;
+	return 0;
 }
 
 }

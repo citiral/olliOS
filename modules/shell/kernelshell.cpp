@@ -33,33 +33,37 @@ void allocmerge(KernelShell* shell, std::vector<std::string>* args)
 
 void cat(KernelShell* shell, std::vector<std::string>* args)
 {
-	bindings::Binding* bind;
+	fs::File* file;
 	
 	if (args->size() > 1) {
-		bind = shell->working_directory->get(args->at(1).c_str());
+		file = shell->working_directory->get(args->at(1).c_str());
 	} else {
-		bind = shell->working_directory;
+		file = shell->working_directory;
 	}
 
-	if (bind == NULL && args->size() > 1) {
+	if (file == NULL && args->size() > 1) {
 		printf("Invalid path: %s\n", args->at(1).c_str());
 		return;
 	}
 
     char buffer[2048];
-	size_t total = 0;
-	size_t read;
+	int total = 0;
+	int read;
+
+	fs::FileHandle* handle = file->open();
 	do {
-		read = bind->read(buffer, sizeof(buffer), total);
-		for (size_t i = 0 ; i < read ; i++)
+		read = handle->read(buffer, sizeof(buffer));
+		for (int i = 0 ; i < read ; i++)
 			putchar(buffer[i]);
 		total += read;
 	} while (read > 0);
+
+	handle->close();
 }
 
 void stat(KernelShell* shell, std::vector<std::string>* args)
 {
-	bindings::Binding* bind;
+	/*bindings::Binding* bind;
 	
 	if (args->size() > 1) {
 		bind = shell->working_directory->get(args->at(1).c_str());
@@ -72,12 +76,12 @@ void stat(KernelShell* shell, std::vector<std::string>* args)
 		return;
 	}
 
-	printf("Size: %d\n", bind->get_size());
+	printf("Size: %d\n", bind->get_size());*/
 }
 
 void hex(KernelShell* shell, std::vector<std::string>* args)
 {
-	bindings::Binding* bind;
+	/*bindings::Binding* bind;
 	
 	if (args->size() > 1) {
 		bind = shell->working_directory->get(args->at(1).c_str());
@@ -101,52 +105,54 @@ void hex(KernelShell* shell, std::vector<std::string>* args)
 		total += read;
 	} while (read > 0);
 
-	putchar('\n');
+	putchar('\n');*/
 }
 
 void ls(KernelShell* shell, std::vector<std::string>* args)
 {
-	bindings::Binding* bind;
+	fs::File* folder;
 	
 	if (args->size() > 1) {
-		bind = shell->working_directory->get(args->at(1).c_str());
+		folder = shell->working_directory->get(args->at(1).c_str());
 	} else {
-		bind = shell->working_directory;
+		folder = shell->working_directory;
 	}
 
-	if (bind == NULL && args->size() > 1) {
+	if (folder == NULL && args->size() > 1) {
 		printf("Invalid path: %s\n", args->at(1).c_str());
 		return;
 	}
 
-	bind->enumerate([](bindings::Binding*, bindings::Binding* child) {
-		printf("%s\n", child->name.c_str());
-		return true;
-	});
+
+    fs::FileHandle* handle = folder->open();
+	fs::File* child;
+    while ((child = handle->next_child()) != NULL) {
+        printf("%s\n", child->get_name());
+    }
 }
 
 void cd(KernelShell* shell, std::vector<std::string>* args)
 {
-	bindings::Binding* bind;
+	fs::File* file;
 	
 	if (args->size() > 1) {
-		bind = shell->working_directory->get(args->at(1).c_str());
+		file = shell->working_directory->get(args->at(1).c_str());
 	} else {
-		bind = bindings::root;
+		file = fs::root;
 	}
 
 
-	if (bind == NULL && args->size() > 1) {
+	if (file == NULL && args->size() > 1) {
 		printf("Invalid path: %s\n", args->at(1).c_str());
 		return;
 	}
 
-	shell->working_directory = bind;
+	shell->working_directory = file;
 }
 
 void touch(KernelShell* shell, std::vector<std::string>* args)
 {
-	bindings::Binding* bind = nullptr;
+	/*bindings::Binding* bind = nullptr;
 	
 	if (args->size() != 2) {		
 		printf("Binding name expected\n", args->at(1).c_str());
@@ -160,7 +166,7 @@ void touch(KernelShell* shell, std::vector<std::string>* args)
 		return;
 	}
 
-	shell->working_directory->add(new bindings::OwnedBinding(args->at(1)));
+	shell->working_directory->add(new bindings::OwnedBinding(args->at(1)));*/
 }
 
 void help(KernelShell* shell, std::vector<std::string>* args)
@@ -182,7 +188,7 @@ void help(KernelShell* shell, std::vector<std::string>* args)
 
 void run(KernelShell* shell, std::vector<std::string>* args)
 {
-    printf("starting process\n");
+    /*printf("starting process\n");
 	if (args->size() < 2)
 	{
 		printf("Usage: load program [args...]\n");
@@ -208,12 +214,12 @@ void run(KernelShell* shell, std::vector<std::string>* args)
 
 		printf("%d\n", p->status_code);
 		printf("Free physical memory: %dKB\n", memory::physicalMemoryManager.countFreePhysicalMemory() * 4);
-	//}
+	//}*/
 }
 
 void load(KernelShell* shell, std::vector<std::string>* args)
 {
-	if (args->size() < 2)
+	/*if (args->size() < 2)
 	{
 		printf("Usage: load program\n");
 		return;
@@ -258,7 +264,7 @@ void load(KernelShell* shell, std::vector<std::string>* args)
 		void (*module_load)(bindings::Binding*, const char*);
 		e->get_symbol_value("module_load", (u32*) &module_load);
 		module_load(bindings::root, argv.c_str());
-	}
+	}*/
 }
 /*
 void set(KernelShell* shell, std::vector<std::string>* args)
@@ -310,14 +316,15 @@ KernelShell::KernelShell(): _commands()
     _commands.push_back(std::pair<const char*, CommandFunction>("help", &help));
     _commands.push_back(std::pair<const char*, CommandFunction>("ls", &ls));
 	_commands.push_back(std::pair<const char*, CommandFunction>("cat", &cat));
-	_commands.push_back(std::pair<const char*, CommandFunction>("stat", &stat));
-	_commands.push_back(std::pair<const char*, CommandFunction>("hex", &hex));
+	//_commands.push_back(std::pair<const char*, CommandFunction>("stat", &stat));
+	//_commands.push_back(std::pair<const char*, CommandFunction>("hex", &hex));
 	_commands.push_back(std::pair<const char*, CommandFunction>("cd", &cd));
-	_commands.push_back(std::pair<const char*, CommandFunction>("touch", &touch));
-	_commands.push_back(std::pair<const char*, CommandFunction>("load", &load));
-	_commands.push_back(std::pair<const char*, CommandFunction>("run", &run));
+	//_commands.push_back(std::pair<const char*, CommandFunction>("touch", &touch));
+	//_commands.push_back(std::pair<const char*, CommandFunction>("load", &load));
+	//_commands.push_back(std::pair<const char*, CommandFunction>("run", &run));
 
-	working_directory = bindings::root->get("dev/ata0/root/boot");
+	//working_directory = fs::root->get("dev/ata0/root/boot");
+	working_directory = fs::root;
 	prompt();
 }
 

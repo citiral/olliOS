@@ -22,7 +22,6 @@ void ShellThread(FileHandle* keyboard) {
 
         do {
             ret = keyboard->read(&key, sizeof(VirtualKeyEvent));
-			printf("read %d-%d\n", key.vkey, key.status);
             shell->enter(key);
         } while (ret > 0);
 

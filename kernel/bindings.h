@@ -57,7 +57,7 @@ namespace bindings {
         size_t get_size();
 
         template<class T>
-        T read() {            
+        T read() {
             T t;
 
             size_t total = 0;

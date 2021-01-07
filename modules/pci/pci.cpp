@@ -115,7 +115,7 @@ namespace PCI
 		return vendor != 0xFFFF;
 	}
 
-	void init(bindings::OwnedBinding *bind)
+	void init(fs::File *root)
 	{
 		LOG_STARTUP("Searching for PCI devices...");
 
@@ -134,7 +134,7 @@ namespace PCI
 						//if (classCode == 0x1 && subclassCode == 0x1)
 						//	device = new PCIIDE(bind, bus, dev, func);
 						//else
-						device = new PCIDevice(bind, bus, dev, func);
+						device = new PCIDevice(root, bus, dev, func);
 
 						//deviceManager.addDevice(device);
 					}

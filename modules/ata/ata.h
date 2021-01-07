@@ -9,6 +9,7 @@
 #include "threading/semaphore.h"
 #include "types.h"
 #include "bindings.h"
+#include "file.h"
 
 /*#define PORT_DATA           0x1F0
 #define PORT_FEATURE        0x1F1
@@ -81,7 +82,7 @@ public:
     AtaDriver();
 
     // discovers devices and initializes them so after this function they can be used.
-	void initialize(bindings::Binding* pci);
+	void initialize(fs::File* pci);
 
 	// Don't scan the default addresses. Normally called after a PCI IDE Interface has been detected.
 	void disableScanDefaultAddresses();
@@ -117,7 +118,7 @@ public:
     void grab();
     void release();
 
-    bindings::OwnedBinding* bind;
+    fs::File* file;
 
 private:
     // This has to be volatile, otherwise codegen might cache it in a register which won't detect changes by interrupt

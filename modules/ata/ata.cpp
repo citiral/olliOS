@@ -9,6 +9,7 @@
 #include "cpu/interrupt.h"
 #include "cpu/io.h"
 #include "cdefs.h"
+#include "virtualfile.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -28,26 +29,29 @@ AtaDriver::AtaDriver(): _interrupted(false), _lock(1) {
 
 }
 
-void AtaDriver::initialize(Binding* pci) {
+void AtaDriver::initialize(fs::File* pci) {
     _deviceCount = 0;
 
     idt.setFunction(INT_ATA_BUS1, &ata::intHandlerAta);
 	idt.setFunction(INT_ATA_BUS2, &ata::intHandlerAta);
 
-    bind = new bindings::OwnedBinding("ata");
-    bindings::root->get("sys")->add(bind);
+    file = new fs::VirtualFolder("ata");
+    fs::root->get("sys")->bind(file);
 
     _lock = threading::Semaphore(1);
 	_interrupted = false;
 
-    pci->enumerate([](Binding* pci, Binding* device) {
+
+    fs::FileHandle* handle = pci->open();
+	fs::File* device;
+    while ((device = handle->next_child()) != NULL) {
         u32 dev_class = device->get("class")->read<u8>();
         u32 dev_subclass = device->get("subclass")->read<u8>();
 
         if (dev_class == 1 && dev_subclass == 1) {
 
-            u32 bar0 = device->get("bars")->get("0")->read<u32>();
-            u32 bar2 = device->get("bars")->get("2")->read<u32>();
+            u32 bar0 = device->get("bars/0")->read<u32>();
+            u32 bar2 = device->get("bars/2")->read<u32>();
 
             if (bar0 == 0 || bar0 == 1)  {
                 driver.detectDevice(0x1F0, 0);
@@ -57,8 +61,7 @@ void AtaDriver::initialize(Binding* pci) {
                 //driver.detectDevice(0x170, 1);
             }
         }
-        return true;
-    }, true);
+    }
 }
 
 void AtaDriver::disableScanDefaultAddresses()
@@ -154,10 +157,10 @@ AtaDevice* AtaDriver::detectDevice(u16 p, int device) {
 	// register it to the devicemanager
 	AtaDevice* atadevice;
     if (isPacket) {
-		atadevice = new AtaPacketDevice(bind, p, data, device);
+		atadevice = new AtaPacketDevice(file, p, data, device);
         //deviceManager.addDevice(atadevice);
     } else {
-		atadevice = new AtaPioDevice(bind, p, data, device);
+		//atadevice = new AtaPioDevice(file, p, data, device);
         //deviceManager.addDevice(atadevice);
     }
 

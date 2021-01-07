@@ -1,11 +1,12 @@
 #include "types.h"
-#include "bindings.h"
 #include "pci.h"
+#include "file.h"
+#include "virtualfile.h"
 #include <stdio.h>
 
-using namespace bindings;
-
-extern "C" void module_load(Binding* root, const char* argv)
+extern "C" void module_load(fs::File* root, const char* argv)
 {
-    PCI::init(root->get("sys")->add(new OwnedBinding("pci")));
+    fs::File* pci = root->get("sys")->create("pci", FILE_CREATE_DIR);
+
+    PCI::init(pci);
 }

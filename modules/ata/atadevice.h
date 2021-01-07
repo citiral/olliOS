@@ -1,7 +1,7 @@
 #ifndef OLLIOS_ATADEVICE_H
 #define OLLIOS_ATADEVICE_H
 
-#include "bindings.h"
+#include "file.h"
 #include "cdefs.h"
 #include "kstd/string.h"
 
@@ -9,7 +9,7 @@ namespace ata {
 
 class AtaDevice {
 public:
-    AtaDevice(bindings::Binding* ata, u16 port, unsigned short* data, int drive);
+    AtaDevice(fs::File* ata, u16 port, unsigned short* data, int drive);
     ~AtaDevice();
 
 	std::string& getName();
@@ -31,15 +31,15 @@ public:
 	u32 inL(u16 reg);
 	void inSW (unsigned short int reg, void *addr, unsigned long int count);
 
-	virtual size_t seek(i32 offset, int position) = 0;
-    virtual size_t read(void* data, size_t amount, size_t offset) = 0;
+	virtual size_t seek(i32 offset, int dir) = 0;
+    virtual size_t read(void* data, size_t amount) = 0;
 
 protected:
 	unsigned short* _data;
 	u16 _port;
     u8 _drive;
 	size_t _bytesPerSector = 512;
-	bindings::OwnedBinding* bind;
+	fs::File* file;
 private:
 	void readName();
 	/*void writeRegisterB(u8 reg, u8 data);

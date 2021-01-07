@@ -3,12 +3,12 @@
 
 #include "kstd/string.h"
 #include "types.h"
-#include "bindings.h"
+#include "file.h"
 
 class PCIDevice
 {
 public:
-	PCIDevice(bindings::OwnedBinding* root, u8 bus, u8 dev, u8 func);
+	PCIDevice(fs::File* root, u8 bus, u8 dev, u8 func);
 	~PCIDevice();
 	u16 getVendorID();
 	u16 getFunction();
@@ -39,7 +39,7 @@ private:
 	u8 _headerType;
 
 	const char* _deviceName;
-	bindings::OwnedBinding* binding;
+	fs::File* _file;
 };
 
 #endif

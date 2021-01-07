@@ -22,7 +22,7 @@ void KeyboardDriverThread(KeyboardDriver* driver, Stream* keyboard) {
 			if (read == 0) {
 				break;
 			}
-			printf("writing %d-%d\n", event.vkey, event.status);
+
 			handle->write(&event, sizeof(event));
 		}
 	}

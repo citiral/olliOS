@@ -1,4 +1,6 @@
-#include "bindings.h"
+#include "file.h"
+#include "virtualfile.h"
+#include "interfacefile.h"
 #include "atadevice.h"
 #include "ata.h"
 #include "cpu/io.h"
@@ -7,35 +9,92 @@
 
 #define BIT_LBA48 (1<<10)
 
-class ATABinding: public bindings::OwnedBinding {
+class ATADeviceFileHandle: public fs::FileHandle {
 public:
-	ATABinding(std::string name, ata::AtaDevice* _ata): bindings::OwnedBinding(name), ata(_ata)
-	{
+	ATADeviceFileHandle(ata::AtaDevice* ata): _ata(ata) {
 
 	}
 
+	void close() {
+		delete this;
+	}
+
+	i32 write(const void* data, size_t count) {
+		return -1;
+	}
+
+	i32 read(void* buffer, size_t size) {
+		return _ata->read(buffer, size);
+	}
+
+	i32 seek(i32 pos, size_t dir) {
+		return _ata->seek(pos, dir);
+	}
+
+	fs::File* next_child() {
+		return nullptr;
+	}
+
+	void reset_child_iterator() {
+
+	}
+
+private:
+	ata::AtaDevice* _ata;
+};
+
+class ATADeviceFile: public fs::File {
 public:
-	ata::AtaDevice* ata;
+	ATADeviceFile(ata::AtaDevice* ata, std::string&& name): _ata(ata), _name(name) {
+
+	};
+
+	fs::FileHandle* open() {
+		return new ATADeviceFileHandle(_ata);
+	}
+
+	const char* get_name() {
+		return _name.c_str();
+	}
+
+	size_t get_size() {
+		return _ata->getBytes();
+	}
+
+	File* create(const char* name, u32 flags) {
+		return nullptr;
+	}
+
+	File* bind(File* child) {
+		return nullptr;
+	}
+
+public:
+	std::string _name;
+	ata::AtaDevice* _ata;
 };
 
 namespace ata {
 
-AtaDevice::AtaDevice(bindings::Binding* ata, u16 port, unsigned short* data, int drive) : _data(data), _port(port),_drive(drive)
+AtaDevice::AtaDevice(fs::File* ata, u16 port, unsigned short* data, int drive) : _data(data), _port(port),_drive(drive)
 {
 	readName();
 
 	char name[32];
 	sprintf(name, "ata%x", drive);
 
-	bind = new bindings::OwnedBinding(name);
-	bind->add(new bindings::RefMemoryBinding("name", _name.c_str(), strlen(_name.c_str()) + 1));
-	ata->add(bind);
-	
-	bindings::root->get("dev")->add((new ATABinding(std::string("ata") + ('0' + drive), this))->on_read([](bindings::OwnedBinding* _binding, void* buffer, size_t size, size_t offset) {
+    file = new fs::VirtualFolder(name);
+
+	file->bind(fs::InterfaceFile::read_only_string("name", _name.c_str()));
+	ata->bind(file);
+
+	fs::root->get("dev")->bind(new ATADeviceFile(this, std::string("ata")));
+
+	/*bindings::root->get("dev")->add((new ATABinding(std::string("ata") + ('0' + drive), this))->on_read([](bindings::OwnedBinding* _binding, void* buffer, size_t size, size_t offset) {
 		ATABinding* binding = (ATABinding*) _binding;
 		binding->ata->seek(offset, SEEK_SET);
 		return binding->ata->read(buffer, size, offset);
-	}));
+	}));*/
 
 
 	u32 B = data[60] & 0xFF;
@@ -93,6 +152,16 @@ bool AtaDevice::supportsLBA48()
 int AtaDevice::getDrive()
 {
 	return _drive;
+}
+
+u64 AtaDevice::getBlocks()
+{
+	return _lba28size;
+}
+
+u64 AtaDevice::getBytes()
+{
+	return _lba28size * (u64) _bytesPerSector;
 }
 
 void AtaDevice::selectDevice()
