@@ -218,7 +218,8 @@ void run(KernelShell* shell, std::vector<std::string>* args)
 	}
 
 	Process* p = new Process();
-	p->init(file, *args);
+	p->set_arguments(*args);
+	p->init(file);
 	p->start();
 	p->wait();
 

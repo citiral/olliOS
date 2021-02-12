@@ -110,9 +110,13 @@ Process::~Process()
     }
 }
 
-void Process::init(fs::File* file, std::vector<std::string> args)
+void Process::set_arguments(std::vector<std::string>& args)
 {
     _args = args;
+}
+
+void Process::init(fs::File* file)
+{
     _file = file;
 
     bool eflag = CLI();
@@ -263,16 +267,15 @@ void Process::finish_fork(memory::PageDirectory* clone)
 }
 
 void Process::finish_execve()
-{    
+{        
     // Destroy old process state
     if (_pagetable) {
        memory::freePageDirectory(_pagetable);
     }
 
-    delete thread;
 
     // Reinitialize process and start
-    init(_file, _args);
+    init(_file);
     start();
 }
 
@@ -298,7 +301,7 @@ i32 Process::fork()
 
 i32 Process::execve(const char* pathname, char *const *argv, char *const *envp)
 {
-    fs::File* child =  fs::root->get(pathname);
+    fs::File* child = fs::root->get(pathname);
     if (!child) {
         return -1;
     }
@@ -308,6 +311,7 @@ i32 Process::execve(const char* pathname, char *const *argv, char *const *envp)
     // Copy the new process arguments to this process
     _file = child;
     _args.clear();
+    _args.push_back(pathname);
     size_t i = 0;
     while (argv[i] != nullptr) {
         _args.push_back(argv[i]);

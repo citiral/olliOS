@@ -65,6 +65,8 @@ bool Scheduler::enter() {
             } else {
                 thread->process->state = ProcessState::Stopped;
             }
+        } else {
+            delete thread;
         }
     }
 

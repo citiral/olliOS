@@ -71,17 +71,19 @@ void printf(char* str) {
 
 
 int main(int argc, char** argv)
-{
-    printf("Hello world!\n");
-    return getpid();
-    
+{    
     //FILE* test = open("/sys/vga", "r");
     //write(test, "abc", 3);
     //close(test);
+    char* arg = NULL;
+    execve("/root/usr/bin/cat", &arg, &arg);
+    return 0;
+
     for (int i = 0; i < 10 ; i++) {
         int pid = fork();
         if (pid == 0) {
-            return getpid();
+
+            execve("cat", &arg, &arg);
         } else {
             wait();
         }

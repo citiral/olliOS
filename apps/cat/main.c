@@ -16,7 +16,7 @@ int main(int argc, char **argv)
 {
     char buffer[1024];
 
-    FILE* test = fopen("/dev/ata0/root/include/ar.h", "rb+");
+    FILE* test = fopen("/root/include/ar.h", "rb+");
     int read = 1;
     int written = 0;
 

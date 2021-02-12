@@ -32,7 +32,8 @@ public:
     Process();
     ~Process();
 
-    void init(fs::File* file, std::vector<std::string> args);
+    void set_arguments(std::vector<std::string>& args);
+    void init(fs::File* file);
     void start();
     void wait();
     
