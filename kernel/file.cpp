@@ -5,6 +5,10 @@ using namespace fs;
 
 File* fs::root;
 
+void FileHandle::close() {
+    delete this;
+}
+
 void fs::init() {
     root = new VirtualFolder("");
 }

@@ -79,6 +79,9 @@ void* BucketAlloc::malloc(size_t size) {
                 printf("Failed malloc!\n");
                 while (1);
             }
+        } else {
+            printf("Failed malloc!\n");
+            while (1);
         }
     }
 

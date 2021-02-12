@@ -1,14 +1,18 @@
 #include "types.h"
 #include "iso9660.h"
-#include "bindings.h"
+#include "file.h"
 #include <stdio.h>
 
-using namespace bindings;
-
-extern "C" void module_load(Binding* root, const char* argv)
+extern "C" void module_load(fs::File* root, const char* argv)
 {
-	root->get("dev")->enumerate([](bindings::Binding* parent, bindings::Binding* child) {
+	fs::File* dev = root->get("dev");
+	fs::FileHandle* desc = dev->open();
+	
+	fs::File* child = nullptr;
+
+	while ((child = desc->next_child()) != nullptr) {
 		new Iso9660FileSystem(child);
-		return true;
-	}, true);
+	}
+
+	desc->close();
 }

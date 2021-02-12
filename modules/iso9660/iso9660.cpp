@@ -8,19 +8,18 @@
 #define DIRECTORY_RECORD_HAS_EXTENDED_ATTRIBUTES 0x8
 #define DIRECTORY_RECORD_NOT_FINAL 0xF0
 
-using namespace bindings;
-
 template <class T>
 T readType(u8* descriptor, size_t offset) {
     return *(T*)(descriptor + offset);
 }
 
-Iso9660FileSystem::Iso9660FileSystem(bindings::Binding* dev): _bind(dev) {
+Iso9660FileSystem::Iso9660FileSystem(fs::File* dev) {
+    _dev = dev->open();
     loadVolumeDescriptors();
-    //_primarypathtable = loadPathTable(_primarydescriptor);
 }
 
 Iso9660FileSystem::~Iso9660FileSystem() {
+    _dev->close();
     for(size_t i = 0 ; i < _descriptors.size() ; i++) {
         delete[] _descriptors[i];
     }
@@ -32,8 +31,9 @@ void Iso9660FileSystem::loadVolumeDescriptors() {
 
     while (true) {
         u8* descriptor = new u8[2048];
-        _bind->read(descriptor, 2048, offset);
+        _dev->read(descriptor, 2048, offset);
         offset += 2048;
+        
         
         // untill we encounted the descriptor set terminator
         if (descriptor[0] == 255) {
@@ -49,52 +49,72 @@ void Iso9660FileSystem::loadVolumeDescriptors() {
         LOG_INFO("Found iso descriptor: %d", descriptor[0]);
     }
 
-    Iso9660Binding* root = createRoot();
+    Iso9660File* root = createRoot();
     root->name = "root";
-    _bind->add(root);
+    fs::root->bind(root);
 }
 
-Iso9660Binding* Iso9660FileSystem::createRoot() {
+Iso9660File* Iso9660FileSystem::createRoot() {
     u32 lba = readType<u32>(_primarydescriptor, 156 + 2);
     u32 length = readType<u32>(_primarydescriptor, 156 + 10);
     u8* rootextend = readExtend(lba, length);
 
-    return new Iso9660Binding(this, rootextend);
+    return new Iso9660File(this, rootextend);
 }
 
 u8* Iso9660FileSystem::readExtend(u32 lba, u32 length) {
     u8* extend = new u8[length];
-    _bind->read(extend, length, lba * SIZEOF_KB  * 2);
+    _dev->read(extend, length, lba * SIZEOF_KB  * 2);
     return extend;
 }
 
 void Iso9660FileSystem::readExtend(u8* buffer, u32 lba, u32 length) {
-    _bind->read(buffer, length, lba * SIZEOF_KB  * 2);
+    _dev->read(buffer, length, lba * SIZEOF_KB  * 2);
 }
 
 size_t Iso9660FileSystem::readRaw(u8* buffer, u32 offset, u32 length) {
-    return _bind->read(buffer, length, offset);
+    return _dev->read(buffer, length, offset);
 }
 
-Iso9660Binding::Iso9660Binding(Iso9660FileSystem* fs, u8* record): _fs(fs), _record(record), OwnedBinding("") {
-    name = get_name();
 
-    on_read([](OwnedBinding* binding, void* buffer, size_t size, size_t offset) {
-        Iso9660Binding* t = (Iso9660Binding*)binding;
-        return t->read(buffer, size, offset);
-    });
+Iso9660File::Iso9660File(Iso9660FileSystem* fs, u8* record): fs(fs), record(record) {
+    name = read_name();
 
-    on_get_size([](OwnedBinding* binding) {
-        Iso9660Binding* t = (Iso9660Binding*)binding;
-        return (size_t) readType<u32>(t->_record, 10);
-    });
-
-    if (_record[25] & DIRECTORY_RECORD_IS_DIRECTORY) {
+    if (record[25] & DIRECTORY_RECORD_IS_DIRECTORY) {
         create_children();
     }
 }
 
-std::string Iso9660Binding::get_name()
+Iso9660File::~Iso9660File()
+{
+    delete record;
+
+    for (size_t i = 0 ; i < children.size() ; i++) {
+        delete children[i];
+    }
+}
+
+fs::FileHandle* Iso9660File::open()
+{
+    return new Iso9660FileHandle(this);
+}
+
+const char* Iso9660File::get_name()
+{
+    return name.c_str();
+}
+
+fs::File* Iso9660File::create(const char* name, u32 flags)
+{
+    return nullptr;
+}
+
+fs::File* Iso9660File::bind(fs::File* child)
+{
+    return nullptr;
+}
+
+std::string Iso9660File::read_name()
 {
     // first, we check if there is an alternate name field
     u8* nm = get_system_use_field('N', 'M');
@@ -103,13 +123,13 @@ std::string Iso9660Binding::get_name()
     if (nm == nullptr) {
         // but if the filename is 0 or 1, this is respectively the current and parent directory, we translate that to "." and ".."
         // http://alumnus.caltech.edu/~pje/iso9660.html
-        if (_record[32] == 1 && _record[33] == 0) {
+        if (record[32] == 1 && record[33] == 0) {
             return std::string(".");
-        } else if (_record[32] == 1 && _record[33] == 1) {
+        } else if (record[32] == 1 && record[33] == 1) {
             return std::string("..");
         } else {
-            //printf("file name length: %d\n", (u32) _record[32]);
-            return std::string((const char*)_record + 33, _record[32]);
+            //printf("file name length: %d\n", (u32) record[32]);
+            return std::string((const char*)record + 33, record[32]);
         }
     }
 
@@ -117,14 +137,14 @@ std::string Iso9660Binding::get_name()
     return std::string((const char*)nm + 5, nm[2] - 5);
 }
 
-void Iso9660Binding::create_children()
+void Iso9660File::create_children()
 {
     // Read the position and length of the directory record
-    u32 lba = readType<u32>(_record, 2);
-    u32 length = readType<u32>(_record, 10);
+    u32 lba = readType<u32>(record, 2);
+    u32 length = readType<u32>(record, 10);
     
     // Read the actual directory data
-    u8* extend = _fs->readExtend(lba, length);
+    u8* extend = fs->readExtend(lba, length);
 
     // Keep parsing children until we went through all data
     size_t offset = 0;
@@ -137,7 +157,7 @@ void Iso9660Binding::create_children()
             
         } else if (extend[32] == 1 && extend[33] == 1) {
         } else {
-            add(new Iso9660Binding(_fs, extend));
+           children.push_back(new Iso9660File(fs, extend));
         }
         
         offset += extend[0];
@@ -150,35 +170,68 @@ void Iso9660Binding::create_children()
     }
 }
 
-size_t Iso9660Binding::read(void* buffer, size_t size, size_t offset)
-{
-    u32 lba = readType<u32>(_record, 2);
-    u32 length = readType<u32>(_record, 10);
-
-    if (offset >= length) {
-        return 0;
-    } else if (offset + size >= length) {
-        size = length - offset;
-    }
-
-    return _fs->readRaw((u8*) buffer, lba * SIZEOF_KB * 2 + offset, size);
-}
-
-u8* Iso9660Binding::get_system_use_field(u8 b1, u8 b2) {
+u8* Iso9660File::get_system_use_field(u8 b1, u8 b2) {
     // traverse the system use field until we find a compatible field
-    u8 length = _record[0];
-    u8 cur = _record[32];
+    u8 length = record[0];
+    u8 cur = record[32];
     if (cur % 2 == 0)
         cur++;
     cur += 33;
     while(cur + 1 < length)  {
-        if (b1 == _record[cur] && b2 == _record[cur + 1])
-            return _record + cur;
+        if (b1 == record[cur] && b2 == record[cur + 1])
+            return record + cur;
         else
-            cur += _record[cur + 2];
+            cur += record[cur + 2];
     }
 
     return nullptr;
+}
+
+Iso9660FileHandle::Iso9660FileHandle(Iso9660File* file): _file(file), _child_iter(0)
+{
+
+}
+
+i32 Iso9660FileHandle::write(const void* buffer, size_t size, size_t pos)
+{
+    UNUSED(buffer);
+    UNUSED(size);
+    UNUSED(pos);
+
+    return -1;
+}
+
+i32 Iso9660FileHandle::read(void* buffer, size_t size, size_t pos)
+{
+    u32 lba = readType<u32>(_file->record, 2);
+    u32 length = readType<u32>(_file->record, 10);
+
+    if (pos >= length) {
+        return 0;
+    } else if (pos + size >= length) {
+        size = length - pos;
+    }
+
+    return _file->fs->readRaw((u8*) buffer, lba * SIZEOF_KB * 2 + pos, size);
+}
+
+size_t Iso9660FileHandle::get_size()
+{
+    return (size_t) readType<u32>(_file->record, 10);
+}
+
+fs::File* Iso9660FileHandle::next_child()
+{
+    if (_child_iter >= _file->children.size()) {
+        return nullptr;
+    }
+
+    return _file->children[_child_iter++];
+}
+
+void Iso9660FileHandle::reset_child_iterator()
+{
+    _child_iter = 0;
 }
 
 /*

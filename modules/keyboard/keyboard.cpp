@@ -52,7 +52,7 @@ KeyboardDriver::~KeyboardDriver()
 
 }
 
-void intHandlerKeyboard(u32 interrupt) {
+void intHandlerKeyboard(u32 interrupt) {	
     // send it to the keyboarddriver
 	driver->interrupt1(interrupt);
 

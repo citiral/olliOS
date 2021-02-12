@@ -4,7 +4,7 @@
 
 using namespace threading;
 
-Semaphore::Semaphore(int count): _lock(), _count(count) {
+Semaphore::Semaphore(int count): _lock(), _count(count), _waitingList() {
 
 }
 
@@ -24,6 +24,7 @@ void Semaphore::lock() {
         }// if the value is zero, we can schedule ourselves and try again at a later time
         else {
             _lock.release();
+            _waitingList.add_blocked_thread(threading::currentThread());
             STI(eflag);
             threading::exit();
         }
@@ -54,5 +55,6 @@ void Semaphore::release() {
     _lock.lock();
     _count++;
     _lock.release();
+    _waitingList.unblock_next_thread();
     STI(eflag);
 }

@@ -23,7 +23,7 @@ void KeyboardDriverThread(KeyboardDriver* driver, Stream* keyboard) {
 				break;
 			}
 
-			handle->write(&event, sizeof(event));
+			handle->write(&event, sizeof(event), 0);
 		}
 	}
 }

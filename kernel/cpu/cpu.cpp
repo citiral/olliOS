@@ -28,8 +28,8 @@ void CPU::dumpstack(unsigned int MaxFrames)
 void CPU::panic(const char* msg)
 {
 	printf("Kernel Panic!!!\n");
+	dumpstack(4);
 	printf("%s\n", msg);
-	dumpstack(10);
 	printf("Halting\n");
 	halt();
 }
@@ -37,7 +37,7 @@ void CPU::panic(const char* msg)
 void CPU::panic()
 {
 	printf("Kernel Panic!!!\n");
-	dumpstack(10);
+	dumpstack(4);
 	printf("Halting\n");
 	halt();
 }

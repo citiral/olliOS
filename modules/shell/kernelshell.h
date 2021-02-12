@@ -17,7 +17,8 @@ public:
     KernelShell();
 
     void prompt();
-    void enter(VirtualKeyEvent input);    
+    void enter(VirtualKeyEvent input); 
+    void runCommand(std::string command);   
 
     std::vector<std::pair<const char*, CommandFunction>>& commands();
     fs::File* working_directory;

@@ -1,16 +1,17 @@
 #ifndef __ISO9660_H
 #define __ISO9960_H
 
-#include "bindings.h"
+#include "file.h"
+#include "kstd/string.h"
 #include "kstd/vector.h"
 
-class Iso9660Binding;
+class Iso9660File;
 
 class Iso9660FileSystem {
 public:
-    Iso9660FileSystem(bindings::Binding* dev);
+    Iso9660FileSystem(fs::File* dev);
     ~Iso9660FileSystem();
-    Iso9660Binding* createRoot();
+    Iso9660File* createRoot();
 
     u8* readExtend(u32 lba, u32 length);
     void readExtend(u8* buffer, u32 lba, u32 length);
@@ -18,57 +19,47 @@ public:
 private:
     void loadVolumeDescriptors();
 
-    bindings::Binding* _bind;
+    fs::FileHandle* _dev;
     std::vector<u8*> _descriptors;
     u8* _primarydescriptor;
 };
 
-class Iso9660Binding : public bindings::OwnedBinding {
+class Iso9660File : public fs::File {
 public:
-    Iso9660Binding(Iso9660FileSystem* fs, u8* record);
+    Iso9660File(Iso9660FileSystem* fs, u8* record);
+    ~Iso9660File();
+    fs::FileHandle* open();
 
+    const char* get_name();
+
+    virtual fs::File* create(const char* name, u32 flags);
+    virtual fs::File* bind(File* child);
+
+    std::vector<Iso9660File*> children;
+    Iso9660FileSystem* fs;
+    u8* record;
+    std::string name;
+   
 private:
-    size_t read(void* buffer, size_t size, size_t offset);
-
-    std::string get_name();
+    std::string read_name();
     void create_children();
     u8* get_system_use_field(u8 b1, u8 b2);
-
-    Iso9660FileSystem* _fs;
-    u8* _record;
 };
 
-/*class Iso9660FileSystem;
-
-class Iso9660DirEntry {
+class Iso9660FileHandle : public fs::FileHandle {
 public:
-    Iso9660DirEntry(BlockDevice* fs, u8* record, u32 length, u32 offset);
-    ~Iso9660DirEntry();
+    Iso9660FileHandle(Iso9660File* file);
 
-    virtual bool valid();
-    virtual bool advance();
-    virtual std::string name();
-    virtual DirEntryType type();
-    virtual DirEntry* openDir();
-    virtual BlockDevice* openFile();
-	virtual DirEntry* createDir(std::string name);
+    i32 write(const void* buffer, size_t size, size_t pos);
+    i32 read(void* buffer, size_t size, size_t pos);
+    size_t get_size();
 
-    u8* getSystemUseField(u8 b1, u8 b2);
+    fs::File* next_child();
+    void reset_child_iterator();
 
 private:
-	BlockDevice* _fs;
-    u8* _record;
-    u32 _length;
-    u32 _offset;
+    Iso9660File* _file;
+    size_t _child_iter;
 };
-
-class Iso9660FileSystem {
-public:
-    Iso9660FileSystem(BlockDevice* device);
-    ~Iso9660FileSystem();
-    
-    DirEntry* getRoot();
-
-};*/
 
 #endif

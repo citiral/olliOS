@@ -4,12 +4,13 @@
 #include "kstd/unordered_map.h"
 #include "memory/virtual.h"
 #include "util/unique.h"
-#include "bindings.h"
+#include "file.h"
+#include "kstd/string.h"
 #include "kstd/shared_ptr.h"
 #include "kstd/vector.h"
 
-struct BindingDescriptor {
-    bindings::Binding* binding;
+struct FileDescriptor {
+    fs::FileHandle* handle;
     size_t offset;
 };
 
@@ -31,7 +32,7 @@ public:
     Process();
     ~Process();
 
-    void init(bindings::Binding* file, std::vector<std::string> args);
+    void init(fs::File* file, std::vector<std::string> args);
     void start();
     void wait();
     
@@ -57,7 +58,7 @@ public:
     void* sbrk(i32 inc);
 
     i32 status_code;
-    ProcessState state;
+    volatile ProcessState state;
     threading::Thread* thread;
     std::vector<Process*> childs;
     u32 pid;
@@ -67,11 +68,11 @@ private:
 
     UniqueGenerator<i32> _binding_ids;
     memory::PageDirectory* _pagetable;
-    std::unordered_map<i32, BindingDescriptor> _bindings;
+    std::unordered_map<i32, FileDescriptor> _bindings;
     std::vector<std::string> _args;
-    bindings::Binding* _file;
+    fs::File* _file;
     char* _program_break;
-    bindings::OwnedBinding* _descriptor;
+    fs::File* _descriptor;
     //std::shared_ptr<Process> _parent;
 };
 

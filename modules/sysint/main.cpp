@@ -1,10 +1,8 @@
 
-#include "bindings.h"
+#include "file.h"
 #include "cpu/interrupt.h"
 #include "threading/thread.h"
 #include "process.h"
-
-using namespace bindings;
 
 extern "C" void sysint_handler(void);
 
@@ -65,7 +63,10 @@ extern "C" i32 sysint_handler_c(u32 eax, u32 ebx, u32 ecx, u32 edx, u32 esi, u32
     return -1;
 }
 
-extern "C" void module_load(Binding* root, const char* argv)
+extern "C" void module_load(fs::File* root, const char* argv)
 {
+    UNUSED(root);
+    UNUSED(argv);
+
     idt.getEntry(0x80).setOffset((u32) sysint_handler);
 }

@@ -38,7 +38,7 @@ namespace threading {
         template<class ... ARGS>
         Thread(Process* process, volatile char* stack, void(*entry)(ARGS...), ARGS ... args): process(process), _stack(stack), _finished(false), _id(pidGenerator.next()), _blocking(false) {
             // A new thread allocates his own stack, if none is supplied
-            _ownsStack = _stack == nullptr;
+            _ownsStack = (_stack == nullptr);
             if (_stack == nullptr) {
                 _stack = new char[THREAD_STACK_SIZE];
             }
@@ -63,7 +63,7 @@ namespace threading {
         template<class T, class ... ARGS>
         Thread(Process* process, volatile char* stack, void(T::*entry)(ARGS...), T* c, ARGS ... args): process(process), _stack(stack),  _finished(false), _id(pidGenerator.next()), _blocking(false) {
             // A new thread allocates his own stack
-            _ownsStack = _stack == nullptr;
+            _ownsStack = (_stack == nullptr);
             if (_stack == nullptr) {
                 _stack = new char[THREAD_STACK_SIZE];
                 memset((void*) _stack, 0, THREAD_STACK_SIZE);
@@ -112,6 +112,9 @@ namespace threading {
         // Optional process of the thread
         Process* process;
         
+        // Thread waiting on something this thread is waiting on
+        Thread* nextWaiting = nullptr;
+
     private:
         void initializeArguments(u32) {
             

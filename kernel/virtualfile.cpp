@@ -4,61 +4,55 @@
 
 using namespace fs;
 
-VirtualFileHandle::VirtualFileHandle(VirtualFile* file): _offset(0), _file(file)
+VirtualFileHandle::VirtualFileHandle(VirtualFile* file): _file(file)
 {
 
 }
 
-void VirtualFileHandle::close()
+i32 VirtualFileHandle::write(const void* buffer, size_t size, size_t pos)
 {
-    delete this;
-}
-
-i32 VirtualFileHandle::write(const void* buffer, size_t count)
-{
-    size_t chunk = _offset / VIRTUAL_FILE_CHUNK_SIZE;
-    size_t chunk_offset = _offset % VIRTUAL_FILE_CHUNK_SIZE;
+    size_t chunk = pos / VIRTUAL_FILE_CHUNK_SIZE;
+    size_t chunk_offset = pos % VIRTUAL_FILE_CHUNK_SIZE;
     size_t chunk_remaining = VIRTUAL_FILE_CHUNK_SIZE - chunk_offset;
 
     i32 written = 0;
 
-    while (count > 0) {
+    while (size > 0) {
         if (chunk == _file->data.size()) {
             _file->data.push_back(new uint8_t[VIRTUAL_FILE_CHUNK_SIZE]);
         }
 
-        size_t length = count < chunk_remaining ? count : chunk_remaining;
+        size_t length = size < chunk_remaining ? size : chunk_remaining;
         memcpy(_file->data[chunk] + chunk_offset, buffer, length);
 
         chunk++;
         chunk_offset = 0;
         chunk_remaining = VIRTUAL_FILE_CHUNK_SIZE;
-        count -= length;
+        size -= length;
 
         buffer = ((uint8_t*)buffer) + length;
         written += length;
     }
 
     _file->size += written;
-    _offset += written;
 
     return written;
 }
 
-i32 VirtualFileHandle::read(void* buffer, size_t size)
+i32 VirtualFileHandle::read(void* buffer, size_t size, size_t pos)
 {
-    if (_offset >= _file->size) {
+    if (pos >= _file->size) {
         return 0;
-    } else if (_offset + size >= _file->size) {
-        size = _file->size - _offset;
+    } else if (pos + size >= _file->size) {
+        size = _file->size - pos;
     }
 
     return size;
 
     i32 read = 0;
 
-    size_t chunk = _offset / VIRTUAL_FILE_CHUNK_SIZE;
-    size_t chunk_offset = _offset % VIRTUAL_FILE_CHUNK_SIZE;
+    size_t chunk = pos / VIRTUAL_FILE_CHUNK_SIZE;
+    size_t chunk_offset = pos % VIRTUAL_FILE_CHUNK_SIZE;
     size_t chunk_remaining = VIRTUAL_FILE_CHUNK_SIZE - chunk_offset;
 
     while (size > 0) {
@@ -73,33 +67,12 @@ i32 VirtualFileHandle::read(void* buffer, size_t size)
         read += length;
     }
 
-    _offset += read;
-
     return read;
 }
 
-i32 VirtualFileHandle::seek(i32 pos, size_t dir)
+size_t VirtualFileHandle::get_size()
 {
-    i64 new_offset = 0;
-    if (dir == SEEK_SET) {
-        new_offset = pos;
-    } else if (dir == SEEK_CUR) {
-        new_offset = _offset;
-        new_offset += pos;
-    } else if (dir == SEEK_END) {
-        new_offset = _file->size;
-        new_offset -= pos;
-    }
-
-    if (new_offset < 0) {
-        _offset = 0;
-    } else if (new_offset > _file->size) {
-        _offset = _file->size;
-    } else {
-        _offset = (size_t) new_offset;
-    }
-
-    return _offset;
+    return _file->size;
 }
 
 File* VirtualFileHandle::next_child()
@@ -117,33 +90,27 @@ VirtualFolderHandle::VirtualFolderHandle(VirtualFolder* file): _child_offset(0),
 
 }
 
-void VirtualFolderHandle::close()
-{
-    delete this;
-}
-
-i32 VirtualFolderHandle::write(const void* data, size_t count)
-{
-    UNUSED(data);
-    UNUSED(count);
-
-    return -1;
-}
-
-i32 VirtualFolderHandle::read(void* buffer, size_t size)
+i32 VirtualFolderHandle::write(const void* buffer, size_t size, size_t pos)
 {
     UNUSED(buffer);
     UNUSED(size);
+    UNUSED(pos);
 
     return -1;
 }
 
-i32 VirtualFolderHandle::seek(i32 pos, size_t dir)
+i32 VirtualFolderHandle::read(void* buffer, size_t size, size_t pos)
 {
+    UNUSED(buffer);
+    UNUSED(size);
     UNUSED(pos);
-    UNUSED(dir);
 
     return -1;
+}
+
+size_t VirtualFolderHandle::get_size()
+{
+    return 0;
 }
 
 File* VirtualFolderHandle::next_child()
@@ -177,11 +144,6 @@ const char* VirtualFile::get_name()
     return name.c_str();
 }
 
-size_t VirtualFile::get_size()
-{
-    return size;
-}
-
 FileHandle* VirtualFile::open()
 {
     return new VirtualFileHandle(this);
@@ -212,11 +174,6 @@ const char* VirtualFolder::get_name()
     return name.c_str();
 }
 
-size_t VirtualFolder::get_size()
-{
-    return 0;
-}
-
 FileHandle* VirtualFolder::open()
 {
     return new VirtualFolderHandle(this);
@@ -241,58 +198,70 @@ StreamHandle::StreamHandle(Stream* stream): _stream(stream)
 {            
 }
 
-void StreamHandle::close()
+i32 StreamHandle::write(const void* buffer, size_t count, size_t pos)
 {
-    delete this;
-}
+    UNUSED(pos);
 
-i32 StreamHandle::write(const void* _data, size_t count)
-{
-    const uint8_t* data = (const uint8_t*) _data;
+    const uint8_t* data = (const uint8_t*) buffer;
 
     size_t size = _stream->size;
     size_t i;
+    bool written = false;
+
     for (i = 0 ; i < count ; i++) {
         size_t next_write = (_stream->write + 1) < size ? _stream->write + 1 : 0;
 
         if (next_write == _stream->read) {
-            break;
+            if (written) {
+                written = false;
+                _stream->waitingRead.unblock_all_threads();
+            }
+            _stream->waitingWrite.add_blocked_thread(threading::currentThread());
+            threading::exit();
         }
 
         _stream->data[_stream->write] = data[i];
         _stream->write = next_write;
+        written = true;
+    }
+    if (written) {
+        _stream->waitingRead.unblock_all_threads();
     }
 
     return i;
 }
 
-i32 StreamHandle::read(void* _data, size_t count)
+i32 StreamHandle::read(void* buffer, size_t count, size_t pos)
 {
-    uint8_t* data = (uint8_t*) _data;
+    UNUSED(pos);
+
+    uint8_t* data = (uint8_t*) buffer;
 
     size_t size = _stream->size;
     size_t i;
+    bool read = false;
 
     for (i = 0 ; i < count ; i++) {
-        if (_stream->read == _stream->write) {
-            break;
+        while (_stream->read == _stream->write) {
+            if (read) {
+                read = false;
+                _stream->waitingWrite.unblock_all_threads();
+            }
+            _stream->waitingRead.add_blocked_thread(threading::currentThread());
+            threading::exit();
         }
 
         size_t next_read = (_stream->read + 1) < size ? _stream->read + 1 : 0;
 
         data[i] = _stream->data[_stream->read];
         _stream->read = next_read;
+        read = true;
+    }
+    if (read) {
+        _stream->waitingWrite.unblock_all_threads();
     }
 
     return i;
-}
-
-i32 StreamHandle::seek(i32 pos, size_t dir)
-{
-    UNUSED(pos);
-    UNUSED(dir);
-
-    return -1;
 }
 
 File* StreamHandle::next_child()
@@ -304,8 +273,17 @@ void StreamHandle::reset_child_iterator()
 {
 }
 
+size_t StreamHandle::get_size()
+{
+    if (_stream->read < _stream->write) {
+        return _stream->write - _stream->read;
+    } else {
+        return _stream->write + (_stream->size - _stream->read);
+    }
+}
 
-Stream::Stream(std::string name, size_t size): name(name), size(size)
+
+Stream::Stream(std::string name, size_t size): name(name), size(size), waitingRead(), waitingWrite()
 {
     if (size <= 1) {
         size = 2;
@@ -324,15 +302,6 @@ Stream::~Stream()
 const char* Stream::get_name()
 {
     return name.c_str();
-}
-
-size_t Stream::get_size()
-{
-    if (read < write) {
-        return write - read;
-    } else {
-        return write + (size - read);
-    }
 }
 
 FileHandle* Stream::open()
@@ -360,39 +329,39 @@ ChunkedStreamHandle::ChunkedStreamHandle(ChunkedStream* stream): StreamHandle(st
     
 }
 
-i32 ChunkedStreamHandle::write(const void* _data, size_t count)
+i32 ChunkedStreamHandle::write(const void* buffer, size_t size, size_t pos)
 {
     ChunkedStream* cstream = (ChunkedStream*) _stream;
-    const uint8_t* data = (const uint8_t*)_data;
+    const uint8_t* data = (const uint8_t*)buffer;
 
-    count -= (count % cstream->chunk_size);
+    size -= (size % cstream->chunk_size);
 
-    for (size_t i = 0 ; i < count ; ) {
-        i32 write = StreamHandle::write(data + i, count - i);
+    for (size_t i = 0 ; i < size ; ) {
+        i32 write = StreamHandle::write(data + i, size - i, pos + i);
         if (write == 0) {
             threading::exit();
         }
         i += write;
     }
 
-    return count;
+    return size;
 }
 
-i32 ChunkedStreamHandle::read(void* _data, size_t count)
+i32 ChunkedStreamHandle::read(void* buffer, size_t size, size_t pos)
 {
     ChunkedStream* cstream = (ChunkedStream*) _stream;
-    uint8_t* data = (uint8_t*)_data;
+    uint8_t* data = (uint8_t*)buffer;
 
-    count -= (count % cstream->chunk_size);
+    size -= (size % cstream->chunk_size);
 
-    for (size_t i = 0 ; i < count ; ) {
-        i32 read = StreamHandle::read(data + i, count - i);
+    for (size_t i = 0 ; i < size ; ) {
+        i32 read = StreamHandle::read(data + i, size - i, pos + i);
         if (read == 0) {
             threading::exit();
         }
         i += read;
     }
-    return count;
+    return size;
 }
 
 ChunkedStream::ChunkedStream(std::string name, size_t size, size_t chunk_size): Stream(name, size), chunk_size(chunk_size)

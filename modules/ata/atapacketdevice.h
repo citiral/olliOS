@@ -17,14 +17,8 @@ public:
     AtaPacketDevice(fs::File* ata, u16 port, unsigned short* data, u8 drive);
     ~AtaPacketDevice();
 
-    size_t write(const void* data, size_t amount);
-    size_t write(const void* data);
-    size_t write(char data);
-    size_t read(void* data, size_t amount);
-    size_t seek(i32 offset, int position);
-
-private:
-	size_t _pointer = 0;
+    size_t write(const void* data, size_t amount, size_t offset);
+    size_t read(void* data, size_t amount, size_t offset);
 };
 
 }

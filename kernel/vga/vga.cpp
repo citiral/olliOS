@@ -5,6 +5,35 @@
 
 static i16* VGA_POINTER = (i16*)0x000B8000;
 
+
+VgaHandle::VgaHandle(VgaDriver* vga): _vga(vga)
+{
+
+}
+
+i32 VgaHandle::write(const void* buffer, size_t size, size_t pos)
+{
+	return _vga->write(buffer, size);	
+}
+
+i32 VgaHandle::read(void* buffer, size_t size, size_t pos) 
+{
+	return 0;
+}
+
+size_t VgaHandle::get_size()
+{
+	return 0;
+}
+
+fs::File* VgaHandle::next_child()
+{
+	return nullptr;
+}
+void VgaHandle::reset_child_iterator()
+{
+}
+
 VgaDriver::VgaDriver():
 	_column(0),
 	_row(0),
@@ -24,6 +53,27 @@ VgaDriver::~VgaDriver()
 {
 
 }
+
+fs::FileHandle* VgaDriver::open()
+{
+	return new VgaHandle(this);
+}
+
+const char* VgaDriver::get_name()
+{
+	return "vga";
+}
+
+fs::File* VgaDriver::create(const char* name, u32 flags)
+{
+	return nullptr;
+}
+
+fs::File* VgaDriver::bind(fs::File* child)
+{
+	return nullptr;
+}
+
 
 size_t VgaDriver::write(const void* data, size_t amount)
 {

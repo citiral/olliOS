@@ -61,10 +61,11 @@ private:
             _last = node;
             _last->next = node;
             return;
-        // Otherwise put it after the last one, making it the first, and having it point to the old first (now second) node.
+        // Otherwise put it after the last one
         } else {
             node->next = _last->next;
             _last->next = node;
+            _last = node;
         }
     }
 

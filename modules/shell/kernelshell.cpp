@@ -20,6 +20,7 @@
 void allocinfo(KernelShell* shell, std::vector<std::string>* args)
 {
 	UNUSED(shell);
+	UNUSED(args);
 	kernelAllocator.printStatistics();
 	printf("\n");
 }
@@ -27,6 +28,7 @@ void allocinfo(KernelShell* shell, std::vector<std::string>* args)
 void allocmerge(KernelShell* shell, std::vector<std::string>* args)
 {
 	UNUSED(shell);
+	UNUSED(args);
 	kernelAllocator.merge();
 }
 #endif
@@ -47,15 +49,15 @@ void cat(KernelShell* shell, std::vector<std::string>* args)
 	}
 
     char buffer[2048];
-	int total = 0;
+	size_t offset = 0;
 	int read;
 
 	fs::FileHandle* handle = file->open();
 	do {
-		read = handle->read(buffer, sizeof(buffer));
+		read = handle->read(buffer, sizeof(buffer), offset);
 		for (int i = 0 ; i < read ; i++)
 			putchar(buffer[i]);
-		total += read;
+		offset += read;
 	} while (read > 0);
 
 	handle->close();
@@ -63,6 +65,8 @@ void cat(KernelShell* shell, std::vector<std::string>* args)
 
 void stat(KernelShell* shell, std::vector<std::string>* args)
 {
+	UNUSED(shell);
+	UNUSED(args);
 	/*bindings::Binding* bind;
 	
 	if (args->size() > 1) {
@@ -81,6 +85,8 @@ void stat(KernelShell* shell, std::vector<std::string>* args)
 
 void hex(KernelShell* shell, std::vector<std::string>* args)
 {
+	UNUSED(shell);
+	UNUSED(args);
 	/*bindings::Binding* bind;
 	
 	if (args->size() > 1) {
@@ -125,10 +131,13 @@ void ls(KernelShell* shell, std::vector<std::string>* args)
 
 
     fs::FileHandle* handle = folder->open();
-	fs::File* child;
-    while ((child = handle->next_child()) != NULL) {
-        printf("%s\n", child->get_name());
-    }
+	if (handle) {
+		fs::File* child;
+		while ((child = handle->next_child()) != NULL) {
+			printf("%s\n", child->get_name());
+		}
+	}
+	handle->close();
 }
 
 void cd(KernelShell* shell, std::vector<std::string>* args)
@@ -152,6 +161,8 @@ void cd(KernelShell* shell, std::vector<std::string>* args)
 
 void touch(KernelShell* shell, std::vector<std::string>* args)
 {
+	UNUSED(shell);
+	UNUSED(args);
 	/*bindings::Binding* bind = nullptr;
 	
 	if (args->size() != 2) {		
@@ -188,7 +199,9 @@ void help(KernelShell* shell, std::vector<std::string>* args)
 
 void run(KernelShell* shell, std::vector<std::string>* args)
 {
-    /*printf("starting process\n");
+	UNUSED(shell);
+	UNUSED(args);
+    printf("starting process\n");
 	if (args->size() < 2)
 	{
 		printf("Usage: load program [args...]\n");
@@ -196,29 +209,29 @@ void run(KernelShell* shell, std::vector<std::string>* args)
 	}
 
     printf("Getting file: %x\n", shell->working_directory);
-	bindings::Binding* bind = shell->working_directory->get(args->at(1).c_str());
+	fs::File* file = shell->working_directory->get(args->at(1).c_str());
     printf("Got file\n");
 
-	if (bind == NULL) {
-		printf("Invalid path: %s\n");
+	if (file == NULL) {
+		printf("Invalid path: %s\n", args->at(1).c_str());
 		return;
 	}
 
-	//while (1) {
-		Process* p = new Process();
-		p->init(bind, *args);
-		p->start();
-		p->wait();
+	Process* p = new Process();
+	p->init(file, *args);
+	p->start();
+	p->wait();
 
-		delete p;
+	delete p;
 
-		printf("%d\n", p->status_code);
-		printf("Free physical memory: %dKB\n", memory::physicalMemoryManager.countFreePhysicalMemory() * 4);
-	//}*/
+	printf("%d\n", p->status_code);
+	printf("Free physical memory: %dKB\n", memory::physicalMemoryManager.countFreePhysicalMemory() * 4);
 }
 
 void load(KernelShell* shell, std::vector<std::string>* args)
 {
+	UNUSED(shell);
+	UNUSED(args);
 	/*if (args->size() < 2)
 	{
 		printf("Usage: load program\n");
@@ -321,7 +334,7 @@ KernelShell::KernelShell(): _commands()
 	_commands.push_back(std::pair<const char*, CommandFunction>("cd", &cd));
 	//_commands.push_back(std::pair<const char*, CommandFunction>("touch", &touch));
 	//_commands.push_back(std::pair<const char*, CommandFunction>("load", &load));
-	//_commands.push_back(std::pair<const char*, CommandFunction>("run", &run));
+	_commands.push_back(std::pair<const char*, CommandFunction>("run", &run));
 
 	//working_directory = fs::root->get("dev/ata0/root/boot");
 	working_directory = fs::root;
@@ -340,11 +353,17 @@ void KernelShell::enter(VirtualKeyEvent input)
 	if (_input.isLineReady())
 	{
 		std::string line = _input.getNextLine();
+		runCommand(line);
+    }
+}
+
+void KernelShell::runCommand(std::string command)
+{
 
         // find the first matching command and call it
         bool notFound = true;
 
-        std::vector<std::string> split = splitCommand(line);
+        std::vector<std::string> split = splitCommand(command);
 
 		if (split.size() > 0)
 		{
@@ -361,10 +380,9 @@ void KernelShell::enter(VirtualKeyEvent input)
 			// otherwise print a command not found
 			if (notFound)
 			{
-				printf("Unknown command: %s\n", line.data());
+				printf("Unknown command: %s\n", command.data());
 			}
 		}
-    }
 }
 
 std::vector<std::pair<const char*, KernelShell::CommandFunction>>& KernelShell::commands() {

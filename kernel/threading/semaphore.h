@@ -1,7 +1,8 @@
 #ifndef __SEMAPHORE_H_
 #define __SEMAPHORE_H_
 
-#include "threading/spinlock.h"
+#include "spinlock.h"
+#include "waiting_list.h"
 #include <types.h>
 
 // A semaphore can only be executed inside the context of a thread, since it exits the current thread when having to halt.
@@ -17,6 +18,7 @@ namespace threading {
     private:
         Spinlock _lock;
         u32 _count;
+        WaitingList _waitingList;
     };
 }
 

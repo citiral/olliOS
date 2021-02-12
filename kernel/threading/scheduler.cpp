@@ -23,35 +23,41 @@ void Scheduler::schedule(Thread* thread) {
             threading::exit();
         }
 
-        _threads.push_back(thread);
+        _threads.push(thread);
         _lock.release();
         STI(eflag);
     } else {
+        eflag = CLI();
         _lock.lock();
-        _threads.push_back(thread);
+        _threads.push(thread);
         _lock.release();
+        STI(eflag);
     }
 }
 
-void Scheduler::enter() {
+bool Scheduler::enter() {
     _lock.lock();
+    bool eflag = CLI();
 
     // if there are no more threads to execute, do nothing
     // TODO wait process or something
-    if (_threads.size() == 0) {
+    if (_threads.is_empty()) {
         _lock.release();
-        return;
+        STI(eflag);
+        return false;
     }
 
     // otherwise get the next thread to execute
-    Thread* thread = _threads[0];
-    _threads.erase(0);
+    Thread* thread = _threads.pop();
 
     // run the thread
     _lock.release();
+    STI(eflag);
     if (!thread->enter()) {
-        // if the thread is not finished, schedule it again
-        schedule(thread);
+        // if the thread is not finished, schedule it again, except if it is blocking on some resource
+        if (!thread->blocking()) {
+            schedule(thread);
+        }
     } else {
         if (thread->process != nullptr) {
             if (thread->process->state == ProcessState::PendingDestruction) {
@@ -61,4 +67,6 @@ void Scheduler::enter() {
             }
         }
     }
+
+    return true;
 }

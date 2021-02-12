@@ -159,7 +159,7 @@ namespace memory {
 		);
 
 		for (int i = 0 ; i < 1024 ; i++)
-		invalidatePage((u32*)(0xFFC00000 + 0x1000*i));
+			invalidatePage((u32*)(0xFFC00000 + 0x1000*i));
 	}
 
 	void PageDirectory::forceUpdate() {
@@ -430,7 +430,7 @@ namespace memory {
 		dir->entries[1023].setAddress(kernelPageDirectory.getPhysicalAddress(dir));
 		dir->entries[1023].enableFlag(PFLAG_RW | PFLAG_PRESENT);
 
-		for (int i = 0 ; i < 1024 ; i++) {
+		for (int i = 0 ; i < 256*3 ; i++) {
 			dir->entries[i].disableFlag(PFLAG_OWNED);
 		}
 
@@ -438,6 +438,7 @@ namespace memory {
 	}
 
 	PageDirectory* PageDirectory::deep_clone() {
+		bool eflags = CLI();
 		PageDirectory* dir = clone();
 
 		u8* buffer = (u8*) malloc(0x1000);
@@ -492,6 +493,8 @@ namespace memory {
 		((PageDirectory*)dir->getPhysicalAddress(this))->use();
 		
 		free(buffer);
+
+		STI(eflags);
 
 		return dir;
 	}

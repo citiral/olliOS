@@ -16,16 +16,16 @@ void test() {
 }
 
 void ShellThread(FileHandle* keyboard) {
+
+	shell->runCommand("cd root/usr/bin");
+	//shell->runCommand("run hello_world");
+
     while (1) {
         VirtualKeyEvent key;
         i32 ret;
 
-        do {
-            ret = keyboard->read(&key, sizeof(VirtualKeyEvent));
-            shell->enter(key);
-        } while (ret > 0);
-
-        threading::exit();
+        ret = keyboard->read(&key, sizeof(VirtualKeyEvent), 0);
+        shell->enter(key);
     }
 }
 

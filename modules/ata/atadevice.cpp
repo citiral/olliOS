@@ -15,20 +15,16 @@ public:
 
 	}
 
-	void close() {
-		delete this;
-	}
-
-	i32 write(const void* data, size_t count) {
+	i32 write(const void* buffer, size_t size, size_t pos) {
 		return -1;
 	}
 
-	i32 read(void* buffer, size_t size) {
-		return _ata->read(buffer, size);
+	i32 read(void* buffer, size_t size, size_t pos) {
+		return _ata->read(buffer, size, pos);
 	}
 
-	i32 seek(i32 pos, size_t dir) {
-		return _ata->seek(pos, dir);
+	size_t get_size() {
+		return _ata->getBytes();
 	}
 
 	fs::File* next_child() {
@@ -55,10 +51,6 @@ public:
 
 	const char* get_name() {
 		return _name.c_str();
-	}
-
-	size_t get_size() {
-		return _ata->getBytes();
 	}
 
 	File* create(const char* name, u32 flags) {

@@ -11,20 +11,18 @@ namespace fs {
 
     class InterfaceFileHandle : public FileHandle {
     public:
-            InterfaceFileHandle(InterfaceFile* file);
-            void close();
+        InterfaceFileHandle(InterfaceFile* file);
 
-            i32 write(const void* data, size_t count);
-            i32 read(void* buffer, size_t size);
-            i32 seek(i32 pos, size_t dir);
+        virtual i32 write(const void* buffer, size_t size, size_t pos);
+        virtual i32 read(void* buffer, size_t size, size_t pos);
+        size_t get_size();
 
-            File* next_child();
-            void reset_child_iterator();
+        File* next_child();
+        void reset_child_iterator();
 
-        private:
-            size_t _offset;
-            InterfaceFile* _file;
-            int offset;
+    private:
+        InterfaceFile* _file;
+        int offset;
     };
 
 
@@ -37,7 +35,6 @@ namespace fs {
         ~InterfaceFile();
 
         const char* get_name();
-        size_t get_size();
 
         FileHandle* open();
 

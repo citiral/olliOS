@@ -2,6 +2,7 @@
 #define __VGA_H
 
 #include "types.h"
+#include "file.h"
 
 #define VGA_WIDTH 80
 #define VGA_HEIGHT 25
@@ -25,10 +26,16 @@ enum class VgaColor: i8 {
 	White = 15,
 };
 
-class VgaDriver {
+class VgaDriver : public fs::File {
 public:
+
 	VgaDriver();
 	virtual ~VgaDriver();
+
+    fs::FileHandle* open();
+    const char* get_name();
+    fs::File* create(const char* name, u32 flags);
+    fs::File* bind(fs::File* child);
 
 	//prints amount bytes to the screen
 	virtual size_t write(const void* data, size_t amount);
@@ -71,6 +78,21 @@ private:
 	VgaColor _backgroundColor;
 	bool _blinking;
 	i16* _vgapointer;
+};
+
+class VgaHandle : public fs::FileHandle {
+public:
+	VgaHandle(VgaDriver* vga);
+
+	virtual i32 write(const void* buffer, size_t size, size_t pos);
+	virtual i32 read(void* buffer, size_t size, size_t pos);
+	virtual size_t get_size();
+
+	virtual fs::File* next_child();
+	virtual void reset_child_iterator();
+
+private:
+	VgaDriver* _vga;
 };
 
 #endif /* end of include guard: __VGA_H */

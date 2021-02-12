@@ -3,10 +3,10 @@
 
 #include <stddef.h>
 
-namespace bindings {
-    class Binding;
+namespace fs {
+    class FileHandle;
 }
-typedef bindings::Binding FILE;
+typedef fs::FileHandle FILE;
 
 #define SEEK_SET 0
 #define SEEK_CUR 1

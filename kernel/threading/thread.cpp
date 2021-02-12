@@ -10,7 +10,7 @@ UniqueGenerator<u32> threading::pidGenerator;
 
 // global values that hold the parent stack pointer of a running thread. Each core will always use his own index.
 volatile u32 parent_stack_pointers[MAX_CORE_COUNT];
-Thread* running_thread[MAX_CORE_COUNT];
+volatile Thread* running_thread[MAX_CORE_COUNT];
 /*
 Thread::Thread(Thread& thread) {
     // Clone the stack of the thread we are copying
@@ -190,5 +190,5 @@ extern "C" bool __attribute__ ((noinline)) is_current_core_in_thread() {
 }
 
 Thread* threading::currentThread() {
-    return running_thread[apic::id()];
+    return (Thread*) running_thread[apic::id()];
 }

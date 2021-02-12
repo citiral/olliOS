@@ -14,11 +14,11 @@ namespace fs {
     class FileHandle {
     public:
         virtual ~FileHandle() {};
-        virtual void close() = 0;
+        void close();
 
-        virtual i32 write(const void* data, size_t count) = 0;
-        virtual i32 read(void* buffer, size_t size) = 0;
-        virtual i32 seek(i32 pos, size_t dir) = 0;
+        virtual i32 write(const void* buffer, size_t size, size_t pos) = 0;
+        virtual i32 read(void* buffer, size_t size, size_t pos) = 0;
+        virtual size_t get_size() = 0;
 
         virtual File* next_child() = 0;
         virtual void reset_child_iterator() = 0;
@@ -30,7 +30,6 @@ namespace fs {
         virtual FileHandle* open() = 0;
 
         virtual const char* get_name() = 0;
-        virtual size_t get_size() = 0;
 
         virtual File* create(const char* name, u32 flags) = 0;
         virtual File* bind(File* child) = 0;
@@ -47,7 +46,7 @@ namespace fs {
             FileHandle* h = open();
 
             do {
-                ret = h->read(((u8*)&t) + total, sizeof(T) - total);
+                ret = h->read(((u8*)&t) + total, sizeof(T) - total, total);
                 total += ret;
             } while (ret > 0);
 

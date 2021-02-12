@@ -1,6 +1,9 @@
 #ifndef __MUTEX_H_
 #define __MUTEX_H_
 
+#include "threading/spinlock.h"
+#include "threading/thread.h"
+#include "threading/waiting_list.h"
 #include <types.h>
 
 namespace threading {
@@ -14,6 +17,7 @@ namespace threading {
 
     private:
         int _locked;
+        WaitingList _waitingList;
     };
 }
 

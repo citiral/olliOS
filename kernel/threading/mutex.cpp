@@ -1,10 +1,10 @@
 #include "threading/mutex.h"
-#include "threading/thread.h"
+#include "threading/scheduler.h"
 #include "cdefs.h"
 
 using namespace threading;
 
-Mutex::Mutex(): _locked(0) {
+Mutex::Mutex(): _locked(0), _waitingList() {
 
 }
 
@@ -19,6 +19,8 @@ void Mutex::lock() {
         if (v == 0) {
             return;
         }
+
+        _waitingList.add_blocked_thread(threading::currentThread());
 
         threading::exit();
     }
@@ -37,4 +39,6 @@ void Mutex::release() {
     // Exchange the current value with 0
     volatile register u8 v = 0;
     __asm__ volatile ("xchg %0, %1" : "+m"(_locked), "=a" (v) : "1" (v));
+
+    _waitingList.unblock_next_thread();
 }

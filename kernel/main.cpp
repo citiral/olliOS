@@ -27,6 +27,7 @@
 #include "file.h"
 #include "virtualfile.h"
 #include "bindings.h"
+#include "threading/semaphore.h"
 
 VgaDriver* vgaDriver = nullptr;
 
@@ -112,10 +113,11 @@ void initMemory(multiboot_info* multiboot) {
 }
 
 void cpu_main() {
-    apic::setSleep(INT_PREEMPT, apic::busFrequency / 1024, false);
+    apic::setSleep(INT_PREEMPT, apic::busFrequency / 512, false);
     while (true) {
-        threading::scheduler->enter();
-        __asm__ ("pause");
+        if (!threading::scheduler->enter()) {
+            __asm__ ("hlt");
+        }
     }
 }
 
@@ -127,22 +129,21 @@ void print_tree(fs::File* f, int depth)
     }
 
     printf("%s", f->get_name());
+    fs::FileHandle* handle = f->open();
 
-    if (f->get_size() == 0) {
+    if (handle->get_size() == 0) {
         printf("\n");
     } else {
         char data;
-        fs::FileHandle* handle = f->open();
+        size_t offset = 0;
         printf(": ");
-        while (handle->read(&data, 1) > 0) {
+        while (handle->read(&data, 1, offset) > 0) {
             printf("%c", data);
+            offset++;
         }
         printf("\n");
-
-        handle->close();
     }
 
-    fs::FileHandle* handle = f->open();
     while ((child = handle->next_child()) != NULL) {
         print_tree(child, depth + 1);
     }
@@ -182,12 +183,7 @@ extern "C" void main(multiboot_info* multiboot) {
     threading::scheduler = new threading::Scheduler();
 
     vgaDriver = new VgaDriver();
-
-    bindings::root->get("sys")->add((new bindings::OwnedBinding("vga"))->on_write([](bindings::OwnedBinding* vga, size_t size, const void* data) {
-        (void) vga;
-        vgaDriver->write(data, size);
-        return true;
-    }));
+    fs::root->get("sys")->bind(vgaDriver);
 
     printf("Flags: %X\n", multiboot->flags);
     printf("mods count: %d\n", multiboot->mods_count);
@@ -197,13 +193,14 @@ extern "C" void main(multiboot_info* multiboot) {
     symbolMap = new SymbolMap((const char*) mod->mod_start);
     printf("symbol map build.\n");
 
+
     // if APIC is supported, switch to it and enable multicore
     cpuid_field features = cpuid(1);
     if ((features.edx & (int)cpuid_feature::EDX_APIC) != 0) {
         LOG_STARTUP("Initializing APIC.");
         apic::Init();
-        //apic::StartAllCpus(&cpu_main);
-        //apic::disableIrq(0x22);
+        apic::StartAllCpus(&cpu_main);
+        apic::disableIrq(0x22);
     } else {
         LOG_STARTUP("APIC not supported, skipping. (Threading will not be supported)");
     }
