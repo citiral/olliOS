@@ -23,6 +23,9 @@ extern "C" void sysint_handler(void);
 #define SYSINT_SBRK   15
 #define SYSINT_TIMES  16
 #define SYSINT_UNLINK 17
+#define SYSINT_PIPE   18
+#define SYSINT_DUP    19
+#define SYSINT_DUP2   20
 
 const char* sysint_names[] = {
     "", "open", "close", "write", "read", "exit", "fork", "getpid", "execve", "wait", "isatty", "lseek", "fstat", "kill", "link", "sbrk", "times", "link"
@@ -58,6 +61,12 @@ extern "C" i32 sysint_handler_c(u32 eax, u32 ebx, u32 ecx, u32 edx, u32 esi, u32
     } else if (eax == SYSINT_SBRK) {
         void* result = threading::currentThread()->process->sbrk(reinterpret_cast<i32&>(ebx));
         return reinterpret_cast<i32&>(result);
+    } else if (eax == SYSINT_PIPE) {
+        return threading::currentThread()->process->pipe(reinterpret_cast<int*>(ebx));
+    } else if (eax == SYSINT_DUP) {
+        return threading::currentThread()->process->dup(reinterpret_cast<i32&>(ebx));
+    } else if (eax == SYSINT_DUP2) {
+        return threading::currentThread()->process->dup2(reinterpret_cast<i32&>(ebx), reinterpret_cast<i32&>(ecx));
     }
 
     return -1;

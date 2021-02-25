@@ -71,15 +71,15 @@ void load_file_and_run(fs::File* file, std::vector<std::string>* args)
         argdc += args->at(i).length() + 1;
     }
 
-    threading::currentThread()->process->open("/sys/vga", 0, 0);
-    threading::currentThread()->process->open("/sys/vga", 0, 0);
-    threading::currentThread()->process->open("/sys/vga", 0, 0);
+    //threading::currentThread()->process->open("/sys/vga", 0, 0);
+    //threading::currentThread()->process->open("/sys/vga", 0, 0);
+    //threading::currentThread()->process->open("/sys/vga", 0, 0);
 
     // Run the entry point of the userspace application
     app_entry(args->size(), argv, nullptr);
 }
 
-Process::Process(): status_code(-1), state(ProcessState::Initing), thread(nullptr), childs(), pid(process_ids.next()), _binding_ids(1), _pagetable(nullptr), _descriptor(nullptr)
+Process::Process(): status_code(-1), state(ProcessState::Initing), thread(nullptr), childs(), pid(process_ids.next()), _pagetable(nullptr), _bindings(1024), _descriptor(nullptr), _waitingForStopped(), _waitingForChildStopped(), _stateLock()
 {
     // Make a binding for the process
     char name[32];
@@ -102,8 +102,9 @@ Process::~Process()
     if (_pagetable) {
        memory::freePageDirectory(_pagetable);
     }
+
     delete thread;
-    
+
     for (size_t i = 0 ; i < childs.size() ; i++) {
         childs[i]->wait();
         delete childs[i];
@@ -137,14 +138,13 @@ void Process::init(fs::File* file)
     char* stackStart = (char*) current->bindFirstFreeVirtualPages((char*) 0xC0000000 - THREAD_STACK_SIZE, THREAD_STACK_SIZE / 0x1000);
 
     if (stackStart != (char*)0xbfff0000) {
-        printf("corrupt stack\n");
+        CPU::panic("corrupt stack\n");
         memory::PageDirectory* current = memory::PageDirectory::current();
         ((memory::PageDirectory*)(current->getPhysicalAddress(&memory::kernelPageDirectory)))->use();
         while(1);
     }
 
     // And create a thread that will init the process
-    printf("starting thread!\n");
     thread = new threading::Thread(this, stackStart, load_file_and_run, _file, &_args);
     ((memory::PageDirectory*)(_pagetable->getPhysicalAddress(current)))->use();
     state = ProcessState::Running;
@@ -159,9 +159,18 @@ void Process::start()
 
 void Process::wait()
 {
-    while (state != ProcessState::Stopped) {
+    bool eflags = CLI();
+    _stateLock.lock();
+
+    if (state != ProcessState::Stopped) {
+        _waitingForStopped.add_blocked_thread(threading::currentThread());
+        _stateLock.release();
+        STI(eflags);
         threading::exit();
-    }
+    } else {        
+        _stateLock.release();
+        STI(eflags);
+    }    
 }
 
 memory::PageDirectory* Process::pagetable()
@@ -174,11 +183,34 @@ void Process::set_program_break(char* program_break)
     _program_break = program_break;
 }
 
+void Process::set_state(ProcessState new_state)
+{
+    bool eflags = CLI();
+    _stateLock.lock();
+
+    state = new_state;
+    if (state == ProcessState::Stopped) {
+        _waitingForStopped.unblock_all_threads();
+        if (_parent) {
+            _parent->_stateLock.lock();
+            if (_parent->state == ProcessState::Waiting) {
+                _parent->_waitingForChildStopped.unblock_all_threads();
+            }
+            _parent->_stateLock.release();
+        }
+    }
+    _stateLock.release();
+    STI(eflags);
+}
+
 i32 Process::open(const char* name, i32 flags, i32 mode)
 {
-    fs::File* f = fs::root->get(name);
+    return open(fs::root->get(name), flags, mode);
+}
 
-    if (f == nullptr) {
+i32 Process::open(fs::File* f, i32 flags, i32 mode)
+{
+    if (f == 0) {
         return -1;
     }
 
@@ -187,52 +219,52 @@ i32 Process::open(const char* name, i32 flags, i32 mode)
         return -1;
     }
 
-    i32 id = _binding_ids.next();
+    i32 id = _bindings.new_resource();
+    if (id < 0) {
+        handle->close();
+        return -1;
+    }
 
-    FileDescriptor& desc = _bindings[id];
-    desc.handle = handle;
-    desc.offset = 0;
+    std::shared_ptr<FileDescriptor>* desc = _bindings.at(id);
+    *desc = new FileDescriptor(handle);
 
     return id;
 }
 
 i32 Process::close(i32 file)
 {
-    if (_bindings.count(file) == 0) {
+    std::shared_ptr<FileDescriptor>* desc = _bindings.at(file);
+    if (desc == nullptr) {
         return -1;
     }
 
-    _bindings[file].handle->close();
-
-    _bindings.erase(file);
+    _bindings.free_resource(file);
 
     return 0;
 }
 
-i32 Process::write(i32 file, char* data, i32 len)
+i32 Process::write(i32 file, const char* data, i32 len)
 {
-    if (_bindings.count(file) == 0) {
+    std::shared_ptr<FileDescriptor>* desc = _bindings.at(file);
+    if (desc == nullptr) {
         return -1;
     }
 
-    FileDescriptor& desc = _bindings[file];
-    desc.offset += desc.handle->write(data, len, desc.offset);
+    i32 ret = (*desc)->handle->write(data, len, (*desc)->offset);
+    (*desc)->offset += ret;
 
-    return len;
+    return ret;
 }
 
 i32 Process::read(i32 file, char* data, i32 len)
 {
-    size_t status;
-
-    if (_bindings.count(file) == 0) {
+    std::shared_ptr<FileDescriptor>* desc = _bindings.at(file);
+    if (desc == nullptr) {
         return -1;
     }
 
-    FileDescriptor& desc = _bindings[file];
-
-    status = desc.handle->read(data, len, desc.offset);
-    desc.offset += status;
+    i32 status = (*desc)->handle->read(data, len, (*desc)->offset);
+    (*desc)->offset += status;
 
     return status;
 }
@@ -256,9 +288,9 @@ void Process::finish_fork(memory::PageDirectory* clone)
     child->_file = _file;
     child->_args = _args;
     child->_bindings = _bindings;
-    child->_binding_ids = _binding_ids;
     child->_program_break = _program_break;
     child->state = state;
+    child->_parent = this;
     child->thread = thread->clone();
     child->thread->process = child;
     childs.push_back(child);
@@ -273,7 +305,6 @@ void Process::finish_execve()
        memory::freePageDirectory(_pagetable);
     }
 
-
     // Reinitialize process and start
     init(_file);
     start();
@@ -283,14 +314,6 @@ i32 Process::fork()
 {
     state = ProcessState::Forking;
     threading::exit();
-    
-    /*size_t sum = 0;
-    for (size_t i = 0xbfff0000 ; i < 0xC0000000 - 0x1000 ; i+=4) {
-        sum += *((size_t*)i);
-    }
-
-    printf("Sum: %x\n", sum);*/
-    //while(1);
 
     if (threading::currentThread()->process->pid == pid) {
         return childs[childs.size() - 1]->pid;
@@ -325,22 +348,41 @@ i32 Process::execve(const char* pathname, char *const *argv, char *const *envp)
 
 i32 Process::wait(i32* status)
 {
-    while (childs.size() > 0) {
-        for (size_t i = 0 ; i < childs.size() ; i++) {
-            if (childs[i]->state == ProcessState::Stopped) {
-                i32 pid = childs[i]->pid;
-                Process* child = childs[i];
-                childs.erase(i);
-                child->state = ProcessState::PendingDestruction;
-                threading::scheduler->schedule(child->thread);
-                return pid;
+    while (true)
+    {
+        bool eflags = CLI();
+        _stateLock.lock();
+        //_state = ProcessState::Waiting;
+
+        if (childs.size() > 0) {
+            for (size_t i = 0 ; i < childs.size() ; i++) {
+                if (childs[i]->state == ProcessState::Stopped) {
+                    i32 pid = childs[i]->pid;
+                    Process* child = childs[i];
+                    childs.erase(i);
+                    child->state = ProcessState::PendingDestruction;
+                    threading::scheduler->schedule(child->thread);
+
+                    if (status) {
+                        *status = child->status_code;
+                    }
+
+                    state = ProcessState::Running;
+                    _stateLock.release();
+                    STI(eflags);
+                    return pid;
+                }
             }
+            
+            state = ProcessState::Waiting;
+            _waitingForChildStopped.add_blocked_thread(threading::currentThread());
+            _stateLock.release();
+            STI(eflags);
+            threading::exit();
+        } else {
+            return -1;
         }
-
-        threading::exit();
     }
-
-    return -1;
 }
 
 i32 Process::isatty(i32 file)
@@ -350,27 +392,24 @@ i32 Process::isatty(i32 file)
 
 i32 Process::lseek(i32 file, i32 ptr, i32 dir)
 {
-    if (_bindings.count(file) == 0) {
+    std::shared_ptr<FileDescriptor>* desc = _bindings.at(file);
+    if (desc == nullptr) {
         return -1;
     }
-
-    FileDescriptor& desc = _bindings[file];
     
     if (dir == SEEK_SET) {
-        desc.offset = ptr;
+        (*desc)->offset = ptr;
     } else if (dir == SEEK_CUR) {
-        desc.offset += ptr;
+        (*desc)->offset += ptr;
     } else if (dir == SEEK_END) {
-        desc.offset = desc.handle->get_size() + ptr;
+        (*desc)->offset = (*desc)->handle->get_size() + ptr;
     }
 
-    return desc.offset;
+    return (*desc)->offset;
 }
 
 i32 Process::fstat(i32 file, struct stat* st)
 {
-    printf("fstat\n");
-
     return -1;
 }
 
@@ -388,4 +427,68 @@ void* Process::sbrk(i32 inc)
 
     _program_break = new_brk;
     return cur_brk;
+}
+
+i32 Process::pipe(i32 pipefd[2])
+{
+    i32 readId = _bindings.new_resource();
+    if (readId < 0) {
+        return -1;
+    }
+
+    i32 writeId = _bindings.new_resource();
+    if (writeId < 0) {
+        _bindings.free_resource(readId);
+        return -1;
+    }
+
+    std::shared_ptr<fs::Stream> stream(new fs::Stream("", 512));
+    fs::OwnedStreamHandle* readHandle  = new fs::OwnedStreamHandle(stream, fs::OwnedStreamHandle::WriteMode::Read);
+    fs::OwnedStreamHandle* writeHandle = new fs::OwnedStreamHandle(stream, fs::OwnedStreamHandle::WriteMode::Write);
+
+    std::shared_ptr<FileDescriptor>* readDesc  = _bindings.at(readId);
+    std::shared_ptr<FileDescriptor>* writeDesc = _bindings.at(writeId);
+    *readDesc  = new FileDescriptor(readHandle);
+    *writeDesc = new FileDescriptor(writeHandle);
+
+    pipefd[0] = readId;
+    pipefd[1] = writeId;
+
+    return 0;
+}
+
+i32 Process::dup(int filedes)
+{
+    std::shared_ptr<FileDescriptor>* olddesc = _bindings.at(filedes);
+    if (olddesc == nullptr) {
+        return -1;
+    }
+
+    i32 filedes2 = _bindings.new_resource();
+    if (filedes2 < 0) {
+        return -1;
+    }
+    std::shared_ptr<FileDescriptor>* newdesc = _bindings.at(filedes2);
+
+    *newdesc = *olddesc;
+
+    return filedes2;
+}
+
+i32 Process::dup2(int filedes, int filedes2)
+{
+    std::shared_ptr<FileDescriptor>* olddesc = _bindings.at(filedes);
+    if (olddesc == nullptr) {
+        return -1;
+    }
+
+    std::shared_ptr<FileDescriptor>* newdesc = _bindings.at(filedes2);
+    if (newdesc != nullptr) {
+        close(filedes2);
+    }
+    newdesc = _bindings.new_resource(filedes2);
+    
+    *newdesc = *olddesc;
+
+    return filedes2;
 }

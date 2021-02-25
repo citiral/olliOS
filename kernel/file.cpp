@@ -31,7 +31,7 @@ File* File::get(const char* name)
     if (subname[0] == '.') {
         if (subname[1] == '/') {
             return this->get(subname+2);
-        } else if (subname[1] == 0) {                
+        } else if (subname[1] == 0) {
             return this;
         } else if (subname[1] == '.') {
             if (subname[2] == '/') {
@@ -40,7 +40,7 @@ File* File::get(const char* name)
                 } else {*/
                     return NULL;
                 //}
-            } else if (subname[2] == 0) {                
+            } else if (subname[2] == 0) {
                 return NULL;//_parent;
             }
         }

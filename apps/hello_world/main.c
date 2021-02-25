@@ -72,6 +72,9 @@ void printf(char* str) {
 
 int main(int argc, char** argv)
 {    
+    for (volatile int i = 0 ; i < 1000000000 ; i++);
+    printf("Hello, world!\n");
+    return 0;
     //FILE* test = open("/sys/vga", "r");
     //write(test, "abc", 3);
     //close(test);

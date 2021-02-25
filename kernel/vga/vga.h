@@ -44,6 +44,9 @@ public:
     //prints a byte to the screen
     virtual size_t write(char data);
 
+	//sets the character pointed to by the x, y coordinates to c. This will not advance the vga state, nor will it handle special characters
+	void setChar(char c, u16 x, u16 y);
+
 private:
 	//creates an entry for the vga memory from the given character c and the current state of the vga driver
 	i16 generateEntry(char c);
@@ -55,8 +58,6 @@ private:
 	void writeChar(char c);
 	//sets the character pointed to by the current vga state to c. This will not advance the vga state, nor will it handle special characters
 	void setChar(char c);
-	//sets the character pointed to by the x, y coordinates to c. This will not advance the vga state, nor will it handle special characters
-	void setChar(char c, u16 x, u16 y);
 	//gets the character at the current cursor location
 	char getChar();
 	//gets the character at the given location

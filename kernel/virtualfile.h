@@ -4,6 +4,7 @@
 #include "file.h"
 #include "kstd/string.h"
 #include "kstd/vector.h"
+#include "threading/mutex.h"
 #include "threading/waiting_list.h"
 
 //#define VIRTUAL_FILE_SMALL_DATA_SIZE 8
@@ -119,8 +120,10 @@ namespace fs {
         size_t size;
         size_t read;
         size_t write;
+        bool closed;
         threading::WaitingList waitingRead;
         threading::WaitingList waitingWrite;
+        threading::Mutex m;
     };
 
     class ChunkedStreamHandle : public StreamHandle {
@@ -138,6 +141,32 @@ namespace fs {
         FileHandle* open();
 
         size_t chunk_size;
+    };
+
+    class OwnedStreamHandle : public FileHandle {
+    public:
+        enum class WriteMode {
+            Read,
+            Write,
+        };
+
+        OwnedStreamHandle(std::shared_ptr<Stream> file, WriteMode mode);
+        OwnedStreamHandle(const OwnedStreamHandle& handle);
+        ~OwnedStreamHandle();
+
+        OwnedStreamHandle& operator=(const OwnedStreamHandle& handle);
+
+        virtual i32 write(const void* buffer, size_t size, size_t pos);
+        virtual i32 read(void* buffer, size_t size, size_t pos);
+        size_t get_size();
+
+        File* next_child();
+        void reset_child_iterator();
+
+    private:
+        std::shared_ptr<Stream> _file;
+        WriteMode _mode;
+        FileHandle* _handle;
     };
 
 }

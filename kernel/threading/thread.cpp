@@ -154,8 +154,10 @@ bool Thread::blocking() {
     return _blocking;
 }
 
-void Thread::setBlocking(bool blocking) {
-    _blocking = blocking;
+bool Thread::setBlocking(bool blocking) {
+    volatile register bool oldBlocking = blocking;
+    __asm__ volatile ("lock xchg %0, %1" : "+m"(_blocking), "=a" (oldBlocking) : "1" (oldBlocking));
+    return oldBlocking;
 }
 
 void Thread::kill() {

@@ -124,6 +124,7 @@ namespace std {
 		}
 
 	private:
+
 		void clear()
 		{
 			for (size_t bucket = 0; bucket < _numBuckets; bucket++)

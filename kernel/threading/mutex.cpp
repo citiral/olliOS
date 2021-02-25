@@ -14,7 +14,7 @@ void Mutex::lock() {
     
     while (true) {
         // exchange the current value with v. if the mutex was free, v is now 0
-        __asm__ volatile ("xchg %0, %1; pause " : "+m"(_locked), "=a" (v) : "1" (v));
+        __asm__ volatile ("lock xchg %0, %1; pause " : "+m"(_locked), "=a" (v) : "1" (v));
         
         if (v == 0) {
             return;
@@ -30,7 +30,7 @@ bool Mutex::try_lock() {
     volatile register u8 v = 1;
     
     // exchange the current value with v. if the mutex was free, v is now 0
-    __asm__ volatile ("xchg %0, %1; pause " : "+m"(_locked), "=a" (v) : "1" (v));
+    __asm__ volatile ("lock xchg %0, %1; pause " : "+m"(_locked), "=a" (v) : "1" (v));
 
     return (v == 0);
 }
@@ -38,7 +38,7 @@ bool Mutex::try_lock() {
 void Mutex::release() {
     // Exchange the current value with 0
     volatile register u8 v = 0;
-    __asm__ volatile ("xchg %0, %1" : "+m"(_locked), "=a" (v) : "1" (v));
+    __asm__ volatile ("lock xchg %0, %1" : "+m"(_locked), "=a" (v) : "1" (v));
 
     _waitingList.unblock_next_thread();
 }

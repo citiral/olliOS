@@ -10,6 +10,7 @@
 #include "kstd/utility.h"
 #include "kstd/string.h"
 #include "file.h"
+#include "process.h"
 
 class KernelShell {
 using CommandFunction = void (*)(KernelShell* shell, std::vector<std::string>* args);
@@ -22,6 +23,8 @@ public:
 
     std::vector<std::pair<const char*, CommandFunction>>& commands();
     fs::File* working_directory;
+    Process* runningProcess = nullptr;
+    fs::File* runningProcessStdin = nullptr;
 
 private:
     std::vector<std::string> splitCommand(std::string cmd);

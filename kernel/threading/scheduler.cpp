@@ -1,6 +1,7 @@
 #include "scheduler.h"
 #include "cpu/apic.h"
 #include "cdefs.h"
+#include "process.h"
 
 using namespace threading;
 
@@ -63,7 +64,7 @@ bool Scheduler::enter() {
             if (thread->process->state == ProcessState::PendingDestruction) {
                 delete thread->process;
             } else {
-                thread->process->state = ProcessState::Stopped;
+                thread->process->set_state(ProcessState::Stopped);
             }
         } else {
             delete thread;

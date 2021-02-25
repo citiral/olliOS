@@ -115,8 +115,11 @@ void initMemory(multiboot_info* multiboot) {
 void cpu_main() {
     apic::setSleep(INT_PREEMPT, apic::busFrequency / 512, false);
     while (true) {
+        vgaDriver->setChar('!', VGA_WIDTH - 1, 0);
         if (!threading::scheduler->enter()) {
+            vgaDriver->setChar('.', VGA_WIDTH - 1, 0);
             __asm__ ("hlt");
+            vgaDriver->setChar('#', VGA_WIDTH - 1, 0);
         }
     }
 }

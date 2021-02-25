@@ -2,6 +2,8 @@
 #include "interruptHandlers.h"
 #include "cdefs.h"
 #include "pic.h"
+#include "threading/thread.h"
+#include "process.h"
 
 void intHandlerUndefined(u32 interrupt)
 {
@@ -32,7 +34,12 @@ void intHandlerPageFault(u32 interrupt)
 	);
 
 	printf("Page fault: 0x%.8X\n", cr2);
-	CPU::panic("Page Fault occured");
+
+	if (threading::is_current_core_in_thread()) {
+		threading::currentThread()->process->exit(11);
+	} else {
+		CPU::panic("Page Fault occured");
+	}
 }
 
 void intHandlerSpurious(u32 interrupt)

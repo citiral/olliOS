@@ -16,12 +16,21 @@ int main(int argc, char **argv)
 {
     char buffer[1024];
 
-    FILE* test = fopen("/root/include/ar.h", "rb+");
+    if (argc != 2) {
+        fprintf(stderr, "Error, usage: %s target\n", argv[0]);
+        return -1;
+    }
+
+    FILE* test = fopen(argv[1], "rb+");
     int read = 1;
     int written = 0;
 
+    printf("openened.\n");
+
     do {
+        printf("readning test: %X\n", *test);
         read = fread(buffer, 1, sizeof(buffer), test);
+        printf("DOEN\n");
         written = 0;
         if (read > 0) {
             while (written + 1 < read) {

@@ -14,6 +14,8 @@ public:
     void unblock_next_thread();
     void unblock_all_threads();
 
+    //static void add_to_multiple(Thread* thread, WaitingList** list, size_t count);
+
 private:
     Thread* _waiting;
     Spinlock _lock;

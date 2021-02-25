@@ -17,54 +17,44 @@ public:
     }
 
     shared_ptr(T* data) {
-        bool i = CLI();
         _data = data;
         _count = nullptr;
         if (data != nullptr) {
             _count = new long;
             *_count = 1;
         }
-        STI(i);
     }
 
     shared_ptr(const shared_ptr& s) {
-        bool i = CLI();
         _data = s._data;
         _count = s._count;
         if (_count != nullptr) {
-            __atomic_add_fetch(_count, 1, __ATOMIC_ACQUIRE);
+            __atomic_add_fetch(_count, 1, __ATOMIC_RELAXED);
         }
-        STI(i);
     }
 
     shared_ptr(shared_ptr&& s) {
-        bool i = CLI();
         _data = s._data;
         _count = s._count;
         s._data = nullptr;
         s._count = nullptr;
-        STI(i);
     }
 
     ~shared_ptr() {
-        bool i = CLI();
         if (_data != nullptr) {
-            if (--(*_count) == 0) {
+            if (__atomic_sub_fetch(_count, 1, __ATOMIC_RELAXED) == 0) {
                 delete _data;
                 delete _count;
                 _data = nullptr;
                 _count = nullptr;
             }
         }
-        STI(i);
     }
 
     shared_ptr<T>& operator=(const shared_ptr& s) {
         if (_data == s._data) {
             return *this;
         }
-        
-        bool i = CLI();
 
         if (_data != nullptr) {
             if (__atomic_sub_fetch(_count, 1, __ATOMIC_ACQUIRE) == 0) {
@@ -80,7 +70,6 @@ public:
         if (_data != nullptr) {
             __atomic_add_fetch(_count, 1, __ATOMIC_ACQUIRE);
         }
-        STI(i);
 
         return *this;
     }
@@ -92,8 +81,6 @@ public:
             return *this;
         }
         
-        bool i = CLI();
-
         if (_data != nullptr) {
             if (__atomic_sub_fetch(_count, 1, __ATOMIC_ACQUIRE) == 0) {
                 delete _data;
@@ -107,7 +94,6 @@ public:
         _count = s._count;
         s._data = nullptr;
         s._count = nullptr;
-        STI(i);
 
         return *this;
     }

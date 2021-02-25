@@ -204,6 +204,7 @@ i32 StreamHandle::write(const void* buffer, size_t count, size_t pos)
 
     const uint8_t* data = (const uint8_t*) buffer;
 
+    _stream->m.lock();
     size_t size = _stream->size;
     size_t i;
     bool written = false;
@@ -213,20 +214,24 @@ i32 StreamHandle::write(const void* buffer, size_t count, size_t pos)
 
         if (next_write == _stream->read) {
             if (written) {
-                written = false;
-                _stream->waitingRead.unblock_all_threads();
+                break;
+            } else {
+                bool eflags = CLI();
+                _stream->waitingWrite.add_blocked_thread(threading::currentThread());
+                _stream->m.release();
+                STI(eflags);
+                threading::exit();
+                _stream->m.lock();
             }
-            _stream->waitingWrite.add_blocked_thread(threading::currentThread());
-            threading::exit();
         }
 
         _stream->data[_stream->write] = data[i];
         _stream->write = next_write;
         written = true;
     }
-    if (written) {
-        _stream->waitingRead.unblock_all_threads();
-    }
+
+    _stream->m.release();
+    _stream->waitingRead.unblock_all_threads();
 
     return i;
 }
@@ -237,18 +242,27 @@ i32 StreamHandle::read(void* buffer, size_t count, size_t pos)
 
     uint8_t* data = (uint8_t*) buffer;
 
+    _stream->m.lock();
     size_t size = _stream->size;
     size_t i;
     bool read = false;
 
     for (i = 0 ; i < count ; i++) {
-        while (_stream->read == _stream->write) {
-            if (read) {
-                read = false;
-                _stream->waitingWrite.unblock_all_threads();
+        if (_stream->read == _stream->write) {
+            if (read || _stream->closed) {
+                break;
+            } else {
+                bool eflags = CLI();
+                _stream->waitingRead.add_blocked_thread(threading::currentThread());
+                _stream->m.release();
+                STI(eflags);
+                threading::exit();
+
+                _stream->m.lock();
+                if (_stream->closed) {
+                    break;
+                }
             }
-            _stream->waitingRead.add_blocked_thread(threading::currentThread());
-            threading::exit();
         }
 
         size_t next_read = (_stream->read + 1) < size ? _stream->read + 1 : 0;
@@ -257,9 +271,9 @@ i32 StreamHandle::read(void* buffer, size_t count, size_t pos)
         _stream->read = next_read;
         read = true;
     }
-    if (read) {
-        _stream->waitingWrite.unblock_all_threads();
-    }
+
+    _stream->m.release();
+    _stream->waitingWrite.unblock_all_threads();
 
     return i;
 }
@@ -275,15 +289,22 @@ void StreamHandle::reset_child_iterator()
 
 size_t StreamHandle::get_size()
 {
+    _stream->m.lock();
+
+    size_t ret = 0;
     if (_stream->read < _stream->write) {
-        return _stream->write - _stream->read;
+        ret = _stream->write - _stream->read;
     } else {
-        return _stream->write + (_stream->size - _stream->read);
+        ret = _stream->write + (_stream->size - _stream->read);
     }
+
+    _stream->m.release();
+
+    return ret;
 }
 
 
-Stream::Stream(std::string name, size_t size): name(name), size(size), waitingRead(), waitingWrite()
+Stream::Stream(std::string name, size_t size): name(name), size(size), waitingRead(), waitingWrite(), closed(0), m()
 {
     if (size <= 1) {
         size = 2;
@@ -372,4 +393,70 @@ ChunkedStream::ChunkedStream(std::string name, size_t size, size_t chunk_size): 
 FileHandle* ChunkedStream::open()
 {
     return new ChunkedStreamHandle(this);
+}
+
+OwnedStreamHandle::OwnedStreamHandle(std::shared_ptr<Stream> file, WriteMode mode): _file(file), _mode(mode), _handle(nullptr)
+{
+    _handle = _file->open();
+}
+
+OwnedStreamHandle::OwnedStreamHandle(const OwnedStreamHandle& handle)
+{
+    _file = handle._file;
+    _mode = handle._mode;
+    _handle = _file->open();
+}
+
+OwnedStreamHandle::~OwnedStreamHandle()
+{
+    _handle->close();
+    if (_mode == WriteMode::Write) {
+        _file->m.lock();
+        _file->closed = true;
+        _file->waitingRead.unblock_all_threads();
+        _file->m.release();
+    }
+}
+
+OwnedStreamHandle& OwnedStreamHandle::operator=(const OwnedStreamHandle& handle)
+{
+    _file = handle._file;
+    _mode = handle._mode;
+    _handle = _file->open();
+
+    return *this;
+}
+
+i32 OwnedStreamHandle::write(const void* buffer, size_t size, size_t pos)
+{
+    if (_mode == WriteMode::Write) {
+        return _handle->write(buffer, size, pos);
+    } else {
+        return -1;
+    }
+}
+
+i32 OwnedStreamHandle::read(void* buffer, size_t size, size_t pos)
+{
+
+    if (_mode == WriteMode::Read) {
+        return _handle->read(buffer, size, pos);
+    } else {
+        return -1;
+    }
+}
+
+size_t OwnedStreamHandle::get_size()
+{
+    return _handle->get_size();
+}
+
+File* OwnedStreamHandle::next_child()
+{
+    return _handle->next_child();
+}
+
+void OwnedStreamHandle::reset_child_iterator()
+{
+    _handle->reset_child_iterator();
 }

@@ -15,6 +15,11 @@ namespace threading {
         bool try_lock();
         void release();
 
+        WaitingList* getWaitingList()
+        {
+            return &_waitingList;
+        }
+
     private:
         int _locked;
         WaitingList _waitingList;

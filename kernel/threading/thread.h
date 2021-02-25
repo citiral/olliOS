@@ -8,7 +8,8 @@
 #include "kstd/utility.h"
 #include "util/unique.h"
 #include <string.h>
-#include "process.h"
+
+class Process;
 
 extern "C" void __attribute__ ((noinline)) thread_interrupt();
 extern "C" bool __attribute__ ((noinline)) is_current_core_in_thread();
@@ -104,7 +105,10 @@ namespace threading {
         bool finished();
 
         bool blocking();
-        void setBlocking(bool blocking);
+
+        // Sets the blocking state of the thread.
+        // It returns the old blocking state, switching them out atomically.
+        bool setBlocking(bool blocking);
 
         // Kills the thread by setting finished to true. If the thread is still running, it will only be shut down next time it is scheduled.
         void kill();
