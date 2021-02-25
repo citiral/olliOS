@@ -6,7 +6,7 @@
 #define OLLIOS_GIT_ATA_H
 
 #include "atadevice.h"
-#include "threading/semaphore.h"
+#include "threading/mutex.h"
 #include "types.h"
 #include "bindings.h"
 #include "file.h"
@@ -126,7 +126,7 @@ private:
 	bool _scanDefaultAddresses = true;
 	int _lastDevice = -1;
     unsigned int _deviceCount;
-    threading::Semaphore _lock;
+    threading::Mutex _lock;
 };
 
 extern AtaDriver driver;

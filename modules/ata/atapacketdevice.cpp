@@ -17,6 +17,8 @@ AtaPacketDevice::~AtaPacketDevice() {
 }
 
 size_t AtaPacketDevice::read(void* data, size_t amount, size_t offset) {
+    // TODO it seems to get stuck when issueing very big reads
+
     driver.grab();
     driver.clearInterruptFlag();
     
@@ -31,6 +33,7 @@ size_t AtaPacketDevice::read(void* data, size_t amount, size_t offset) {
     offset -= skip;
     if (actual_amount % 2048 != 0)
         actual_amount += 2048 - (actual_amount % 2048);
+    
 
     // we are not going to use DMA (set dma bit to zero)
     outb(_port+PORT_FEATURE, 0);
@@ -45,6 +48,7 @@ size_t AtaPacketDevice::read(void* data, size_t amount, size_t offset) {
     // convert the actual_amount and offset to blocks
     actual_amount /= 2048;
     offset /= 2048;
+
 
     // send the packet command
     outb(_port+PORT_COMMAND, COMMAND_PACKET);
@@ -84,11 +88,11 @@ size_t AtaPacketDevice::read(void* data, size_t amount, size_t offset) {
     // wait until the device is ready
     //driver.waitForInterrupt(_port);
     driver.waitForBusy(_port);
-    //driver.waitForInterrupt(_port);
+    driver.waitForInterrupt(_port);
 
     // now lets fetch the actual_amount of data we can read
     size_t wordcount = ((inb(_port+PORT_LBA_HIGH) << 8) | inb(_port+PORT_LBA_MID));
-    
+
     // and now finally we can read the data
     for (size_t i = 0 ; i < wordcount ; i += 2) {
         u16 byte = inw(_port+PORT_DATA);

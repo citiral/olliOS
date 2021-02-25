@@ -14,7 +14,8 @@ extern "C" void module_load(File* root, const char* argv)
 
         Process* p = new Process();
         p->set_arguments(args);
-        p->init(file);
+        std::string wd = "/root/usr/bin";
+        p->init(file, wd);
 
         p->open("/sys/vga", 0, 0);
         p->open("/sys/vga", 0, 0);

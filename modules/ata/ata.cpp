@@ -25,7 +25,7 @@ void intHandlerAta(u32 interrupt) {
     end_interrupt(interrupt);
 }
 
-AtaDriver::AtaDriver(): _interrupted(false), _lock(1) {
+AtaDriver::AtaDriver(): _interrupted(false), _lock() {
 
 }
 
@@ -38,7 +38,7 @@ void AtaDriver::initialize(fs::File* pci) {
     file = new fs::VirtualFolder("ata");
     fs::root->get("sys")->bind(file);
 
-    _lock = threading::Semaphore(1);
+    _lock = threading::Mutex();
 	_interrupted = false;
 
 

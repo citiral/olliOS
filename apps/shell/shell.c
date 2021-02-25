@@ -54,6 +54,15 @@ void free_command_buffer()
     }
 }
 
+void print_prompt()
+{
+    char cwd[1024];
+
+    getcwd(cwd, sizeof(cwd));
+    printf("%s: ", cwd);
+    fflush(stdout);
+}
+
 int main(int argc, char** argv)
 {
     printf("Welcome to the Ollios Shell!\n");
@@ -61,26 +70,8 @@ int main(int argc, char** argv)
     memset(command_buffer, 0, sizeof(command_buffer));
     memset(argument_buffer, 0, sizeof(argument_buffer));
 
-    int pipes[2];
-    pipe(pipes);
-
-    write(pipes[1], "Test!\n", strlen("Test!\n"));
-    close(pipes[1]);
-    
-    char* a = NULL;
-    if (fork() == 0) {
-        dup2(pipes[0], 0);
-        close(pipes[0]);
-        execve("/root/usr/bin/tee", &a, &a);
-    } else {
-        int stat;
-        wait(&stat);
-    }
-
     while (1) {
-        printf("> ");
-        fflush(stdout);
-
+        print_prompt();
         read_command();
 
         if (argument_buffer[0] != NULL) {
@@ -95,7 +86,7 @@ int main(int argc, char** argv)
             } else {
                 int status;
                 wait(&status);
-                printf("Process returned with status: %d\n", status);
+                printf("%d ", status);
             }
         }
         free_command_buffer();

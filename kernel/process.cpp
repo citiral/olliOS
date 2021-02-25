@@ -6,6 +6,8 @@
 #include "kstd/shared_ptr.h"
 #include "threading/thread.h"
 #include "virtualfile.h"
+#include <string.h>
+
 extern "C" {
     #include <sys/types.h>
     #include <unistd.h>
@@ -37,12 +39,11 @@ void load_file_and_run(fs::File* file, std::vector<std::string>* args)
 
 	size_t total = 0;
 	do {
-		size_t read = handle->read((void*)(buffer + total), filesize - total, total);
+		size_t read = handle->read((void*)(buffer + total), filesize - total < 4096 ? filesize - total : 4096, total);
 		total += read;
 	} while (total != filesize);
 
     handle->close();
-
 
     void (*app_entry)(int argc, char** arv, char** environ) = 0;
     {
@@ -71,26 +72,16 @@ void load_file_and_run(fs::File* file, std::vector<std::string>* args)
         argdc += args->at(i).length() + 1;
     }
 
-    //threading::currentThread()->process->open("/sys/vga", 0, 0);
-    //threading::currentThread()->process->open("/sys/vga", 0, 0);
-    //threading::currentThread()->process->open("/sys/vga", 0, 0);
-
     // Run the entry point of the userspace application
     app_entry(args->size(), argv, nullptr);
 }
 
-Process::Process(): status_code(-1), state(ProcessState::Initing), thread(nullptr), childs(), pid(process_ids.next()), _pagetable(nullptr), _bindings(1024), _descriptor(nullptr), _waitingForStopped(), _waitingForChildStopped(), _stateLock()
+Process::Process(): status_code(-1), state(ProcessState::Initing), thread(nullptr), childs(), pid(process_ids.next()), _pagetable(nullptr), _bindings(1024), _descriptor(nullptr), _waitingForStopped(), _waitingForChildStopped(), _stateLock(), _workingDirectory("")
 {
     // Make a binding for the process
     char name[32];
     sprintf(name, "%d", pid);
     _descriptor = new fs::VirtualFolder(name);
-
-    // And create three other bindings for stdin, stdout, stderr
-    /*fs::File* pipes = _descriptor->create("pipes", FILE_CREATE_DIR);
-    pipes->create("stdin", 0);
-    pipes->create("stdout", 0);
-    pipes->create("stderr", 0);*/
 }
 
 Process::~Process()
@@ -116,9 +107,10 @@ void Process::set_arguments(std::vector<std::string>& args)
     _args = args;
 }
 
-void Process::init(fs::File* file)
+void Process::init(fs::File* file, std::string& workingDirectory)
 {
     _file = file;
+    _workingDirectory = workingDirectory;
 
     bool eflag = CLI();
 
@@ -205,7 +197,13 @@ void Process::set_state(ProcessState new_state)
 
 i32 Process::open(const char* name, i32 flags, i32 mode)
 {
-    return open(fs::root->get(name), flags, mode);
+    fs::File* wd = fs::root->get(_workingDirectory.c_str());
+    if (!wd) {
+        return -1;
+    }
+
+    return open(wd->get(name), flags, mode);
+
 }
 
 i32 Process::open(fs::File* f, i32 flags, i32 mode)
@@ -293,6 +291,7 @@ void Process::finish_fork(memory::PageDirectory* clone)
     child->_parent = this;
     child->thread = thread->clone();
     child->thread->process = child;
+    child->_workingDirectory = _workingDirectory;
     childs.push_back(child);
     
     threading::scheduler->schedule(child->thread);
@@ -306,7 +305,7 @@ void Process::finish_execve()
     }
 
     // Reinitialize process and start
-    init(_file);
+    init(_file, _workingDirectory);
     start();
 }
 
@@ -324,7 +323,12 @@ i32 Process::fork()
 
 i32 Process::execve(const char* pathname, char *const *argv, char *const *envp)
 {
-    fs::File* child = fs::root->get(pathname);
+    fs::File* wd = fs::root->get(_workingDirectory.c_str());
+    if (!wd) {
+        return -1;
+    }
+
+    fs::File* child = wd->get(pathname);
     if (!child) {
         return -1;
     }
@@ -491,4 +495,42 @@ i32 Process::dup2(int filedes, int filedes2)
     *newdesc = *olddesc;
 
     return filedes2;
+}
+
+i32 Process::readdir(i32 filedes, struct dirent* dirent)
+{
+    std::shared_ptr<FileDescriptor>* desc = _bindings.at(filedes);
+    if (desc == nullptr) {
+        return -1;
+    }
+
+    fs::File* child = (*desc)->handle->next_child();
+
+    if (child == 0) {
+        return -1;
+    } else {
+        dirent->d_ino = 0;
+
+        const char* child_name = child->get_name();
+        int length = strlen(child_name);
+        if (length >= NAME_MAX) {
+            length = NAME_MAX - 1;
+        }
+
+        memcpy(dirent->d_name, child_name, length);
+        dirent->d_name[length] = 0;
+        return 0;
+    }
+}
+
+char* Process::getwd(char* buf, size_t size)
+{
+    int length = _workingDirectory.length();
+
+    if (length >= size) {
+        return NULL;   
+    } else {
+        strcpy(buf, _workingDirectory.c_str());
+        return buf;
+    }
 }

@@ -217,8 +217,9 @@ void run(KernelShell* shell, std::vector<std::string>* args)
 	shell->runningProcessStdin = new fs::Stream("stdin", 64);
 
 	Process* p = new Process();
+	std::string wd = "/root/usr/bin";
 	p->set_arguments(*args);
-	p->init(file);
+	p->init(file, wd);
 
     p->open(shell->runningProcessStdin, 0, 0);
     p->open("/sys/vga", 0, 0);

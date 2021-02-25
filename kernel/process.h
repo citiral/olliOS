@@ -10,6 +10,7 @@
 #include "kstd/vector.h"
 #include "threading/waiting_list.h"
 #include "resource_map.h"
+#include <sys/dirent.h>
 
 struct FileDescriptor {
     fs::FileHandle* handle;
@@ -42,7 +43,7 @@ public:
     ~Process();
 
     void set_arguments(std::vector<std::string>& args);
-    void init(fs::File* file);
+    void init(fs::File* file, std::string& workingDirectory);
     void start();
     void wait();
     
@@ -72,6 +73,8 @@ public:
     i32 pipe(i32 pipefd[2]);
     i32 dup(int filedes);
     i32 dup2(int filedes, int filedes2);
+    i32 readdir(i32 filedes, struct dirent* dirent);
+    char* getwd(char* buf, size_t size);
 
     i32 status_code;
     volatile ProcessState state;
@@ -92,6 +95,7 @@ private:
     threading::WaitingList _waitingForChildStopped;
     threading::Spinlock _stateLock;
     Process* _parent = nullptr;
+    std::string _workingDirectory;
 };
 
 #endif

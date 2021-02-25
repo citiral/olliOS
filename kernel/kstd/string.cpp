@@ -46,12 +46,14 @@ string::~string() {
     } 
 }
 string& string::operator=(const string& str) {
-    if (_data != nullptr) {
-        delete[] _data;
-    }
+    if (&str != this) {
+        if (_data != nullptr) {
+            delete[] _data;
+        }
 
-    _data = new char[str.size() + 1];
-    strcpy(_data, str._data);
+        _data = new char[str.size() + 1];
+        strcpy(_data, str._data);
+    }
 
     return *this;
 }

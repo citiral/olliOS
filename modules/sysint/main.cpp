@@ -2,30 +2,12 @@
 #include "file.h"
 #include "cpu/interrupt.h"
 #include "threading/thread.h"
+#include <sys/syscalls.h>
+#include <sys/dirent.h>
 #include "process.h"
 
-extern "C" void sysint_handler(void);
 
-#define SYSINT_OPEN   1
-#define SYSINT_CLOSE  2
-#define SYSINT_WRITE  3
-#define SYSINT_READ   4
-#define SYSINT_EXIT   5
-#define SYSINT_FORK   6
-#define SYSINT_GETPID 7
-#define SYSINT_EXECVE 8
-#define SYSINT_WAIT   9
-#define SYSINT_ISATTY 10
-#define SYSINT_LSEEK  11
-#define SYSINT_FSTAT  12
-#define SYSINT_KILL   13
-#define SYSINT_LINK   14
-#define SYSINT_SBRK   15
-#define SYSINT_TIMES  16
-#define SYSINT_UNLINK 17
-#define SYSINT_PIPE   18
-#define SYSINT_DUP    19
-#define SYSINT_DUP2   20
+extern "C" void sysint_handler(void);
 
 const char* sysint_names[] = {
     "", "open", "close", "write", "read", "exit", "fork", "getpid", "execve", "wait", "isatty", "lseek", "fstat", "kill", "link", "sbrk", "times", "link"
@@ -60,13 +42,18 @@ extern "C" i32 sysint_handler_c(u32 eax, u32 ebx, u32 ecx, u32 edx, u32 esi, u32
         return threading::currentThread()->process->fstat(reinterpret_cast<i32&>(ebx),reinterpret_cast<struct stat*>(ebx));
     } else if (eax == SYSINT_SBRK) {
         void* result = threading::currentThread()->process->sbrk(reinterpret_cast<i32&>(ebx));
-        return reinterpret_cast<i32&>(result);
+        return reinterpret_cast<i32>(result);
     } else if (eax == SYSINT_PIPE) {
         return threading::currentThread()->process->pipe(reinterpret_cast<int*>(ebx));
     } else if (eax == SYSINT_DUP) {
         return threading::currentThread()->process->dup(reinterpret_cast<i32&>(ebx));
     } else if (eax == SYSINT_DUP2) {
         return threading::currentThread()->process->dup2(reinterpret_cast<i32&>(ebx), reinterpret_cast<i32&>(ecx));
+    } else if (eax == SYSINT_READDIR) {
+        return threading::currentThread()->process->readdir(reinterpret_cast<i32&>(ebx), reinterpret_cast<struct dirent*>(ecx));
+    } else if (eax == SYSINT_GETWD) {
+        char* result = threading::currentThread()->process->getwd(reinterpret_cast<char*>(ebx), reinterpret_cast<size_t&>(ecx));
+        return reinterpret_cast<i32>(result);
     }
 
     return -1;

@@ -9,7 +9,7 @@ ROOT = ../root/
 BUILD = ../build/
 OUTDIR = $(BUILD)$(MODULE)/
 
-INCLUDE = -I $(ROOT)usr/include -I $(ROOT)usr/include/libk
+INCLUDE = -I $(ROOT)usr/include -I $(ROOT)usr/include/libk -I $(ROOT)include
 CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -nostdlib -fno-threadsafe-statics -Werror=return-type -m32 -mgeneral-regs-only -MD
 LDFLAGS =  -std=gnu++11 -Wall -Wextra -nostdlib -O2 -m32 -r -Xlinker '-Ur'
 LIBS = $(ROOT)/usr/lib/libk.a
