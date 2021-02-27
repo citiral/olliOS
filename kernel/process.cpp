@@ -127,7 +127,7 @@ void Process::init(fs::File* file, std::string& workingDirectory)
 
 	((memory::PageDirectory*)(current->getPhysicalAddress(_pagetable)))->use();
 
-    char* stackStart = (char*) current->bindFirstFreeVirtualPages((char*) 0xC0000000 - THREAD_STACK_SIZE, THREAD_STACK_SIZE / 0x1000);
+    char* stackStart = (char*) current->bindFirstFreeVirtualPages((char*) 0xC0000000 - THREAD_STACK_SIZE, THREAD_STACK_SIZE / 0x1000, memory::UserMode::User);
 
     if (stackStart != (char*)0xbfff0000) {
         CPU::panic("corrupt stack\n");
@@ -426,7 +426,7 @@ void* Process::sbrk(i32 inc)
     size_t new_brk_page = (u32)new_brk / 0x1000;
 
     for (size_t i = cur_brk_page ; i < new_brk_page ; i++) {
-        memory::PageDirectory::current()->bindVirtualPage((void*)((i+1) * 0x1000));
+        memory::PageDirectory::current()->bindVirtualPage((void*)((i+1) * 0x1000), memory::UserMode::User);
     }
 
     _program_break = new_brk;

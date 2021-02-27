@@ -41,7 +41,7 @@ void elf::allocate_nobits(section_header* section)
         if (section->size % 0x1000 != 0) {
             pages++;
         }
-        void* mem = memory::PageDirectory::current()->bindFirstFreeVirtualPages((void*)(_in_kernel ? 0xC0000000 : 0x40000000), pages);
+        void* mem = memory::PageDirectory::current()->bindFirstFreeVirtualPages((void*)(_in_kernel ? 0xC0000000 : 0x40000000), pages, memory::UserMode::Supervisor);
         memset(mem, 0, section->size);
         section->offset = ((u32)mem - ((u32)_header));
     }
@@ -238,7 +238,7 @@ int elf::link_in_userspace()
                 page_count = page_count + 1;
 
             for (size_t i = 0 ; i < page_count ; i++) {
-                memory::PageDirectory::current()->bindVirtualPage((char*)header->virtual_address + i * 4096);
+                memory::PageDirectory::current()->bindVirtualPage((char*)header->virtual_address + i * 4096, memory::UserMode::User);
             }
 
             // And copy the contents of the file into memory

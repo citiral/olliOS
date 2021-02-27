@@ -69,7 +69,7 @@ namespace memory {
 		
 		// we also make sure a directory is allocated for the kernel (last gb)
 		for (int i = 256*3; i < 256*4; i++) {
-			kernelPageDirectory.allocateEntry(i);
+			kernelPageDirectory.allocateEntry(i, UserMode::Supervisor);
 		}
 	}
 
@@ -184,14 +184,14 @@ namespace memory {
 		return page;
 	}
 
-	void PageDirectory::bindVirtualPage(void* page) {
+	void PageDirectory::bindVirtualPage(void* page, UserMode userMode) {
 		// we get the indexes related to that page
 		int dirindex = ((u32)page) / 0x400000;
 		int pageindex = (((u32)page) % 0x400000) / 0x1000;
 		//printf("%d %d %x\n", dirindex, pageindex, getReadableEntryPointer(dirindex));
 		// if the directory does not exist, allocate one
 		if (!getReadableEntryPointer(dirindex)->getFlag(PFLAG_PRESENT)) {
-			allocateEntry(dirindex);
+			allocateEntry(dirindex, userMode);
 		}
 
 		// Only bind it if it isn't already mapped
@@ -204,7 +204,11 @@ namespace memory {
 
 			// put it in the page
 			getReadableTablePointer(dirindex, pageindex)->setAddress(physpage);
-			getReadableTablePointer(dirindex, pageindex)->enableFlag(PFLAG_RW | PFLAG_PRESENT | PFLAG_OWNED);
+			if (userMode == UserMode::Supervisor) {
+				getReadableTablePointer(dirindex, pageindex)->enableFlag(PFLAG_RW | PFLAG_PRESENT | PFLAG_OWNED);
+			} else {
+				getReadableTablePointer(dirindex, pageindex)->enableFlag(PFLAG_RW | PFLAG_PRESENT | PFLAG_OWNED | PFLAG_USER);
+			}
 
 			// and then clear the memory
 			memset(page, 0, 0x1000);
@@ -212,7 +216,7 @@ namespace memory {
 	}
 
 	// makes sure the given physical 4kb space is bound to some random virtual memory
-	void* PageDirectory::bindPhysicalPage(void* physical, void* page) {	
+	void* PageDirectory::bindPhysicalPage(void* physical, UserMode userMode, void* page) {
 		// we keep looping from this page until we find one that is free, or until we reach the end of the address space. We also don't want to allocate the last 4MB.
 		page = (void*)((u32)page + ((u32)page % 0x1000 == 0 ? 0 : (0x1000 - ((u32)page % 0x1000))));
 		int dirindex;
@@ -223,11 +227,11 @@ namespace memory {
 
 			// if the entry doesnt exist, lets allocate one. Its content should be empty so the following checks should pass
 			if (!getReadableEntryPointer(dirindex)->getFlag(PFLAG_PRESENT))
-				allocateEntry(dirindex);
+				allocateEntry(dirindex, userMode);
 
 			// check if the table is used. if not, we allocate and return that one
 			if (!getReadableTablePointer(dirindex, pageindex)->getFlag(PFLAG_PRESENT)) {
-				mapMemory(page, physical);
+				mapMemory(page, physical, userMode);
 				return page;
 			}
 
@@ -238,11 +242,11 @@ namespace memory {
 		return nullptr;
 	}
 
-	void* PageDirectory::bindFirstFreeVirtualPage(void* page) {
-		return bindFirstFreeVirtualPages(page, 1);
+	void* PageDirectory::bindFirstFreeVirtualPage(void* page, UserMode userMode) {
+		return bindFirstFreeVirtualPages(page, 1, userMode);
 	}
 
-	void* PageDirectory::bindFirstFreeVirtualPages(void* page, int count) {
+	void* PageDirectory::bindFirstFreeVirtualPages(void* page, int count, UserMode userMode) {
 		// first we round this up to the nearest page
 		page = (void*)((u32)page + ((u32)page % 0x1000 == 0 ? 0 : (0x1000 - ((u32)page % 0x1000))));
 
@@ -270,7 +274,7 @@ namespace memory {
 			// if the pages were free, we allocate them all
 			if (spacefree) {
 				for (int c = i ; c < i + count ; c++) {
-					bindVirtualPage((void*)(c * 0x1000));
+					bindVirtualPage((void*)(c * 0x1000), userMode);
 				}
 
 				// and then we return the start
@@ -307,21 +311,25 @@ namespace memory {
 		invalidatePage(page);
 	}
 
-	void PageDirectory::mapMemory(void* page, void* physical) {
+	void PageDirectory::mapMemory(void* page, void* physical, UserMode userMode) {
 		// we get the indexes related to that page
 		int dirindex = (u32)page / 0x400000;
 		int pageindex = ((u32)page % 0x400000) / 0x1000;
 
 		// if the directory does not exist, allocate one
 		if (!getReadableEntryPointer(dirindex)->getFlag(PFLAG_PRESENT))
-			allocateEntry(dirindex);
+			allocateEntry(dirindex, userMode);
 
 		// put it in the page
 		getReadableTablePointer(dirindex, pageindex)->setAddress(physical);
-		getReadableTablePointer(dirindex, pageindex)->enableFlag(PFLAG_RW | PFLAG_PRESENT);
+		if (userMode == UserMode::Supervisor) {
+			getReadableTablePointer(dirindex, pageindex)->enableFlag(PFLAG_RW | PFLAG_PRESENT);
+		} else {
+			getReadableTablePointer(dirindex, pageindex)->enableFlag(PFLAG_RW | PFLAG_PRESENT | PFLAG_USER);
+		}
 	}
 
-	void PageDirectory::mapMemory(void* page, void* physical, size_t length) {
+	void PageDirectory::mapMemory(void* page, void* physical, size_t length, UserMode userMode) {
 		// Convert the length from bytes to blocks of 4KiB
 		if ((length & 0xFFF) == 0)
 			length >>= 12;
@@ -333,11 +341,11 @@ namespace memory {
 		char* pg = static_cast<char*>(page);
 		char* phys = static_cast<char*>(physical);
 		for (size_t i = 0; i < length; i++) {
-			mapMemory((void*) (pg + i*4096), (void*) (phys + i*4096));
+			mapMemory((void*) (pg + i*4096), (void*) (phys + i*4096), userMode);
 		}
 	}
 
-	void PageDirectory::allocateEntry(int index) {
+	void PageDirectory::allocateEntry(int index, UserMode userMode) {
 		// if the entry is already allocated, we don't have to do anything
 		if (getReadableEntryPointer(index)->getFlag(PFLAG_PRESENT))
 			return;
@@ -352,7 +360,11 @@ namespace memory {
 		getReadableEntryPointer(index)->setAddress(phys);
 		
 		// and set up the flags
-		getReadableEntryPointer(index)->enableFlag(PFLAG_RW | PFLAG_PRESENT | PFLAG_OWNED);
+		if (userMode == UserMode::Supervisor) {
+			getReadableEntryPointer(index)->enableFlag(PFLAG_RW | PFLAG_PRESENT | PFLAG_OWNED);
+		} else {
+			getReadableEntryPointer(index)->enableFlag(PFLAG_RW | PFLAG_PRESENT | PFLAG_OWNED | PFLAG_USER);
+		}
 
 		// now that it is bound we can clear the memory
 		memset((((PageTableEntry*)0xFFC00000) + (index * 1024)), 0, 0x1000);
@@ -501,7 +513,7 @@ namespace memory {
 
 	PageDirectory* allocatePageDirectory() {
 		// get a virtual page to use, these are by definition page aligned
-		PageDirectory* page = (PageDirectory*)kernelPageDirectory.bindFirstFreeVirtualPage(KERNEL_END_VIRTUAL);
+		PageDirectory* page = (PageDirectory*)kernelPageDirectory.bindFirstFreeVirtualPage(KERNEL_END_VIRTUAL, UserMode::Supervisor);
 
 		// clear it
 		memset(page, 0, sizeof(PageDirectory));

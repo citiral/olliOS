@@ -8,6 +8,7 @@
 #include "cpu/acpi.h"
 #include "cpu/cpu.h"
 #include "cpu/gdt.h"
+#include "cpu/tss.h"
 #include "cpu/pic.h"
 #include "cpu/apic.h"
 #include "cpu/io.h"
@@ -113,6 +114,16 @@ void initMemory(multiboot_info* multiboot) {
 }
 
 void cpu_main() {
+    // Allocate a TSS for the cpu
+    tss::TaskStateSegment* tss = tss::allocate_tss_with_stack(4);
+
+    // Add it to the GDT
+    u32 index = GdtAddTss(tss);
+    GdtFlush();
+
+    // And use it on this CPU
+    tss::use_tss_at_index(index);
+
     apic::setSleep(INT_PREEMPT, apic::busFrequency / 512, false);
     while (true) {
         vgaDriver->setChar('!', VGA_WIDTH - 1, 0);

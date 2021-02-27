@@ -67,7 +67,7 @@ void* BucketAlloc::malloc(size_t size) {
             allocsize += 0x1000;
 
         // then we allocate the virtual memory
-        void* page = memory::PageDirectory::current()->bindFirstFreeVirtualPages((void*)0xD0000000, allocsize / 0x1000);
+        void* page = memory::PageDirectory::current()->bindFirstFreeVirtualPages((void*)0xD0000000, allocsize / 0x1000, memory::UserMode::Supervisor);
 
         // give it the the allocator, and try to allocate some memory
         if (page != nullptr) {

@@ -3,6 +3,7 @@
 
 #include "types.h"
 #include "descriptor.h"
+#include "cpu/tss.h"
 
 #define MAX_GDT_ENTRIES 255
 
@@ -11,6 +12,7 @@ class __attribute__((packed)) GdtDescriptor {
 public:
 	GdtDescriptor();
 	GdtDescriptor(u32 lower, u32 higher);
+	GdtDescriptor(u32 limit, u32 base, u8 access, u8 flags);
 
 	/*void setLimit(u32 limit);
 	void setBase(u32 base);
@@ -35,5 +37,6 @@ void GdtCreateFlat();
 void GdtFlush();
 u16 GdtSize();
 u32 GdtOffset();
+u32 GdtAddTss(tss::TaskStateSegment* tss);
 
 #endif /* end of include guard: __GDT_H */

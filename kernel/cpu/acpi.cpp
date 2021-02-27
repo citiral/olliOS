@@ -68,7 +68,7 @@ namespace acpi {
         
         // First we reserve the header's physical memory and map it to some virtual memory
         memory::physicalMemoryManager.reservePhysicalMemory(header, sizeof(ACPISDTHeader));
-        result = (ACPISDTHeader*)((u32)memory::kernelPageDirectory.bindPhysicalPage((char*)((u32)header & 0xFFFFF000), KERNEL_END_VIRTUAL) + ((u32)header & 0x00000FFF));
+        result = (ACPISDTHeader*)((u32)memory::kernelPageDirectory.bindPhysicalPage((char*)((u32)header & 0xFFFFF000), memory::UserMode::Supervisor, KERNEL_END_VIRTUAL) + ((u32)header & 0x00000FFF));
 
         // Now we can read the length of the header, so we can reserve the rest
         memory::physicalMemoryManager.reservePhysicalMemory((char*)header + sizeof(ACPISDTHeader), result->Length);

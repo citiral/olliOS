@@ -26,6 +26,11 @@
 
 namespace memory {
 
+	enum class UserMode {
+		Supervisor,
+		User,
+	};
+
 	class PageTableItem {
 	public:
 		PageTableItem();
@@ -65,32 +70,32 @@ namespace memory {
 		void forceUpdate();
 
 		// makes sure the given virtual 4kb space is bound to some random physical memory
-		void bindVirtualPage(void* page);
+		void bindVirtualPage(void* page, UserMode userMode);
 		
 		// makes sure the given physical 4kb space is bound to some random virtual memory, starting at virtual offset (default 0)
-		void* bindPhysicalPage(void* physical, void* start = 0);
+		void* bindPhysicalPage(void* physical, UserMode userMode, void* start = 0);
 
 		// binds the first free virtual 4kb page starting from the given virtual address
-		void* bindFirstFreeVirtualPage(void* page);
+		void* bindFirstFreeVirtualPage(void* page, UserMode userMode);
 
 		// binds the first free count consecutive virtual 4kb pages starting from the given virtual address
-		void* bindFirstFreeVirtualPages(void* page, int count);
+		void* bindFirstFreeVirtualPages(void* page, int count, UserMode userMode);
 
 		// releases the given virtual 4kb space, deallocating the physical memory if it was allocated by bindVirtualPage or bindFirstFreeVirtualPage
 		void unbindVirtualPage(void* page);
 
 		// maps the given 4kb space to the given physical address
-		void mapMemory(void* page, void* physical);
+		void mapMemory(void* page, void* physical, UserMode userMode);
 		
 		// Maps the given length-sized to the given physical address
 		// Note that it can only map 4kb spaces internally so a bit more might get allocated
-		void mapMemory(void* page, void* physical, size_t length);
+		void mapMemory(void* page, void* physical, size_t length, UserMode userMode);
 
 		// Gets the current page directory
 		static PageDirectory* current();
 
 		// sets up the entry at the given address by allocating physical memory and setting up the right flags
-		void allocateEntry(int index);
+		void allocateEntry(int index, UserMode userMode);
 
 		// releases the entry at the given address, releasing its physical memory. This frees all memory referenced by this entry allocated by bindVirtualPage or bindFirstFreeVirtualPage
 		void freeEntry(int index);
