@@ -1,5 +1,6 @@
 #include "threading/thread.h"
 #include "cpu/apic.h"
+#include "cpu/util.h"
 #include "cdefs.h"
 #include "process.h"
 
@@ -120,6 +121,11 @@ bool Thread::enter() {
         // prepare the thread stack for entering
         volatile u32* parent_pointer = parent_stack_pointers + apic::id();
         *(volatile u32*)(_stack + THREAD_STACK_SIZE - 4) = (u32)parent_pointer;
+
+        // configure sysenter's stack pointer to the kernel stack of the thread
+        if (process) {
+            write_model_specific_register(IA32_SYSENTER_ESP, 0, (u32)(&process->kernel_stack) + sizeof(process->kernel_stack) - 4);
+        }
 
         // enter the thread
         volatile u32 status = thread_enter(parent_pointer, &esp);

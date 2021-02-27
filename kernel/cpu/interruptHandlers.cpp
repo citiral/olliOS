@@ -19,6 +19,18 @@ void intHandlerWakeup(u32 interrupt)
 void intHandlerGeneralProtectionViolation(u32 interrupt)
 {
 	UNUSED(interrupt);
+
+	u16 CS = 0;
+	u16 DS = 0;
+	u16 SS = 0;
+	u32 ESP = 0;
+
+	__asm__ volatile("mov %%esp, %0;": "=r"(ESP));
+	__asm__ volatile("mov %%cs, %0;": "=r"(CS));
+	__asm__ volatile("mov %%Ds, %0;": "=r"(DS));
+	__asm__ volatile("mov %%Ss, %0;": "=r"(SS));
+
+	printf("ESP\tCS\tDS\tSS\n%X\t%X\t%X\t%x\n", ESP, CS, DS, SS);
 	CPU::panic("General Protection Violation occured");
 }
 

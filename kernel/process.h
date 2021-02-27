@@ -81,6 +81,7 @@ public:
     threading::Thread* thread;
     std::vector<Process*> childs;
     u32 pid;
+    char kernel_stack[1024 * 16];
 
 private:
     void free_pagetable();

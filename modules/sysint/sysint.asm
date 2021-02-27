@@ -1,10 +1,10 @@
-
 extern sysint_handler_c;
 
 global sysint_handler:
 sysint_handler:;(void)
 
-cld
+pushfd
+push ds
 
 push ebp
 push edi
@@ -14,8 +14,17 @@ push ecx
 push ebx
 push eax
 
+mov ax, 0x10
+mov ds, ax
+
 call sysint_handler_c
 
-add esp,28
+add esp,20
 
-iret
+pop edx
+pop ecx
+
+pop ds
+popfd
+
+sysexit

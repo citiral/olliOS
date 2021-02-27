@@ -12,8 +12,11 @@ char* argument_buffer[CMD_BUF_PARTS];
 
 void commit_parameter(int index)
 {
+    printf("commiting to %X\n", argument_buffer);
     argument_buffer[index] = malloc(strlen(command_buffer) + 1);
+    printf("allocated %X\n", argument_buffer[index]);
     strcpy(argument_buffer[index], command_buffer);
+    printf("done\n");
 }
 
 void read_command()
@@ -22,7 +25,9 @@ void read_command()
     int argument_index = 0;
     int string_index = 0;
 
+    printf("getting char\n");
     while ((c = getchar()) != '\n') {
+        printf("got char %c\n", c);
         if (c == ' ') {
             if (string_index > 0) {
                 command_buffer[string_index] = '\0';

@@ -19,6 +19,9 @@ extern "C" {
 
 UniqueGenerator<u32> process_ids(1);
 
+
+extern "C" void jump_usermode(void* func, int argc, char** argv, char** env);
+
 void load_file_and_run(fs::File* file, std::vector<std::string>* args)
 {
     // Get the filesize of the bind
@@ -72,8 +75,10 @@ void load_file_and_run(fs::File* file, std::vector<std::string>* args)
         argdc += args->at(i).length() + 1;
     }
 
+    int argc = args->size();
+
     // Run the entry point of the userspace application
-    app_entry(args->size(), argv, nullptr);
+    jump_usermode((void*) *app_entry, argc, argv, nullptr);
 }
 
 Process::Process(): status_code(-1), state(ProcessState::Initing), thread(nullptr), childs(), pid(process_ids.next()), _pagetable(nullptr), _bindings(1024), _descriptor(nullptr), _waitingForStopped(), _waitingForChildStopped(), _stateLock(), _workingDirectory("")
@@ -292,8 +297,9 @@ void Process::finish_fork(memory::PageDirectory* clone)
     child->thread = thread->clone();
     child->thread->process = child;
     child->_workingDirectory = _workingDirectory;
+    memcpy(child->kernel_stack, kernel_stack, sizeof(kernel_stack));
     childs.push_back(child);
-    
+
     threading::scheduler->schedule(child->thread);
 }
 
@@ -414,7 +420,7 @@ i32 Process::lseek(i32 file, i32 ptr, i32 dir)
 
 i32 Process::fstat(i32 file, struct stat* st)
 {
-    return -1;
+    return 1;
 }
 
 void* Process::sbrk(i32 inc)
