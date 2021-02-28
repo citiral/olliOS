@@ -132,7 +132,12 @@ void Process::init(fs::File* file, std::string& workingDirectory)
 
 	((memory::PageDirectory*)(current->getPhysicalAddress(_pagetable)))->use();
 
+    // allocate a normal stack
     char* stackStart = (char*) current->bindFirstFreeVirtualPages((char*) 0xC0000000 - THREAD_STACK_SIZE, THREAD_STACK_SIZE / 0x1000, memory::UserMode::User);
+
+    // allocate a kernel stack
+    kernel_stack = (char*) current->bindFirstFreeVirtualPages((char*) 0x20000000 - PROCESS_KERNEL_STACK_SIZE, PROCESS_KERNEL_STACK_SIZE / 0x1000, memory::UserMode::Supervisor);
+
 
     if (stackStart != (char*)0xbfff0000) {
         CPU::panic("corrupt stack\n");
@@ -297,7 +302,7 @@ void Process::finish_fork(memory::PageDirectory* clone)
     child->thread = thread->clone();
     child->thread->process = child;
     child->_workingDirectory = _workingDirectory;
-    memcpy(child->kernel_stack, kernel_stack, sizeof(kernel_stack));
+    child->kernel_stack = kernel_stack;
     childs.push_back(child);
 
     threading::scheduler->schedule(child->thread);

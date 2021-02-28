@@ -13,7 +13,7 @@ void print_listing(char* folder)
     while ((de = readdir(d)) != NULL) {
         printf("%s\t", de->d_name);
     }
-    printf("\n");
+    printf("\n\n");
 
     closedir(d);
 }

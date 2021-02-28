@@ -45,5 +45,5 @@
         "mutex": "cpp",
         "sstream": "cpp"
     },
-    "C_Cpp.default.systemIncludePath": ["kernel/", "apps/*", "libs/*"]
+    "C_Cpp.default.systemIncludePath": ["kernel/", "apps/*", "libs/*", "newlib/newlib/libc/include/"]
 }

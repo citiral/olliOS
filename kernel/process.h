@@ -12,6 +12,8 @@
 #include "resource_map.h"
 #include <sys/dirent.h>
 
+#define PROCESS_KERNEL_STACK_SIZE (1024 * 16)
+
 struct FileDescriptor {
     fs::FileHandle* handle;
     size_t offset;
@@ -81,7 +83,7 @@ public:
     threading::Thread* thread;
     std::vector<Process*> childs;
     u32 pid;
-    char kernel_stack[1024 * 16];
+    char* kernel_stack;
 
 private:
     void free_pagetable();

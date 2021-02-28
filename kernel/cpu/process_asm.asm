@@ -19,16 +19,15 @@ jump_usermode:
 ; get the function pointer argument into ecx (save because ecx is caller saved)
 mov ecx, [esp+4]
 
+; remove 'func' from the stack, now remaining on the stack is arg1, arg2 and arg3, which will be passed to the usermode function
+add esp, 4
+
 ; change all needed segment registers to that the GDT entry of ringlevel 3 data (with last 2 bits high to indicate R3)
 mov ax, 0x23
 mov ds, ax
 mov es, ax
 mov fs, ax
 mov gs, ax
-
-push 0
-push 0
-push 0
 
 ; save the current stack pointer in esp
 mov eax, esp

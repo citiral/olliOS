@@ -1,1 +1,1 @@
-qemu-system-i386 -smp 1 -s -drive file=ollios.iso,if=ide,index=0,media=cdrom
+qemu-system-i386 -vga std -gdb tcp::1234 -drive file=ollios.iso,if=ide,index=0,media=cdrom

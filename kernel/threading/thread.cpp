@@ -124,7 +124,7 @@ bool Thread::enter() {
 
         // configure sysenter's stack pointer to the kernel stack of the thread
         if (process) {
-            write_model_specific_register(IA32_SYSENTER_ESP, 0, (u32)(&process->kernel_stack) + sizeof(process->kernel_stack) - 4);
+            write_model_specific_register(IA32_SYSENTER_ESP, 0, (u32)(process->kernel_stack) + PROCESS_KERNEL_STACK_SIZE - 4);
         }
 
         // enter the thread
