@@ -54,12 +54,14 @@ void InputFormatter::handleVirtualKeyEvent(VirtualKeyEvent event)
         addChar(event.status & 0b00000010 ? '>' : '.');
     } else if (event.vkey == VirtualKeycode::BACKSLASH) {
         addChar(event.status & 0b00000010 ? '|' : '\\');
+    } else if (event.vkey == VirtualKeycode::TILDE) {
+        addChar(event.status & 0b00000010 ? '~' : '`');
     } else if (event.vkey >= VirtualKeycode::T_0 && event.vkey <= VirtualKeycode::T_11) {
         if (event.status & 0b00000010) {
-            const char* keys = "~!@#$%^&*()_+";
+            const char* keys = ")!@#$%^&*(_+";
             addChar(keys[((u8)event.vkey - (u8)VirtualKeycode::T_0)]);
         } else {
-            const char* keys = "`1234567890-=";
+            const char* keys = "0123456789-=";
             addChar(keys[((u8)event.vkey - (u8)VirtualKeycode::T_0)]);
         }
     }else if (event.vkey == VirtualKeycode::SPACE) {

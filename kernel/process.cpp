@@ -430,18 +430,22 @@ i32 Process::fstat(i32 file, struct stat* st)
 
 void* Process::sbrk(i32 inc)
 {
-    char* cur_brk = _program_break;
-    char* new_brk = _program_break + inc;
+    if (inc == 0) {
+        return _program_break;
+    } else {
+        char* cur_brk = _program_break;
+        char* new_brk = _program_break + inc;
 
-    size_t cur_brk_page = (u32)cur_brk / 0x1000;
-    size_t new_brk_page = (u32)new_brk / 0x1000;
+        size_t cur_brk_page = (u32)(cur_brk) / 0x1000;
+        size_t new_brk_page = (u32)(new_brk) / 0x1000;
 
-    for (size_t i = cur_brk_page ; i < new_brk_page ; i++) {
-        memory::PageDirectory::current()->bindVirtualPage((void*)((i+1) * 0x1000), memory::UserMode::User);
+        for (size_t i = cur_brk_page ; i < new_brk_page ; i++) {
+            memory::PageDirectory::current()->bindVirtualPage((void*)((i+1) * 0x1000), memory::UserMode::User);
+        }
+
+        _program_break = new_brk;
+        return cur_brk;
     }
-
-    _program_break = new_brk;
-    return cur_brk;
 }
 
 i32 Process::pipe(i32 pipefd[2])

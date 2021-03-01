@@ -15,7 +15,7 @@ CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O2 -Wall -Wextra -fno-excep
 LDFLAGS = -ffreestanding -O2 -nostdlib -lgcc
 
 MODULES = keyboard kernelshell pci ata iso9660 sysint init #mbr ramfs
-APPS = hello_world echo cat shell tee ls
+APPS = hello_world echo cat shell tee ls count
 
 KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/*/*.cpp)
 KERNEL_C = $(wildcard kernel/libk/*/*.c)
