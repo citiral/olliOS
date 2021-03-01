@@ -33,7 +33,9 @@ enum class VirtualKeycode : u8 {
     Z,
     OPEN_SQUARE,
     CLOSE_SQUARE,
+    BACKSLASH,
     CAPS_LOCK,
+    ESCAPE,
     F1,
     F2,
     F3,
@@ -46,6 +48,9 @@ enum class VirtualKeycode : u8 {
     F10,
     F11,
     F12,
+    PRINT_SCREEN,
+    SCROLL_LOCK,
+    PAUSE,
     SPACE,
     BACKSPACE,
     TAB,
@@ -72,6 +77,9 @@ enum class VirtualKeycode : u8 {
     TILDE,
     COLON,
     SLASH,
+    DOT,
+    COMMA,
+    QUOTE,
     T_0,
     T_1,
     T_2,
@@ -93,7 +101,9 @@ enum class VirtualKeycode : u8 {
     N_6,
     N_7,
     N_8,
-    N_9
+    N_9,
+    N_ENTER,
+    NUM_LOCK,
 };
 
 //a single event in the world of virtual keys.

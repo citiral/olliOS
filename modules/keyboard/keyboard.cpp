@@ -304,6 +304,10 @@ void KeyboardDriver::updateStatus(VirtualKeyEvent code) {
 		_status &= 0b11111011;
 		_status |= ((code.status & 0b00000001) << 2);
 	}
+	else if (code.vkey == VirtualKeycode::LALT || code.vkey == VirtualKeycode::RALT) {
+		_status &= 0b11110111;
+		_status |= ((code.status & 0b00000001) << 3);
+	}
 }
 
 VirtualKeyEvent KeyboardDriver::popBuffer()
@@ -392,7 +396,7 @@ VirtualKeycode scanset2_map1[255] = {
 	VirtualKeycode::TILDE,
 	VirtualKeycode::INVALID,// 0F
 	VirtualKeycode::INVALID,// 10
-	VirtualKeycode::INVALID,
+	VirtualKeycode::LALT,
 	VirtualKeycode::LSHIFT,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::LCTRL,
@@ -440,7 +444,7 @@ VirtualKeycode scanset2_map1[255] = {
 	VirtualKeycode::T_8,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,// 40
-	VirtualKeycode::INVALID,
+	VirtualKeycode::COMMA,
 	VirtualKeycode::K,
 	VirtualKeycode::I,
 	VirtualKeycode::O,
@@ -448,7 +452,7 @@ VirtualKeycode scanset2_map1[255] = {
 	VirtualKeycode::T_9,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
+	VirtualKeycode::DOT,
 	VirtualKeycode::SLASH,
 	VirtualKeycode::L,
 	VirtualKeycode::COLON,
@@ -457,7 +461,7 @@ VirtualKeycode scanset2_map1[255] = {
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,// 50
 	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
+	VirtualKeycode::QUOTE,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::OPEN_SQUARE,
 	VirtualKeycode::T_11,
@@ -468,7 +472,7 @@ VirtualKeycode scanset2_map1[255] = {
 	VirtualKeycode::ENTER,
 	VirtualKeycode::CLOSE_SQUARE,
 	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
+	VirtualKeycode::BACKSLASH,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,// 60
@@ -493,14 +497,14 @@ VirtualKeycode scanset2_map1[255] = {
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
+	VirtualKeycode::ESCAPE,
+	VirtualKeycode::NUM_LOCK,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::N_MINUS,
 	VirtualKeycode::INVALID,
-	VirtualKeycode::INVALID,
+	VirtualKeycode::SCROLL_LOCK,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,// 80
 	VirtualKeycode::INVALID,
@@ -540,7 +544,7 @@ VirtualKeycode scanset2_map2[255] = {
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,// 0F
 	VirtualKeycode::INVALID,// 10
-	VirtualKeycode::INVALID,
+	VirtualKeycode::RALT,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::INVALID,
 	VirtualKeycode::RCTRL,
@@ -613,7 +617,7 @@ VirtualKeycode scanset2_map2[255] = {
 	VirtualKeycode::INVALID,// 57
 	VirtualKeycode::INVALID,// 58
 	VirtualKeycode::INVALID,// 59
-	VirtualKeycode::INVALID,// 5A
+	VirtualKeycode::N_ENTER,// 5A
 	VirtualKeycode::INVALID,// 5B
 	VirtualKeycode::INVALID,// 5C
 	VirtualKeycode::INVALID,// 5D
@@ -635,7 +639,7 @@ VirtualKeycode scanset2_map2[255] = {
 	VirtualKeycode::INVALID,// 6D
 	VirtualKeycode::INVALID,// 6E
 	VirtualKeycode::INVALID,// 6F
-	VirtualKeycode::INVALID,// 70
+	VirtualKeycode::INSERT,// 70
 	VirtualKeycode::DELETE,// 71
 	VirtualKeycode::D_ARROW,// 72
 	VirtualKeycode::INVALID,// 73
@@ -644,10 +648,10 @@ VirtualKeycode scanset2_map2[255] = {
 	VirtualKeycode::INVALID,// 76
 	VirtualKeycode::INVALID,// 78
 	VirtualKeycode::INVALID,// 79
-	VirtualKeycode::INVALID,// 7A
+	VirtualKeycode::PAGE_DOWN,// 7A
 	VirtualKeycode::INVALID,// 7B
 	VirtualKeycode::INVALID,// 7C
-	VirtualKeycode::INVALID,// 7D
+	VirtualKeycode::PAGE_UP,// 7D
 	VirtualKeycode::INVALID,// 7E
 	VirtualKeycode::INVALID,// 7F
 	VirtualKeycode::INVALID,// 80
