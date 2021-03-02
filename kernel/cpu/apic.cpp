@@ -48,9 +48,16 @@ namespace apic {
     }
 
     void Init() {
+        MADT* madt = (MADT*)findHeader("APIC");
+        if (madt == nullptr) {
+            LOG_ERROR("No MADT Header found.");
+            return;
+        }
+        printf("APIC controller address at %X\n", madt->localControllerAddress);
+
         // First memory map the registers physical page to a virtual page
-        memory::physicalMemoryManager.reservePhysicalMemory((void*)0xFEE00000, 0x1000);
-        registers = (uint32_t*)memory::kernelPageDirectory.bindPhysicalPage((void*)0xFEE00000, memory::UserMode::Supervisor, KERNEL_END_VIRTUAL);
+        memory::physicalMemoryManager.reservePhysicalMemory((void*)madt->localControllerAddress, 0x1000);
+        registers = (uint32_t*)memory::kernelPageDirectory.bindPhysicalPage((void*)madt->localControllerAddress, memory::UserMode::Supervisor, KERNEL_END_VIRTUAL);
 
         // We remap the PIC , so they don't overlap with our PICs, which will replace them
         mapPics(0xE9, 0xF7);
@@ -67,14 +74,7 @@ namespace apic {
         registers[APIC_LAPIC_TIMER_REGISTER] = 1<<16;
         registers[APIC_LINT0_REGISTER] = 0;
         registers[APIC_LINT1_REGISTER] = 0;
-        MADT* madt = (MADT*)findHeader("APIC");
-        if (madt == nullptr) {
-            LOG_ERROR("No MADT Header found.");
-            // Reenable the irqs if we fail
-            outb(SLAVE_DATA, 0);
-            outb(MASTER_DATA, 0);
-            mapPics(0x20, 0x28);
-        }
+
         // Then we iterate over each entry in the madt table
         MADTEntryHeader* entry = &madt->firstEntry;
         while ((u32)entry < (u32)madt + madt->header.Length) {
@@ -92,6 +92,7 @@ namespace apic {
                     memory::physicalMemoryManager.reservePhysicalMemory((void*) ioentry->apicAddress, 8);
                     ioentry->apicAddress = (uint32_t*)memory::kernelPageDirectory.bindPhysicalPage((void*) ioentry->apicAddress, memory::UserMode::Supervisor, KERNEL_END_VIRTUAL);
                 }
+                printf("Mapped to %X\n", ioentry->apicAddress);
             } else if (entry->type == 4) {
                 MADTNonMaskableInterruptsEntry* nmi = (MADTNonMaskableInterruptsEntry*)entry;
                 LOG_INFO("found NMI %d", nmi->header.type);
@@ -111,9 +112,10 @@ namespace apic {
             }
             entry = (MADTEntryHeader*)((char*)entry + entry->length);
         }
+
         // Now we are going to map all IO interrupts to 0x20 - 0x3F (32 to 64), like they would be mapped with the PIC
         for (uint32_t i = 0 ; i < ioApics.size() ; i++) {
-            LOG_INFO("Mapping %d", i);
+            LOG_INFO("Mapping IOAPIC %d", i);
             MADTIoEntry volatile* apic = ioApics[i];
             
             // and set their taskpriority to 0
@@ -138,9 +140,9 @@ namespace apic {
 
         // Lastly, we are going to set the timer. First, we initialize the timer
         for (int i = 0 ; i < 2 ; i++) {
-            registers[APIC_TIMER_DIVIDE_REGISTER] = 11;
+            registers[APIC_TIMER_DIVIDE_REGISTER] = 0b1011;
             registers[APIC_TIMER_INITIAL_COUNT_REGISTER] = 0xFFFFFFFFu;
-            registers[APIC_LAPIC_TIMER_REGISTER] = INT_PREEMPT;
+            registers[APIC_LAPIC_TIMER_REGISTER] = (1 << 16) | INT_PREEMPT;
 
             // Then we wait until the next second begins
             outb(0x70, 0x00);
@@ -162,7 +164,7 @@ namespace apic {
 
             // We read the elapsed ticks in 1 second, from this we can calculate the bus frequency.
             uint32_t count = registers[APIC_TIMER_CURRENT_COUNT_REGISTER];
-            busFrequency = (0xFFFFFFFFu - count) * 16;
+            busFrequency = (0xFFFFFFFFu - count);
             LOG_INFO("External bus frequency: %u Mhz", (int) (busFrequency / 1024) / 1024);
             registers[APIC_TIMER_INITIAL_COUNT_REGISTER] = 0;
         }
@@ -170,7 +172,7 @@ namespace apic {
         // and we initialize the gdt offset in the smp trampoline to our gdt
         smp_gdt_size = GdtSize();
         smp_gdt_offset = GdtOffset();
-        smp_page = (memory::PageDirectory*)((char*)&memory::kernelPageDirectory - 0xC0000000);
+        smp_page = (memory::PageDirectory*)((u32)&memory::kernelPageDirectory - 0xC0000000);
     }
 
     void setSleep(uint8_t interrupt, uint32_t count, bool onetime) {

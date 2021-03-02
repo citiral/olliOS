@@ -11,6 +11,7 @@ UniqueGenerator<u32> threading::pidGenerator;
 
 // global values that hold the parent stack pointer of a running thread. Each core will always use his own index.
 volatile u32 parent_stack_pointers[MAX_CORE_COUNT];
+tss::TaskStateSegment* tss_pointers[MAX_CORE_COUNT];
 volatile Thread* running_thread[MAX_CORE_COUNT];
 /*
 Thread::Thread(Thread& thread) {
@@ -124,7 +125,9 @@ bool Thread::enter() {
 
         // configure sysenter's stack pointer to the kernel stack of the thread
         if (process) {
-            write_model_specific_register(IA32_SYSENTER_ESP, 0, (u32)(process->kernel_stack) + PROCESS_KERNEL_STACK_SIZE - 4);
+            u32 stackptr = (u32)(process->kernel_stack) + PROCESS_KERNEL_STACK_SIZE - 4;
+            write_model_specific_register(IA32_SYSENTER_ESP, 0, stackptr);
+            get_tss_pointer()->ESP0 = stackptr;
         }
 
         // enter the thread
@@ -195,6 +198,16 @@ bool threading::is_current_core_in_thread() {
 
 extern "C" bool __attribute__ ((noinline)) is_current_core_in_thread() {
     return threading::is_current_core_in_thread();
+}
+
+void threading::set_tss_pointer(tss::TaskStateSegment* tss)
+{
+    tss_pointers[apic::id()] = tss;
+}
+
+tss::TaskStateSegment* threading::get_tss_pointer()
+{
+    return tss_pointers[apic::id()];
 }
 
 Thread* threading::currentThread() {

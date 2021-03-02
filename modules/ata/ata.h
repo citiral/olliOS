@@ -73,7 +73,7 @@ enum class AtaDeviceIndex: u8 {
     SLAVE = 1,
 };
 
-void intHandlerAta(u32 interrupt);
+extern "C" void intHandlerAta(u32 interrupt);
 
 // for now we are only going to support one controller
 // and use atapi

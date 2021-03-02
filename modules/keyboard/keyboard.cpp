@@ -18,6 +18,8 @@
 
 #define STATUS_INPUT_BUFFER_EMPTY (1<<1)
 
+extern "C" void intHandlerKeyboard_asm(void);
+
 namespace keyboard {
 
 KeyboardDriver* driver = 0;
@@ -52,7 +54,7 @@ KeyboardDriver::~KeyboardDriver()
 
 }
 
-void intHandlerKeyboard(u32 interrupt) {	
+extern "C" void intHandlerKeyboard(u32 interrupt) {
     // send it to the keyboarddriver
 	driver->interrupt1(interrupt);
 
@@ -62,7 +64,7 @@ void intHandlerKeyboard(u32 interrupt) {
 
 void KeyboardDriver::enableIRQ() {
 	
-	idt.setFunction(INT_KEYBOARD, intHandlerKeyboard);
+	idt.getEntry(INT_KEYBOARD).setOffset((u32)&intHandlerKeyboard_asm);
 }
 
 void KeyboardDriver::waitForResponse()

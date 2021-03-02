@@ -27,4 +27,5 @@ pop ecx
 pop ds
 popfd
 
+sti
 sysexit

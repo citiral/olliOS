@@ -12,6 +12,7 @@ int main(int argc, char** argv)
             return 0;
         }
         write(1, buffer, ret);
+        write(1, buffer, ret);
     }
 }
 

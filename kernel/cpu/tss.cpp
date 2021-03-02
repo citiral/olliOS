@@ -4,21 +4,16 @@
 
 using namespace tss;
 
-TaskStateSegment* tss::allocate_tss_with_stack(size_t stack_size_in_pages)
+TaskStateSegment* tss::allocate_tss()
 {
-    void* stack = memory::kernelPageDirectory.bindFirstFreeVirtualPages((void*)0xD0000000, stack_size_in_pages, memory::UserMode::Supervisor);
-    if (stack == nullptr) {
-        return nullptr;
-    }
-
     TaskStateSegment* tss = new TaskStateSegment();
     if (tss == nullptr) {
         return nullptr;
     }
 
     tss->SS0 = 0x10;
-    tss->ESP0 = (unsigned int) stack;
-
+    tss->ESP0 = 0;
+    tss->IOPB = sizeof(TaskStateSegment);
     return tss;
 }
 

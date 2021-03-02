@@ -4,6 +4,7 @@ void count(unsigned int limit)
 {
     unsigned int i = 0;
     while (1) {
+        for (volatile int k = 0 ; k < 100000000 ; k++);
         printf("%d\n", i);
         i++;
         if (i == limit) {

@@ -7,6 +7,7 @@
 #include "kstd/shared_ptr.h"
 #include "kstd/utility.h"
 #include "util/unique.h"
+#include "cpu/tss.h"
 #include <string.h>
 
 class Process;
@@ -182,6 +183,12 @@ namespace threading {
 
     // Returns true if the calling physical core is currently running a thread
     bool is_current_core_in_thread();
+
+    // Sets the tss pointer of the current core
+    void set_tss_pointer(tss::TaskStateSegment* tss);
+
+    // Gets the tss pointer of the current core
+    tss::TaskStateSegment* get_tss_pointer();
 
     Thread* currentThread();
 }

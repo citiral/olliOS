@@ -18,7 +18,7 @@
 #define INT_SPURIOUS 0xFF
 
 
-typedef void (*InterruptCallback)(u32);
+typedef void (*InterruptCallback)();
 
 ///A single entry in the Idt table
 class __attribute__((packed)) IdtDescriptor {
@@ -39,8 +39,6 @@ class __attribute__((packed)) Idt {
 public:
 	u32 getLength();
 	void setLength(u32 length);
-	void setFunction(u32 index, InterruptCallback function);
-	void callFunction(u32 index);
 	void setEntry(u32 index, IdtDescriptor entry);
 	void addEntry(IdtDescriptor entry);
 	IdtDescriptor& getEntry(u32 index);
@@ -49,8 +47,7 @@ public:
 private:
 	///The table containing the gdt descriptors
 	IdtDescriptor _table[MAX_IDT_ENTRIES];
-	///the list of callbacks linked to the interrupts
-	InterruptCallback _callbacks[MAX_IDT_ENTRIES];
+	
 	///amount of used descriptors in the table
 	u32 _length;
 };

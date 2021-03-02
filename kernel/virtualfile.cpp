@@ -222,6 +222,11 @@ i32 StreamHandle::write(const void* buffer, size_t count, size_t pos)
                 STI(eflags);
                 threading::exit();
                 _stream->m.lock();
+                if (_stream->closed) {
+                    break;
+                }
+                i--;
+                continue;
             }
         }
 
@@ -262,6 +267,8 @@ i32 StreamHandle::read(void* buffer, size_t count, size_t pos)
                 if (_stream->closed) {
                     break;
                 }
+                i--;
+                continue;
             }
         }
 

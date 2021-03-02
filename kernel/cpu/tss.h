@@ -48,7 +48,7 @@ public:
     u16 IOPB;
 };
 
-TaskStateSegment* allocate_tss_with_stack(size_t stack_size_in_pages);
+TaskStateSegment* allocate_tss();
 void use_tss_at_index(u32 index);
 
 }

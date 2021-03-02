@@ -37,6 +37,7 @@ void WaitingList::unblock_next_thread()
 {
     bool eflag = CLI();
     _lock.lock();
+    Thread* toSchedule = nullptr;
 
     // Skip until we succcessfully unblocked a thread ourselves
     while (_waiting && (_waiting->setBlocking(false) == false)) {
@@ -45,26 +46,44 @@ void WaitingList::unblock_next_thread()
 
     // Unblock the waiting thread if there is one
     if (_waiting) {
-        threading::scheduler->schedule(_waiting);
+        toSchedule = _waiting;
         _waiting = _waiting->nextWaiting;
+        toSchedule->nextWaiting = nullptr;
     }
 
     _lock.release();
     STI(eflag);
+
+    if (toSchedule) {
+        threading::scheduler->schedule(toSchedule);
+    }
 }
 
 
 void WaitingList::unblock_all_threads()
 {
-    bool eflag = CLI();
-    _lock.lock();
-    while (_waiting) {
-        _waiting->setBlocking(false);
-        threading::scheduler->schedule(_waiting);
-        _waiting = _waiting->nextWaiting;
-    }
-    _lock.release();
-    STI(eflag);
+    Thread* toSchedule;
+
+    do {
+        bool eflag = CLI();
+        _lock.lock();
+    
+        toSchedule = nullptr;
+
+        if (_waiting) {
+            toSchedule = _waiting;
+            _waiting->setBlocking(false);
+            _waiting = _waiting->nextWaiting;
+            toSchedule->nextWaiting = nullptr;
+        }
+
+        _lock.release();
+        STI(eflag);
+
+        if (toSchedule) {
+            threading::scheduler->schedule(toSchedule);
+        }
+    } while (toSchedule != nullptr);
 }
 
 /*void WaitingList::add_to_multiple(threading::Thread* thread, WaitingList** list, size_t count)

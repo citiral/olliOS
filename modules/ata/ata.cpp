@@ -15,12 +15,14 @@
 
 using namespace bindings;
 
+extern "C" void intHandlerAta1_asm();
+extern "C" void intHandlerAta2_asm();
+
 namespace ata {
 
 AtaDriver driver = AtaDriver();
 
-void intHandlerAta(u32 interrupt) {
-	UNUSED(interrupt);
+extern "C" void intHandlerAta(u32 interrupt) {
     ata::driver.notifyInterrupt();
     end_interrupt(interrupt);
 }
@@ -32,8 +34,8 @@ AtaDriver::AtaDriver(): _interrupted(false), _lock() {
 void AtaDriver::initialize(fs::File* pci) {
     _deviceCount = 0;
 
-    idt.setFunction(INT_ATA_BUS1, &ata::intHandlerAta);
-	idt.setFunction(INT_ATA_BUS2, &ata::intHandlerAta);
+    idt.getEntry(INT_ATA_BUS1).setOffset((u32) &intHandlerAta1_asm);
+	idt.getEntry(INT_ATA_BUS2).setOffset((u32) &intHandlerAta2_asm);
 
     file = new fs::VirtualFolder("ata");
     fs::root->get("sys")->bind(file);

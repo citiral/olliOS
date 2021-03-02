@@ -100,6 +100,8 @@ extern is_current_core_in_thread
 global thread_interrupt:
 thread_interrupt:;()
 
+; disable interrupts for our routine
+cli
 
 ; make sure that once the thread resumes it instantly executes an iret
 push thread_interrupt_continue
@@ -107,9 +109,6 @@ push thread_interrupt_continue
 ; we save the thread state on its stack
 pushfd
 pushad
-
-; disable interrupts for our routine
-cli
 
 ; if we are not actually in a thread, leave the routine
 call is_current_core_in_thread
@@ -129,7 +128,7 @@ mov esp, [eax]
 mov eax, [esp+44]
 mov [eax], edx
 
-; end the interrupt, we know 33 is the IRQ of a thread interrupt. This will return to the parent, and not the thread that got interrupted
+; end the interrupt, we know 34 is the IRQ of a thread interrupt. This will return to the parent, and not the thread that got interrupted
 end:
 ; restore its data
 push dword 34

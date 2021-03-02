@@ -11,6 +11,7 @@
 typedef enum token_t {
     STRING,
     PIPE,
+    SEMICOLON,
     EOL,
 } token;
 
@@ -53,6 +54,8 @@ token get_next_token(void)
             return PIPE;
         } else if (c == '\n') {
             return EOL;
+        } else if (c == ';') {
+            return SEMICOLON;
         } else if (c == ' ' || c == '\t') {
             continue;
         } else if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '\\') {
@@ -128,7 +131,7 @@ int run_command(int pipein)
         }
         int status;
         while (wait(&status) != pid);
-        return status;
+        return 0;
     }
 }
 
@@ -176,13 +179,28 @@ int do_next_command(void)
         if (next_token == STRING) {
             add_token_to_argument_buffer();
         } else if (next_token == EOL) {
-            status = run_command(pipe);
-            free_argument_buffer();
-            break;
+            if (argument_buffer_index > 0) {
+                status = run_command(pipe);
+                pipe = 0;
+                free_argument_buffer();
+                break;
+            } else if (pipe > 0) {
+                continue;
+            } else {
+                break;
+            }
         } else if (next_token == PIPE) {
             pipe = run_command_with_pipe(pipe);
             free_argument_buffer();
+        } else if (next_token == SEMICOLON) {
+            status = run_command(pipe);
+            pipe = 0;
+            free_argument_buffer();
         }
+    }
+
+    if (pipe != 0) {
+        close(pipe);
     }
 
     return status;

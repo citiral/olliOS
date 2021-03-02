@@ -13,6 +13,7 @@
 #include "cpu/apic.h"
 #include "cpu/io.h"
 #include "cpu/cpuid.h"
+#include "cpu/pit.h"
 
 #include "memory/alloc.h"
 #include "memory/virtual.h"
@@ -36,6 +37,8 @@ extern void *__realmode_lma_start;
 extern void *__realmode_lma_end;
 extern void *__realmode_vma_start;
 
+extern "C" void test_boop(void);
+
 void initCpu() {
     // setup a flat segmentation structure. We're going to be using paging anyway.
 	GdtCreateFlat();
@@ -55,6 +58,9 @@ void initCpu() {
     // Program the PIC so interrupts make sense (0-32 is reserved for intel, ...)
 	PicInit();
     LOG_STARTUP("PIC initialized.");
+
+    // Initialize the PIT to a known state
+    pit::init();
 }
 
 void initMemory(multiboot_info* multiboot) {
@@ -115,7 +121,7 @@ void initMemory(multiboot_info* multiboot) {
 
 void cpu_main() {
     // Allocate a TSS for the cpu
-    tss::TaskStateSegment* tss = tss::allocate_tss_with_stack(4);
+    tss::TaskStateSegment* tss = tss::allocate_tss();
 
     // Add it to the GDT
     u32 index = GdtAddTss(tss);
@@ -123,8 +129,10 @@ void cpu_main() {
 
     // And use it on this CPU
     tss::use_tss_at_index(index);
+    threading::set_tss_pointer(tss);
 
-    apic::setSleep(INT_PREEMPT, apic::busFrequency / 512, false);
+    apic::setSleep(INT_PREEMPT, apic::busFrequency / 1024, false);
+    
     while (true) {
         vgaDriver->setChar('!', VGA_WIDTH - 1, 0);
         if (!threading::scheduler->enter()) {
@@ -204,19 +212,18 @@ extern "C" void main(multiboot_info* multiboot) {
     symbolMap = new SymbolMap((const char*) mod->mod_start);
     printf("symbol map build.\n");
 
-
     // if APIC is supported, switch to it and enable multicore
     cpuid_field features = cpuid(1);
     if ((features.edx & (int)cpuid_feature::EDX_APIC) != 0) {
         LOG_STARTUP("Initializing APIC.");
         apic::Init();
-        apic::StartAllCpus(&cpu_main);
-        apic::disableIrq(0x22);
+        //apic::StartAllCpus(&cpu_main);
     } else {
         LOG_STARTUP("APIC not supported, skipping. (Threading will not be supported)");
     }
     mod++;
 
+    printf("Found %d modules\n", multiboot->mods_count);
     for (multiboot_uint32_t i = 1 ; i < multiboot->mods_count ; i++) {
         printf("loading module %d at 0x%X\n", i, mod->mod_start);
         u8* c = (u8*) mod->mod_start;
@@ -252,8 +259,6 @@ extern "C" void main(multiboot_info* multiboot) {
     fs::root->create("3", FILE_CREATE_DIR);
 
     printf("f: %s\n", fs::root->get("1/test/.")->get_name());*/
-
-    //print_tree(root, 0);
 
     cpu_main();
 }
