@@ -23,6 +23,12 @@ extern "C" void intHandlerGeneralProtectionViolation()
 	CPU::panic("General Protection Violation occured");
 }
 
+
+extern "C" void intHandlerDummyKeyboard()
+{
+	end_interrupt(INT_KEYBOARD);
+}
+
 extern "C" void intHandlerPageFault()
 {
 	u32 cr2;

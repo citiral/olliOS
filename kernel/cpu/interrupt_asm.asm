@@ -15,6 +15,21 @@ popad
 iret
 
 
+extern intHandlerDummyKeyboard
+global intHandlerDummyKeyboard_asm
+align 4
+intHandlerDummyKeyboard_asm:
+cli
+pushad
+pushfd
+cld
+call intHandlerDummyKeyboard_asm
+popfd
+popad
+sti
+iret
+
+
 extern intHandlerGeneralProtectionViolation
 global intHandlerGeneralProtectionViolation_asm
 align 4

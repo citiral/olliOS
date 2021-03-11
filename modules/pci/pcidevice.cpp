@@ -34,13 +34,16 @@ PCIDevice::PCIDevice(fs::File* root, u8 bus, u8 dev, u8 func)
 	_vendorId = configReadWord(0);
 	_deviceId = configReadWord(2);
 	_revisionId = configReadByte(8);
+	_interruptPin = configReadByte(0x3D);
 
 	// Get the device name from the hard coded list (no other way, sorry)
 	_deviceName = PCI::getName(_vendorId, _deviceId);
 
 	// Get the device class
+	_programmingInterface = configReadByte(9);
 	_classCode = configReadByte(11);
 	_subclassCode = configReadByte(10);
+	_headerType = configReadByte(14);
 	_headerType = configReadByte(14);
 
 	char name[32];
@@ -57,6 +60,9 @@ PCIDevice::PCIDevice(fs::File* root, u8 bus, u8 dev, u8 func)
 	_file->bind(fs::InterfaceFile::read_only<sizeof(_classCode)>("class", &_classCode));
 	_file->bind(fs::InterfaceFile::read_only<sizeof(_subclassCode)>("subclass", &_subclassCode));
 	_file->bind(fs::InterfaceFile::read_only<sizeof(_headerType)>("header_type", &_headerType));
+	_file->bind(fs::InterfaceFile::read_only<sizeof(_programmingInterface)>("interface", &_programmingInterface));
+	_file->bind(fs::InterfaceFile::read_only<sizeof(_programmingInterface)>("pin", &_interruptPin));
+
 	_file->bind(new fs::InterfaceFile("name", nullptr, [](char* buffer, size_t length, void* context) {
 		const char* name = (const char*) context;
 

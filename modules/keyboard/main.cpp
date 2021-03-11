@@ -34,8 +34,9 @@ extern "C" void module_load(File* root, const char* argv)
     File* keyboard = root->get("sys")->bind(keyboardStream);
 
 	driver = new KeyboardDriver();
-	driver->setScanCodeSet(SCANSET_2);
-	driver->setScanCodeTranslation(false);
+	driver->init();
+	//driver->setScanCodeSet(SCANSET_2);
+	//driver->setScanCodeTranslation(false);
 
 	threading::scheduler->schedule(new threading::Thread(nullptr, nullptr, KeyboardDriverThread, driver, keyboardStream));
 }

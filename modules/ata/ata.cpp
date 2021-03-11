@@ -5,11 +5,11 @@
 #include "threading/thread.h"
 #include "ata.h"
 #include "atapacketdevice.h"
-#include "atapiodevice.h"
 #include "cpu/interrupt.h"
 #include "cpu/io.h"
 #include "cdefs.h"
 #include "virtualfile.h"
+#include "pci/pcidefs.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -23,123 +23,129 @@ namespace ata {
 AtaDriver driver = AtaDriver();
 
 extern "C" void intHandlerAta(u32 interrupt) {
-    ata::driver.notifyInterrupt();
     end_interrupt(interrupt);
 }
 
-AtaDriver::AtaDriver(): _interrupted(false), _lock() {
+
+AtaDriver::AtaDriver()
+{
 
 }
 
-void AtaDriver::initialize(fs::File* pci) {
-    _deviceCount = 0;
+void AtaDriver::initialize(fs::File* pci)
+{
+    //idt.getEntry(INT_ATA_BUS1).setOffset((u32) &intHandlerAta1_asm);
+	//idt.getEntry(INT_ATA_BUS2).setOffset((u32) &intHandlerAta2_asm);
 
-    idt.getEntry(INT_ATA_BUS1).setOffset((u32) &intHandlerAta1_asm);
-	idt.getEntry(INT_ATA_BUS2).setOffset((u32) &intHandlerAta2_asm);
-
+    // Create the sys folder for ATA
     file = new fs::VirtualFolder("ata");
     fs::root->get("sys")->bind(file);
 
-    _lock = threading::Mutex();
-	_interrupted = false;
-
-
+    // Scan all PCI devices to see if there is an IDE controller/interface in it
     fs::FileHandle* handle = pci->open();
 	fs::File* device;
     while ((device = handle->next_child()) != NULL) {
         u32 dev_class = device->get("class")->read<u8>();
         u32 dev_subclass = device->get("subclass")->read<u8>();
+        u32 interface = device->get("interface")->read<u8>();
+        u32 pin = device->get("pin")->read<u8>();
 
-        if (dev_class == 1 && dev_subclass == 1) {
+        if (dev_class == PCI_CLASS_MASS_STORAGE_CONTROLLER && dev_subclass == PCI_SUBCLASS_IDE_INTERFACE) {
+            printf("%s is an IDE mass storage device, interface %X. pin: %X\n", device->get_name(), interface, pin);
+            
+            u32 primary_base = 0;
+            u32 primary_control = 0;
+            u32 secondary_base = 0;
+            u32 secondary_control = 0;
+            u32 bus_master_ide = 0;
 
-            u32 bar0 = device->get("bars/0")->read<u32>();
-            u32 bar2 = device->get("bars/2")->read<u32>();
-
-            if (bar0 == 0 || bar0 == 1)  {
-                driver.detectDevice(0x1F0, 0);
-                //driver.detectDevice(0x1F0, 1);
-            } if (bar2 == 0 || bar2 == 1) {
-                //driver.detectDevice(0x170, 0);
-                //driver.detectDevice(0x170, 1);
+            // if bit 0 is set, primary interface is pci native mode (otherwise it is compatibility with default I/O locations)
+            if (interface & 1) {
+                primary_base = device->get("bars/0")->read<u32>();
+                primary_control = device->get("bars/1")->read<u32>();
+            } else {
+                primary_base = 0x1F0;
+                primary_control = 0x3F6;
             }
+
+            // if bit 2 is set, secondary interface is pci native mode (otherwise it is compatibility with default I/O locations)
+            if (interface & (1 << 2)) {
+                secondary_base = device->get("bars/2")->read<u32>();
+                secondary_control = device->get("bars/3")->read<u32>();
+            } else {
+                secondary_base = 0x170;
+                secondary_control = 0x376;
+            }
+
+            // if bit 7 is set, it is a bus master ID controller. if clear, it does not support DMA.
+            if (interface & (1 << 7)) {
+                bus_master_ide = device->get("bars/4")->read<u32>();
+            }
+
+            scan_ide_controller(primary_base, primary_control, secondary_base, secondary_control);
         }
     }
 }
 
-void AtaDriver::disableScanDefaultAddresses()
+
+void AtaDriver::scan_ide_controller(u32 primary_data, u32 primary_ctrl, u32 secondary_data, u32 secondary_ctrl)
 {
-	_scanDefaultAddresses = false;
+    printf("scanning %X:%X:%X:%X\n", primary_data, primary_ctrl, secondary_data, secondary_ctrl);
+    
+    AtaChannel* primary = new AtaChannel(primary_data, primary_ctrl, 0);
+    AtaChannel* secondary = new AtaChannel(secondary_data, secondary_ctrl, 0);
+
+    detect_device(primary, AtaDrive::Master);
+    detect_device(primary, AtaDrive::Slave);
+    detect_device(secondary, AtaDrive::Master);
+    detect_device(secondary, AtaDrive::Slave);
+    
 }
 
-void AtaDriver::reset(u16 p)
+AtaDevice* AtaDriver::detect_device(AtaChannel* channel, AtaDrive drive)
 {
-	outb(p, 0b00000100);
-
-	// Just a very simple spinloop
-	for (int i = 0; i < 1000; i++)
-		asm volatile ("pause");
-
-	outb(p, 0b00000000);
-}
-
-void AtaDriver::selectDevice(u16 p, int device) {
-	// We only need to do this if we actually select a different device.
-	if (device != _lastDevice)
-	{
-		// select the given drive
-		if (device == 0)
-			outb(p+PORT_DRIVE, 0xA0); // select master
-		else
-			outb(p+PORT_DRIVE, 0xB0); // select slave
-
-		// waste a bit of time to make sure the drive select has gone through
-		// reading the status register 5 times equals to around 500ns which should be enough (we are expected to wait around 400ns)
-		inb(p+PORT_STATUS);
-		inb(p+PORT_STATUS);
-		inb(p+PORT_STATUS);
-		inb(p+PORT_STATUS);
-		inb(p+PORT_STATUS);
-
-		_lastDevice = device;
-	}
-}
-
-AtaDevice* AtaDriver::detectDevice(u16 p, int device) {
-    // select the device we want to detect
-	selectDevice(p, device);
-
     // set these to 0 to properly recognize the signature
-    outb(p+PORT_SECTOR_COUNT, 0);
-    outb(p+PORT_LBA_LOW, 0);
-    outb(p+PORT_LBA_MID, 0);
-    outb(p+PORT_LBA_HIGH, 0);
+    channel->write_u8(drive, AtaRegister::Seccount, 0);
+    channel->write_u8(drive, AtaRegister::Lba0, 0);
+    channel->write_u8(drive, AtaRegister::Lba1, 0);
+    channel->write_u8(drive, AtaRegister::Lba2, 0);
+    for (volatile int i = 0 ; i < 10000000; i++);
+
+    // Disable interrupts on the drive
+    channel->write_u8(drive, AtaRegister::Control, 0x02);
+    for (volatile int i = 0 ; i < 10000000; i++);
 
     // execute the identify command
-	outb(p+PORT_COMMAND, COMMAND_IDENTIFY_DRIVE);
+    channel->write_u8(drive, AtaRegister::Command, AtaCommand::IdentifyDrive);
+    for (volatile int i = 0 ; i < 10000000; i++);
 	
 	// Check the status register
-	// It will be 0 if no drive exists
-	// BIT_STATUS_DF will be high if there is a fault with the drive (if I read the specs correctly)
-	u8 status = inb(p+PORT_STATUS);
-	if (status == 0 || (status & BIT_STATUS_DF) > 0)
-		return nullptr;
-    bool isPacket = false;
+	u8 status = channel->read_u8(drive, AtaRegister::Status);
 
-    // check if the signature matches that of a packet device
-    if (inb(p+PORT_SECTOR_COUNT) == 0x1 && inb(p+PORT_LBA_LOW) == 0x1 && inb(p+PORT_LBA_MID) == 0x14 && inb(p+PORT_LBA_HIGH) == 0xEB) {
-        // do the same again but send the identify packet drive command
-        outb(p+PORT_COMMAND, COMMAND_IDENTIFY_PACKET_DRIVE);
-        isPacket = true;
+	// If it is 0 there is no drive here.
+	// BIT_STATUS_DF will be high if there is a fault with the drive (if I read the specs correctly)
+	if (status == 0 || (status & BIT_STATUS_DF)) {
+        //printf("Drive returned error.\n");
+		return nullptr;
     }
 
-    // wait until the drive is ready
-    waitForInterrupt(p);
-    waitForBusy(p);
+    // Now we wait for the BSY bit of the drive to clear
+    while ((status & BIT_STATUS_BSY)) {
+        status = channel->read_u8(drive, AtaRegister::Status);
+    }
 
-    // if the drive is about to send an error, fail the detection
-    /*if (waitForDataOrError() == 0) {
+    // Check of LBAmid and LBAhi are non-zero. If so, the device is not ATA and we should abort.
+    /*if (channel->read_u8(drive, AtaRegister::Lba1) == 0 || channel->read_u8(drive, AtaRegister::Lba2) == 0) {
+        printf("Device is not an ATA packet device\n");
+        printf("Signature: %X %X %X %X", channel->read_u8(drive, AtaRegister::Seccount), channel->read_u8(drive, AtaRegister::Lba0), channel->read_u8(drive, AtaRegister::Lba1), channel->read_u8(drive, AtaRegister::Lba2));
         return nullptr;
     }*/
+
+    // If it returned an error, abort
+    if ((status & BIT_STATUS_ERR)) {
+        //printf("Device read an error.\n");
+        return nullptr;
+    }
 
     // otherwise alloc space for the 512 bytes that are going to be answered
     unsigned short* data = new unsigned short[256];
@@ -147,75 +153,20 @@ AtaDevice* AtaDriver::detectDevice(u16 p, int device) {
     // we already know the device is ready to send data so we can just start receiving immediately
     for (int i = 0 ; i < 256 ; i++) {
         // read the 16 bit data from the port
-        unsigned short val = inw(p+PORT_DATA);
+        u16 val = channel->read_u16(drive, AtaRegister::Data);
 
         // and convert it to little endian
         data[i] = ((val >> 8) & 0xFF) + ((val & 0xFF) << 8);
+
+        printf("%c%c", data[i], data[i] >> 8);
     }
 
     // set 47 to null, this means the device name will be null terminated, and the value at 47 is unimportant (reserved) anyway.
     data[47] = 0;
 
 	// register it to the devicemanager
-	AtaDevice* atadevice;
-    if (isPacket) {
-		atadevice = new AtaPacketDevice(file, p, data, device);
-        //deviceManager.addDevice(atadevice);
-    } else {
-		//atadevice = new AtaPioDevice(file, p, data, device);
-        //deviceManager.addDevice(atadevice);
-    }
-
-    return atadevice;
-}
-
-void AtaDriver::waitForBusy(u16 p) {
-    // keep checking the status register until the busy bit is false
-    char status;
-    do {
-        status = inb(p+PORT_STATUS);
-        asm volatile ("pause");
-    } while ((status & 0x80) == 0x80);
-}
-
-bool AtaDriver::waitForDataOrError(u16 p) {
-    // keep checking the status register until the the data bit or error bit is true
-    do {
-        char status = inb(p+PORT_STATUS);
-
-        if ((status & 0x08) == 0x08)
-            return true;
-
-        if ((status & 0x01) == 0x01)
-            return false;
-        asm volatile ("pause");
-    } while (true);
-}
-
-void AtaDriver::waitForInterrupt(u16 p) {
-    while (_interrupted == false) {
-        threading::exit();
-    }
-    _interrupted = false;
-
-    // read the status register to acknowledge the IRQ
-    inb(p+PORT_STATUS);
-}
-
-void AtaDriver::clearInterruptFlag() {
-    _interrupted = false;
-}
-
-void AtaDriver::notifyInterrupt() {
-    _interrupted = true;
-}
-
-void AtaDriver::grab() {
-    _lock.lock();
-}
-
-void AtaDriver::release() {
-    _lock.release();
+    printf("Found device!\n");
+    return new AtaDevice(file, channel, drive, data);
 }
 
 }

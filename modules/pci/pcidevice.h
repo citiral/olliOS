@@ -29,6 +29,7 @@ private:
 	u8 _bus;
 	u8 _device;
 	u8 _func;
+	u8 _interruptPin;
 
 	u16 _vendorId;
 	u16 _deviceId;
@@ -37,6 +38,7 @@ private:
 	u8 _classCode;
 	u8 _subclassCode;
 	u8 _headerType;
+	u8 _programmingInterface;
 
 	const char* _deviceName;
 	fs::File* _file;

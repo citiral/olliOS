@@ -115,11 +115,12 @@ namespace apic {
 
         // Now we are going to map all IO interrupts to 0x20 - 0x3F (32 to 64), like they would be mapped with the PIC
         for (uint32_t i = 0 ; i < ioApics.size() ; i++) {
-            LOG_INFO("Mapping IOAPIC %d", i);
             MADTIoEntry volatile* apic = ioApics[i];
+            LOG_INFO("Mapping IOAPIC %X at address", apic->apicAddress, i);
             
             // and set their taskpriority to 0
-            ((uint32_t volatile*) apic->apicAddress)[APIC_TASKPRIOR] = 0;
+            registers[APIC_TASKPRIOR] = 0;
+            LOG_INFO("Set task priority\n");
 
             // We get the # of irqs this apic can handle
             apic->apicAddress[APIC_IO_SEL] = APIC_IO_VER_OFFSET;

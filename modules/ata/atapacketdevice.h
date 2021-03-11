@@ -14,7 +14,7 @@ namespace ata {
 
 class AtaPacketDevice: public AtaDevice {
 public:
-    AtaPacketDevice(fs::File* ata, u16 port, unsigned short* data, u8 drive);
+    AtaPacketDevice(fs::File* ata, AtaChannel* channel, AtaDrive drive, unsigned short* identify_data);
     ~AtaPacketDevice();
 
     size_t write(const void* data, size_t amount, size_t offset);

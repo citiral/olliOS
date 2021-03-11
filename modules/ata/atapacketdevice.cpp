@@ -10,7 +10,7 @@
 
 namespace ata {
 
-AtaPacketDevice::AtaPacketDevice(fs::File* ata, u16 port, unsigned short* data, u8 drive): AtaDevice(ata, port, data, drive) {
+AtaPacketDevice::AtaPacketDevice(fs::File* ata, AtaChannel* channel, AtaDrive drive, unsigned short* identify_data): AtaDevice(ata, channel, drive, identify_data) {
 }
 
 AtaPacketDevice::~AtaPacketDevice() {
@@ -18,7 +18,7 @@ AtaPacketDevice::~AtaPacketDevice() {
 
 size_t AtaPacketDevice::read(void* data, size_t amount, size_t offset) {
     // TODO it seems to get stuck when issueing very big reads
-
+/*
     driver.grab();
     driver.clearInterruptFlag();
     
@@ -112,7 +112,8 @@ size_t AtaPacketDevice::read(void* data, size_t amount, size_t offset) {
     //_lba += wordcount / 1024;
 
     driver.release();
-    return (wordcount < amount ? wordcount : amount);
+    return (wordcount < amount ? wordcount : amount);*/
+    return 0;
 }
 
 size_t AtaPacketDevice::write(const void* data, size_t amount, size_t offset)

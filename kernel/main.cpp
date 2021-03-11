@@ -248,8 +248,8 @@ extern "C" void main(multiboot_info* multiboot) {
         mod++;
     }
 
-    printf("grub Video info:\ncontrol: %x\nmode_info: %x\nmode: %x\ninterface_seg: %x\ninterface_off: %x\ninterface_len: %x\n", multiboot->vbe_control_info, multiboot->vbe_mode_info, multiboot->vbe_mode, multiboot->vbe_interface_seg, multiboot->vbe_interface_off, multiboot->vbe_interface_len);
-    printf("flags: %x\n", multiboot->flags);
+    //printf("grub Video info:\ncontrol: %x\nmode_info: %x\nmode: %x\ninterface_seg: %x\ninterface_off: %x\ninterface_len: %x\n", multiboot->vbe_control_info, multiboot->vbe_mode_info, multiboot->vbe_mode, multiboot->vbe_interface_seg, multiboot->vbe_interface_off, multiboot->vbe_interface_len);
+    //printf("flags: %x\n", multiboot->flags);
 
     /*fs::File* one = fs::root->create("1", FILE_CREATE_DIR);
     fs::File* test = one->create("test", 0);

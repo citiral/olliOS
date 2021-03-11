@@ -6,23 +6,102 @@
 #include "threading/semaphore.h"
 #include "threading/scheduler.h"
 
+#define DATA_PORT    0x60
+#define STATUS_PORT  0x64
 #define COMMAND_PORT 0x64
-#define IO_PORT 0x60
-#define STATUS_PORT 0x64
 
-#define CMD_READ_CONFIG 0x60
-#define CMD_SET_SCANCODE_SET 0xF0
-#define CMD_WRITE_CONFIG 
+#define PS2_READ_CONFIG 0x20
+#define PS2_WRITE_CONFIG 0x60
+#define KB_SCANCODE_SET 0xF0
+
+#define KB_ACK 0xFA
 
 #define BIT_SCANCODE_TRANSLATION (1<<6)
 
 #define STATUS_INPUT_BUFFER_EMPTY (1<<1)
+#define STATUS_INPUT_RESPONSE_READY (1<<0)
 
 extern "C" void intHandlerKeyboard_asm(void);
+
+void ps2_write_command(u8 cmd)
+{
+	// wait on the status register to be clear
+	while (inb(STATUS_PORT) & (STATUS_INPUT_BUFFER_EMPTY)) for (volatile int i = 0 ; i < 1000 ; i++);
+	outb(COMMAND_PORT, cmd);
+}
+
+void ps2_write_command2(u8 cmd, u8 cmd2)
+{
+	ps2_write_command(cmd);
+
+	// wait on the status register to be clear
+	while (inb(STATUS_PORT) & (STATUS_INPUT_BUFFER_EMPTY)) for (volatile int i = 0 ; i < 1000 ; i++);
+	outb(DATA_PORT, cmd2);
+}
+
+u8 ps2_write_command_with_response(u8 cmd)
+{
+	ps2_write_command(cmd);
+
+	// wait on the status register to be clear
+	while (!(inb(STATUS_PORT) & (STATUS_INPUT_RESPONSE_READY))) for (volatile int i = 0 ; i < 1000 ; i++);
+	u8 r = inb(DATA_PORT);
+	return r;
+}
+
+u8 ps2_write_command2_with_response(u8 cmd, u8 cmd2)
+{
+	ps2_write_command2(cmd, cmd2);
+
+	// wait on the status register to be clear
+	while (!(inb(STATUS_PORT) & (STATUS_INPUT_RESPONSE_READY))) for (volatile int i = 0 ; i < 1000 ; i++);
+	return inb(DATA_PORT);
+}
+
+void ps2_write_data(u8 cmd)
+{
+	// wait on the status register to be clear
+	while (inb(STATUS_PORT) & (STATUS_INPUT_BUFFER_EMPTY)) for (volatile int i = 0 ; i < 1000 ; i++);
+	outb(DATA_PORT, cmd);
+}
+
+void ps2_write_data2(u8 cmd, u8 cmd2)
+{
+	ps2_write_data(cmd);
+	ps2_write_data(cmd2);
+}
+
+u8 ps2_write_data_with_response(u8 cmd)
+{
+	ps2_write_data(cmd);
+
+	// wait on the status register to be clear
+	while (!(inb(STATUS_PORT) & (STATUS_INPUT_RESPONSE_READY))) for (volatile int i = 0 ; i < 1000 ; i++);
+	u8 r = inb(DATA_PORT);
+	return r;
+}
+
+u8 ps2_write_data2_with_response(u8 cmd, u8 cmd2)
+{
+	ps2_write_data2(cmd, cmd2);
+
+	// wait on the status register to be clear
+	while (!(inb(STATUS_PORT) & (STATUS_INPUT_RESPONSE_READY))) for (volatile int i = 0 ; i < 1000 ; i++);
+	return inb(DATA_PORT);
+}
+
+u8 ps2_get_response()
+{
+	// wait on the status register to be clear
+	while (!(inb(STATUS_PORT) & (STATUS_INPUT_RESPONSE_READY))) for (volatile int i = 0 ; i < 1000 ; i++);
+	return inb(DATA_PORT);
+}
+
 
 namespace keyboard {
 
 KeyboardDriver* driver = 0;
+
 
 VirtualKeyEvent MakeVirtualKeyEvent()
 {
@@ -43,15 +122,32 @@ VirtualKeyEvent MakeVirtualKeyEvent(VirtualKeycode vkey, u8 status)
 KeyboardDriver::KeyboardDriver():
 	_code1(0), _code2(0), _code3(0), _bufferPos(0), _bufferLength(0), _status(0), dataMutex()
 {
-	//set the command byte to make the keyboard know we are working with interrupts.
+	_ignoreInterrupts = false;
 	enableIRQ();
-	outb(COMMAND_PORT, CMD_READ_CONFIG);
-	outb(IO_PORT, 0b00000001);
 }
 
 KeyboardDriver::~KeyboardDriver()
 {
 
+}
+
+void KeyboardDriver::init()
+{
+	_ignoreInterrupts = true;
+	printf("PS/2 config byte: %x\n", ps2_write_command_with_response(0x20));
+	ps2_write_command2(PS2_WRITE_CONFIG, 0b00000101);
+	printf("PS/2 config byte: %x\n", ps2_write_command_with_response(0x20));
+	ps2_write_command(0xAE);
+	_ignoreInterrupts = false;
+
+	return;
+
+	// empty keyboard buffer
+	unsigned char kbb = 0;
+	while(((kbb = inb(COMMAND_PORT)) & 1) == 1)
+	{
+		inb(DATA_PORT);
+	}
 }
 
 extern "C" void intHandlerKeyboard(u32 interrupt) {
@@ -82,7 +178,7 @@ void KeyboardDriver::sendCommand(u8 command)
 	_commandFailed = false;
 	//printf("Sending 0x%X\n", command);
 
-	while (inb(STATUS_PORT) & (STATUS_INPUT_BUFFER_EMPTY != 0));
+	while (inb(STATUS_PORT) & (STATUS_INPUT_BUFFER_EMPTY)) for (volatile int i = 0 ; i < 1000 ; i++);
 	outb(COMMAND_PORT, command);
 }
 
@@ -97,22 +193,23 @@ void KeyboardDriver::sendDataCommand(u8 command, u8 data)
 	_commandFailed = false;
 	//printf("Sending 0x%X 0x%X\n", command, data);
 
-	while (inb(STATUS_PORT) & (STATUS_INPUT_BUFFER_EMPTY != 0));
+	while (inb(STATUS_PORT) & (STATUS_INPUT_BUFFER_EMPTY)) for (volatile int i = 0 ; i < 1000 ; i++);
 	outb(COMMAND_PORT, command);
-	while (inb(STATUS_PORT) & (STATUS_INPUT_BUFFER_EMPTY != 0));
-	outb(IO_PORT, data);
+	while (inb(STATUS_PORT) & (STATUS_INPUT_BUFFER_EMPTY)) for (volatile int i = 0 ; i < 1000 ; i++);
+	outb(DATA_PORT, data);
 }
 
 void KeyboardDriver::sendKBCommand(u8 command)
 {
 	_commandNeedsData = false;
 	_commandBufC = command;
-	_commandBufP = IO_PORT;
+	_commandBufP = DATA_PORT;
 	_commandSendCount = 0;
 	_commandReturned = false;
 	_commandFailed = false;
-	//printf("Sending KB 0x%X\n", command);
-	outb(IO_PORT, command);
+	
+	printf("Sending KB 0x%X\n", command);
+	outb(DATA_PORT, command);
 }
 
 void KeyboardDriver::sendDataKBCommand(u8 command, u8 data)
@@ -127,10 +224,13 @@ void KeyboardDriver::sendDataKBCommand(u8 command, u8 data)
 }
 
 bool KeyboardDriver::interrupt1(u32 interrupt) {
+	if (_ignoreInterrupts == true) {
+		return true;
+	}
+
 	UNUSED(interrupt);
-	u8 data = inb(IO_PORT);
+	u8 data = inb(DATA_PORT);
 	_commandRetValue = data;
-	//printf("INT1 0x%X\n", data);
 	if (data == 0xFA) // Received acknowledge
 		_commandReturned = true;
 	else if (data == 0xFE) { // Something happened, resend
@@ -141,7 +241,7 @@ bool KeyboardDriver::interrupt1(u32 interrupt) {
 			outb(_commandBufP, _commandBufC);
 			if (_commandNeedsData)
 				// Data always goes through IO port (afaik)
-				outb(IO_PORT, _commandBufD);
+				outb(DATA_PORT, _commandBufD);
 		}
 		else
 			_commandFailed = true;
@@ -160,21 +260,37 @@ bool KeyboardDriver::interrupt1(u32 interrupt) {
 }
 
 u8 KeyboardDriver::getScanCodeSet(){
-	_noWrite = true;
-	sendDataKBCommand(0xF0, 0x00);
-	_noWrite = false;
-	if (_commandReturned)
-		return _commandRetValue;
-	else
-		return 0;
+	_ignoreInterrupts = true;
+	u8 resp = ps2_write_data_with_response(0xF0);
+	if (resp != KB_ACK) {
+		printf("Keyboard invalid response: %X\n", resp);
+	}
+	resp = ps2_write_data_with_response(0x00);
+	if (resp != KB_ACK) {
+		printf("Keyboard invalid response: %X\n", resp);
+	}
+	u8 scancode = ps2_get_response();
+
+	_ignoreInterrupts = false;
+	return scancode;
 }
 
 void KeyboardDriver::setScanCodeSet(u8 scanset) {
 	u8 current = getScanCodeSet();
-	if (current != 0 && current != scanset) {
-		_commandReturned = false;
-		sendDataKBCommand(0xF0, scanset);
+	printf("current scancodeset: %d\n", current);
+	
+	_ignoreInterrupts = true;
+	u8 resp = ps2_write_data_with_response(0xF0);
+	if (resp != KB_ACK) {
+		printf("Keyboard invalid response: %X\n", resp);
 	}
+	resp = ps2_write_data_with_response(scanset);
+	if (resp != KB_ACK) {
+		printf("Keyboard invalid response: %X\n", resp);
+	}
+	_ignoreInterrupts = false;
+
+	printf("current scancodeset: %d\n", getScanCodeSet());
 }
 
 void KeyboardDriver::setScanCodeTranslation(bool enabled) {

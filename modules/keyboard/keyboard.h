@@ -24,6 +24,8 @@ namespace keyboard {
 		KeyboardDriver();
 		virtual ~KeyboardDriver();
 
+		void init();
+
 		void waitForResponse();
 
 		void sendCommand(u8 command);
@@ -87,6 +89,7 @@ namespace keyboard {
 		volatile u8 _commandBufC; // The command to send if a resend is requested
 		volatile u8 _commandBufD; // The data to send if a resend is requested (only if _commandNeedsData == true)
 		volatile u8 _commandBufP; // The port to send _commandBufC to (_commandBufD will always go to IO_PORT)
+		volatile bool _ignoreInterrupts = false;
 	};
 
 	extern KeyboardDriver* driver;

@@ -6,25 +6,11 @@
 #define OLLIOS_GIT_ATA_H
 
 #include "atadevice.h"
+#include "atachannel.h"
 #include "threading/mutex.h"
 #include "types.h"
 #include "bindings.h"
 #include "file.h"
-
-/*#define PORT_DATA           0x1F0
-#define PORT_FEATURE        0x1F1
-#define PORT_ERROR          0x1F1
-#define PORT_SECTOR_COUNT   0x1F2
-#define PORT_SECTOR_NUMER   0x1F3
-#define PORT_LBA_LOW        0x1F3
-#define PORT_CYLINDER_LOW   0x1F4
-#define PORT_LBA_MID        0x1F4
-#define PORT_CYLINDER_HIGH  0x1F5
-#define PORT_LBA_HIGH       0x1F5
-#define PORT_DRIVE          0x1F6
-#define PORT_HEAD           0x1F6
-#define PORT_COMMAND        0x1F7
-#define PORT_STATUS         0x1F7*/
 
 #define PORT_DEFAULT_PRIMARY	0x1F0
 #define PORT_DEFAULT_SECONDARY	0x170
@@ -66,14 +52,21 @@
 // IDENTIFY Data structure can be found here on page 91 (129 in PDF)
 // http://www.t13.org/documents/uploadeddocuments/docs2006/d1699r3f-ata8-acs.pdf
 
-namespace ata {
-
-enum class AtaDeviceIndex: u8 {
-    MASTER = 0,
-    SLAVE = 1,
-};
 
 extern "C" void intHandlerAta(u32 interrupt);
+
+namespace ata {
+
+class AtaDevice;
+
+enum AtaCommand {
+    IdentifyDrive = 0xEC,
+    IdentifyPacketDrive = 0xA1,
+    Packet = 0xA0,
+    Read = 0x20,
+    Write = 0x30,
+    Flush = 0xE7,
+};
 
 // for now we are only going to support one controller
 // and use atapi
@@ -90,43 +83,13 @@ public:
 	// Reset the device;
 	void reset(u16 p);
 
-    void printDeviceInformation();
+    // Scans a IDE controller for connected devices
+    void scan_ide_controller(u32 primary_data, u32 primary_ctrl, u32 secondary_data, u32 secondary_ctrl);
 
-    // if device is 0, it selects the master device, so he will receive all commands. If it is 1, the slave device is selected
-    void selectDevice(u16 port, int device);
-
-	// detects a device through the IDENTIFY DRIVE command and // returns a pointer to the returned data if a device has been detected
-	// returns the device itself.
-	AtaDevice* detectDevice(u16 port, int device);
-
-    // keeps polling the status register until the drive is no longer reporting it is busy
-    void waitForBusy(u16 port);
-
-    // keeps polling the status register until the drive is reporting it has data or has an error
-    // returns true if there is data available, returns zero if there is an error available
-    bool waitForDataOrError(u16 port);
-
-    // keeps waiting until interrupted is set to true. This is then set to false.
-    void waitForInterrupt(u16 port);
-
-    void clearInterruptFlag();
-
-    // notifies the ata driver an interrupt has happened
-    void notifyInterrupt();
-
-    // grabs or releases the driver, preventing other threads from using it
-    void grab();
-    void release();
+    // Test if the given drive is present on the ATA channel
+    AtaDevice* detect_device(AtaChannel* channel, AtaDrive drive);
 
     fs::File* file;
-
-private:
-    // This has to be volatile, otherwise codegen might cache it in a register which won't detect changes by interrupt
-	volatile bool _interrupted;
-	bool _scanDefaultAddresses = true;
-	int _lastDevice = -1;
-    unsigned int _deviceCount;
-    threading::Mutex _lock;
 };
 
 extern AtaDriver driver;

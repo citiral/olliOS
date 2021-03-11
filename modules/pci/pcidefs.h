@@ -1,0 +1,9 @@
+#ifndef __PCIDEFS_H_
+#define __PCIDEFS_H_
+
+#define PCI_CLASS_MASS_STORAGE_CONTROLLER 1
+#define PCI_SUBCLASS_IDE_INTERFACE        1
+#define PCI_SUBCLASS_ATA_CONTROLLER       5
+#define PCI_SUBCLASS_SATA_CONTROLLER      6
+
+#endif

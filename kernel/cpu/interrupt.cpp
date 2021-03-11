@@ -9,6 +9,7 @@
 extern "C" void isr_wrapper();
 extern "C" void intHandlerGeneralProtectionViolation_asm();
 extern "C" void intHandlerPageFault_asm();
+extern "C" void intHandlerDummyKeyboard_asm();
 
 //the IDT that is used by the operating system
 Idt idt;
@@ -86,7 +87,7 @@ u16 IdtLimit()
 }
 
 extern "C" void c_interrupt_wrapper() {
-	CPU::panic("unknown interrupt!\n");
+	//CPU::panic("unknown interrupt!\n");
 	end_interrupt(0x20);
 }
 
@@ -105,4 +106,5 @@ extern "C" void __attribute__ ((noinline)) IdtRegisterInterrupts()
 	
 	idt.getEntry(INT_GENERAL_PROTECTION_VIOLATION).setOffset((u32) &intHandlerGeneralProtectionViolation_asm);
     idt.getEntry(INT_PAGE_FAULT).setOffset((u32) &intHandlerPageFault_asm);
+    idt.getEntry(INT_KEYBOARD).setOffset((u32) &intHandlerDummyKeyboard_asm);
 }
