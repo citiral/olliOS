@@ -150,7 +150,8 @@ void KeyboardDriver::init()
 	}
 }
 
-extern "C" void intHandlerKeyboard(u32 interrupt) {
+extern "C" void intHandlerKeyboard(u32 interrupt)
+{
     // send it to the keyboarddriver
 	driver->interrupt1(interrupt);
 
@@ -158,8 +159,8 @@ extern "C" void intHandlerKeyboard(u32 interrupt) {
 	end_interrupt(interrupt);
 }
 
-void KeyboardDriver::enableIRQ() {
-	
+void KeyboardDriver::enableIRQ()
+{
 	idt.getEntry(INT_KEYBOARD).setOffset((u32)&intHandlerKeyboard_asm);
 }
 

@@ -120,7 +120,7 @@ namespace apic {
             
             // and set their taskpriority to 0
             registers[APIC_TASKPRIOR] = 0;
-            LOG_INFO("Set task priority\n");
+            LOG_INFO("Set task priority");
 
             // We get the # of irqs this apic can handle
             apic->apicAddress[APIC_IO_SEL] = APIC_IO_VER_OFFSET;

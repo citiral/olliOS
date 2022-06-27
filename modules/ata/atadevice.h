@@ -11,7 +11,7 @@ namespace ata {
 
 class AtaDevice {
 public:
-    AtaDevice(fs::File* ata, AtaChannel* channel, AtaDrive drive, unsigned short* identify_data);
+    AtaDevice(fs::File* ata, AtaChannel* channel, AtaDrive drive, unsigned short* identify_data, u32 deviceId);
     ~AtaDevice();
 
 	std::string& getName();
@@ -20,8 +20,8 @@ public:
 	u64 getBlocks();
 	u64 getBytes();
 
-    virtual size_t write(const void* data, size_t amount, size_t offset);
-    virtual size_t read(void* data, size_t amount, size_t offset);
+    virtual size_t write(const void* data, size_t amount, size_t offset) {return 0;};
+    virtual size_t read(void* data, size_t amount, size_t offset) {return 0;};
 
 protected:
 	AtaDrive drive;

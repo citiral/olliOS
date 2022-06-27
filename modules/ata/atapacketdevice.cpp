@@ -10,7 +10,7 @@
 
 namespace ata {
 
-AtaPacketDevice::AtaPacketDevice(fs::File* ata, AtaChannel* channel, AtaDrive drive, unsigned short* identify_data): AtaDevice(ata, channel, drive, identify_data) {
+AtaPacketDevice::AtaPacketDevice(fs::File* ata, AtaChannel* channel, AtaDrive drive, unsigned short* identify_data, u32 deviceId): AtaDevice(ata, channel, drive, identify_data, deviceId) {
 }
 
 AtaPacketDevice::~AtaPacketDevice() {
@@ -18,13 +18,7 @@ AtaPacketDevice::~AtaPacketDevice() {
 
 size_t AtaPacketDevice::read(void* data, size_t amount, size_t offset) {
     // TODO it seems to get stuck when issueing very big reads
-/*
-    driver.grab();
-    driver.clearInterruptFlag();
-    
-    // select ourselves as drive
-    driver.selectDevice(_port, _drive);
-    outb(_port + PORT_DRIVE, 0 << 4);
+    channel->interrupted = false;
     
     // round offset down, add count removed from offset to amount, and round amount up.
     size_t actual_amount = amount;
@@ -33,29 +27,29 @@ size_t AtaPacketDevice::read(void* data, size_t amount, size_t offset) {
     offset -= skip;
     if (actual_amount % 2048 != 0)
         actual_amount += 2048 - (actual_amount % 2048);
-    
+
 
     // we are not going to use DMA (set dma bit to zero)
-    outb(_port+PORT_FEATURE, 0);
+    channel->write_u8(drive, AtaRegister::Features, 0);
+    //outb(_port+PORT_FEATURE, 0);
 
     // set the max amount of bytes we want to receive
-    outb(_port+PORT_CYLINDER_LOW, actual_amount & 0xFF);
-    outb(_port+PORT_CYLINDER_HIGH, actual_amount >> 8);
-
-   for(int i = 0; i < 40; i++)
-       inb(_port + PORT_STATUS); // Reading the Alternate Status port wastes 100ns.
+    channel->write_u8(drive, AtaRegister::Lba1, actual_amount & 0xFF);
+    channel->write_u8(drive, AtaRegister::Lba2, actual_amount >> 8);
+    for(int i = 0; i < 40; i++) {
+        channel->read_u8(drive,AtaRegister::Status);
+    }
 
     // convert the actual_amount and offset to blocks
     actual_amount /= 2048;
     offset /= 2048;
 
-
     // send the packet command
-    outb(_port+PORT_COMMAND, COMMAND_PACKET);
+    channel->write_u8(drive, AtaRegister::Command, AtaCommand::Packet);
 
-    //driver.waitForInterrupt(_port);
-    driver.waitForBusy(_port);
-    driver.waitForDataOrError(_port);
+    waitForBusy();
+    if (!waitForDataOrError())
+        return 0;
 
     // generate the commands we are going to send
     unsigned char commands[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -84,18 +78,21 @@ size_t AtaPacketDevice::read(void* data, size_t amount, size_t offset) {
     commands[11] = 0;
 
     // now lets send the commands
-    outsw(_port+PORT_DATA, commands, 6);
+    outsw(channel->base + AtaRegister::Data, commands, 6);
     // wait until the device is ready
-    //driver.waitForInterrupt(_port);
-    driver.waitForBusy(_port);
-    driver.waitForInterrupt(_port);
+    waitForBusy();
+    waitForInterrupt();
+    if (!waitForDataOrError())
+        return 0;
 
     // now lets fetch the actual_amount of data we can read
-    size_t wordcount = ((inb(_port+PORT_LBA_HIGH) << 8) | inb(_port+PORT_LBA_MID));
+    u8 hi = channel->read_u8(drive, AtaRegister::Lba2);
+    u8 lo = channel->read_u8(drive, AtaRegister::Lba1);
+    size_t wordcount = (((size_t)hi) << 8) + lo;
 
     // and now finally we can read the data
     for (size_t i = 0 ; i < wordcount ; i += 2) {
-        u16 byte = inw(_port+PORT_DATA);
+        u16 byte = channel->read_u16(drive, AtaRegister::Data);
         u8* read = (u8*)&byte;
 
         for (size_t k = 0 ; k < 2 ; k++) {
@@ -104,16 +101,10 @@ size_t AtaPacketDevice::read(void* data, size_t amount, size_t offset) {
             }
         }
     }
-
     // the device is going to send us one last interrupt
-    driver.waitForInterrupt(_port);
+    waitForInterrupt();
 
-    // advance the lba by wordcount / 1024 (advance once for each 2K block read)
-    //_lba += wordcount / 1024;
-
-    driver.release();
-    return (wordcount < amount ? wordcount : amount);*/
-    return 0;
+    return (wordcount < amount ? wordcount : amount);
 }
 
 size_t AtaPacketDevice::write(const void* data, size_t amount, size_t offset)
@@ -122,6 +113,31 @@ size_t AtaPacketDevice::write(const void* data, size_t amount, size_t offset)
 	UNUSED(amount);
 	CPU::panic("write not implemented on AtaPacketDevice");
 	return 0;
+}
+
+void AtaPacketDevice::waitForBusy()
+{
+    while (channel->read_u8(drive, AtaRegister::Status) & BIT_STATUS_BSY) {
+	    asm volatile ("pause");
+    }
+}
+
+bool AtaPacketDevice::waitForDataOrError()
+{
+    u8 status;
+    while ((status = (channel->read_u8(drive, AtaRegister::Status)) & (BIT_STATUS_ERR | BIT_STATUS_DRQ)) == 0) {
+	    asm volatile ("pause");
+    }
+
+    return (status & BIT_STATUS_DRQ) && !(status & BIT_STATUS_ERR);
+}
+
+void AtaPacketDevice::waitForInterrupt()
+{
+    while (!channel->interrupted) {
+	    asm volatile ("pause");
+    }
+    channel->interrupted = false;
 }
 
 }

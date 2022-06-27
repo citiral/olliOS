@@ -22,10 +22,19 @@ namespace ata {
 
 AtaDriver driver = AtaDriver();
 
-extern "C" void intHandlerAta(u32 interrupt) {
+extern "C" void intHandlerAta1(u32 interrupt) {
+    //printf("ata1\n");
+    inb(driver.primary->base + AtaRegister::Status);
+    driver.primary->interrupted = true;
     end_interrupt(interrupt);
 }
 
+extern "C" void intHandlerAta2(u32 interrupt) {
+    //printf("ata2\n");
+    inb(driver.secondary->base + AtaRegister::Status);
+    driver.secondary->interrupted = true;
+    end_interrupt(interrupt);
+}
 
 AtaDriver::AtaDriver()
 {
@@ -34,8 +43,8 @@ AtaDriver::AtaDriver()
 
 void AtaDriver::initialize(fs::File* pci)
 {
-    //idt.getEntry(INT_ATA_BUS1).setOffset((u32) &intHandlerAta1_asm);
-	//idt.getEntry(INT_ATA_BUS2).setOffset((u32) &intHandlerAta2_asm);
+    idt.getEntry(INT_ATA_BUS1).setOffset((u32) &intHandlerAta1_asm);
+	idt.getEntry(INT_ATA_BUS2).setOffset((u32) &intHandlerAta2_asm);
 
     // Create the sys folder for ATA
     file = new fs::VirtualFolder("ata");
@@ -92,8 +101,8 @@ void AtaDriver::scan_ide_controller(u32 primary_data, u32 primary_ctrl, u32 seco
 {
     printf("scanning %X:%X:%X:%X\n", primary_data, primary_ctrl, secondary_data, secondary_ctrl);
     
-    AtaChannel* primary = new AtaChannel(primary_data, primary_ctrl, 0);
-    AtaChannel* secondary = new AtaChannel(secondary_data, secondary_ctrl, 0);
+    primary = new AtaChannel(primary_data, primary_ctrl, 0);
+    secondary = new AtaChannel(secondary_data, secondary_ctrl, 0);
 
     detect_device(primary, AtaDrive::Master);
     detect_device(primary, AtaDrive::Slave);
@@ -134,39 +143,46 @@ AtaDevice* AtaDriver::detect_device(AtaChannel* channel, AtaDrive drive)
         status = channel->read_u8(drive, AtaRegister::Status);
     }
 
-    // Check of LBAmid and LBAhi are non-zero. If so, the device is not ATA and we should abort.
-    /*if (channel->read_u8(drive, AtaRegister::Lba1) == 0 || channel->read_u8(drive, AtaRegister::Lba2) == 0) {
-        printf("Device is not an ATA packet device\n");
-        printf("Signature: %X %X %X %X", channel->read_u8(drive, AtaRegister::Seccount), channel->read_u8(drive, AtaRegister::Lba0), channel->read_u8(drive, AtaRegister::Lba1), channel->read_u8(drive, AtaRegister::Lba2));
-        return nullptr;
-    }*/
+    u8 seccount = channel->read_u8(drive, AtaRegister::Seccount);
+    u8 lba0 = channel->read_u8(drive, AtaRegister::Lba0);
+    u8 lba1 = channel->read_u8(drive, AtaRegister::Lba1);
+    u8 lba2 = channel->read_u8(drive, AtaRegister::Lba2);
 
-    // If it returned an error, abort
-    if ((status & BIT_STATUS_ERR)) {
-        //printf("Device read an error.\n");
+    if (seccount == 1 && lba0 == 1 && lba1 == 0x14 && lba2 == 0xEB) {
+        printf("Device is packet device\n");
+    
+        // Packet devices require another Identifyt packet drive command
+        channel->write_u8(drive, AtaRegister::Command, AtaCommand::IdentifyPacketDrive);
+        for (volatile int i = 0 ; i < 10000000; i++);
+
+        // we alloc space for the 512 bytes that are going to be answered
+        unsigned short* data = new unsigned short[256];
+
+        // we already know the device is ready to send data so we can just start receiving immediately
+        for (int i = 0 ; i < 256 ; i++) {
+            // read the 16 bit data from the port
+            u16 val = channel->read_u16(drive, AtaRegister::Data);
+
+            // and convert it to little endian
+            data[i] = ((val >> 8) & 0xFF) + ((val & 0xFF) << 8);
+
+            printf("%c%c", data[i], data[i] >> 8);
+        }
+
+        // set 47 to null, this means the device name will be null terminated, and the value at 47 is unimportant (reserved) anyway.
+        data[47] = 0;
+
+        // register it to the devicemanager
+        printf("Found device!\n");
+        return new AtaPacketDevice(file, channel, drive, data, _foundDeviceCount++);
+
+    } else if (seccount == 1 && lba0 == 1 && lba1 == 0 && lba2 == 0) {
+        printf("Device is pio device.. however unimplemented for now.\n");
+        return nullptr;
+    } else {
+        printf("Unknown device signature: 0x%X 0x%X 0x%X 0x%X\n", seccount, lba0, lba1, lba2);
         return nullptr;
     }
-
-    // otherwise alloc space for the 512 bytes that are going to be answered
-    unsigned short* data = new unsigned short[256];
-
-    // we already know the device is ready to send data so we can just start receiving immediately
-    for (int i = 0 ; i < 256 ; i++) {
-        // read the 16 bit data from the port
-        u16 val = channel->read_u16(drive, AtaRegister::Data);
-
-        // and convert it to little endian
-        data[i] = ((val >> 8) & 0xFF) + ((val & 0xFF) << 8);
-
-        printf("%c%c", data[i], data[i] >> 8);
-    }
-
-    // set 47 to null, this means the device name will be null terminated, and the value at 47 is unimportant (reserved) anyway.
-    data[47] = 0;
-
-	// register it to the devicemanager
-    printf("Found device!\n");
-    return new AtaDevice(file, channel, drive, data);
 }
 
 }

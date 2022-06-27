@@ -47,6 +47,12 @@ VgaDriver::VgaDriver():
 		write("    ");
 	_column = 0;
 	_row = 0;
+	
+	outb(0x3D4, 0x0A);
+	outb(0x3D5, (inb(0x3D5) & 0xC0) | 0);
+ 
+	outb(0x3D4, 0x0B);
+	outb(0x3D5, (inb(0x3D5) & 0xE0) | 15);
 }
 
 VgaDriver::~VgaDriver()

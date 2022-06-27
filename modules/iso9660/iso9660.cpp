@@ -31,7 +31,12 @@ void Iso9660FileSystem::loadVolumeDescriptors() {
 
     while (true) {
         u8* descriptor = new u8[2048];
-        _dev->read(descriptor, 2048, offset);
+
+        size_t read = _dev->read(descriptor, 2048, offset);
+        if (read == 0) {
+            delete[] descriptor;
+            return;
+        }
         offset += 2048;
         
         

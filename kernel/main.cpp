@@ -131,7 +131,7 @@ void cpu_main() {
     tss::use_tss_at_index(index);
     threading::set_tss_pointer(tss);
 
-    apic::setSleep(INT_PREEMPT, apic::busFrequency / 1024, false);
+    apic::setSleep(INT_PREEMPT, 1024*1024*64, false);
     
     while (true) {
         vgaDriver->setChar('!', VGA_WIDTH - 1, 0);
@@ -241,7 +241,6 @@ extern "C" void main(multiboot_info* multiboot) {
         } else {
             void (*module_load)(fs::File*, const char*);
             e->get_symbol_value("module_load", (u32*) &module_load);
-            printf("params: %s\n", mod->cmdline);
             module_load(fs::root, (const char*) mod->cmdline);
         }
 

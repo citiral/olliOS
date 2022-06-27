@@ -11,19 +11,19 @@
 
 namespace ata {
 
-AtaDevice::AtaDevice(fs::File* ata, AtaChannel* channel, AtaDrive drive, unsigned short* identify_data): drive(drive), channel(channel), _identify_data(identify_data), file(ata)
+AtaDevice::AtaDevice(fs::File* ata, AtaChannel* channel, AtaDrive drive, unsigned short* identify_data, u32 deviceId): drive(drive), channel(channel), _identify_data(identify_data), file(ata)
 {
 	readName();
 
 	char name[32];
-	sprintf(name, "ata%x", drive);
+	sprintf(name, "ata%x", deviceId);
 
     file = new fs::VirtualFolder(name);
 
 	file->bind(fs::InterfaceFile::read_only_string("name", _name.c_str()));
 	ata->bind(file);
 
-	fs::root->get("dev")->bind(new ATADeviceFile(this, std::string("ata")));
+	fs::root->get("dev")->bind(new ATADeviceFile(this, std::string(name)));
 
 	u32 B = _identify_data[60] & 0xFF;
 	u32 A = (_identify_data[60] >> 8) & 0xFF;

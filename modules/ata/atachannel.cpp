@@ -4,7 +4,7 @@
 using namespace ata;
 
 
-AtaChannel::AtaChannel(u32 base, u32 ctrl, u32 irq): base(base), ctrl(ctrl), irq(irq), _selected_drive(AtaDrive::Unknown), _lock()
+AtaChannel::AtaChannel(u32 base, u32 ctrl, u32 irq): base(base), ctrl(ctrl), irq(irq), _selected_drive(AtaDrive::Unknown), _lock(), interrupted(false)
 {
 }
 

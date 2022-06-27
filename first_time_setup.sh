@@ -58,7 +58,7 @@ cd $binutils_build
 if [ ! -e Makefile ]; then
   ../$binutils_source/configure --target=$target --prefix=$prefix --with-sysroot --disable-nls --disable-werror
 fi
-$make
+$make -j4
 $make install
 
 # build gcc
@@ -66,5 +66,5 @@ cd ../$gcc_build
 if [ ! -e Makefile ]; then
   ../$gcc_source/configure --target=$target --prefix=$prefix --disable-nls --enable-languages=c,c++ --without-headers
 fi
-$make all-gcc all-target-libgcc
+$make all-gcc all-target-libgcc -j4
 $make install-gcc install-target-libgcc

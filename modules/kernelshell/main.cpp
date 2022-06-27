@@ -16,8 +16,7 @@ void test() {
 }
 
 void ShellThread(FileHandle* keyboard) {
-
-	shell->runCommand("cd root/usr/bin");
+    //shell->runCommand("cat dev/ata0");
 	//shell->runCommand("run hello_world");
 
     while (1) {

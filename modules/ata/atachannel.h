@@ -48,6 +48,8 @@ public:
     u32 ctrl;
     u32 irq;
 
+    volatile bool interrupted;
+
 private:
     void select_drive(AtaDrive drive);
 

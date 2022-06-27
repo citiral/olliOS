@@ -1,4 +1,5 @@
-extern intHandlerAta
+extern intHandlerAta1
+extern intHandlerAta2
 
 global intHandlerAta1_asm
 intHandlerAta1_asm:
@@ -6,7 +7,7 @@ pushad
 pushfd
 cld
 push 46
-call intHandlerAta
+call intHandlerAta1
 add esp, 4
 popfd
 popad
@@ -18,7 +19,7 @@ pushad
 pushfd
 cld
 push 47
-call intHandlerAta
+call intHandlerAta2
 add esp, 4
 popfd
 popad

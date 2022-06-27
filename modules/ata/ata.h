@@ -57,7 +57,7 @@ extern "C" void intHandlerAta(u32 interrupt);
 
 namespace ata {
 
-class AtaDevice;
+class m;
 
 enum AtaCommand {
     IdentifyDrive = 0xEC,
@@ -90,6 +90,11 @@ public:
     AtaDevice* detect_device(AtaChannel* channel, AtaDrive drive);
 
     fs::File* file;
+    AtaChannel* primary;
+    AtaChannel* secondary;
+
+private:
+    u32 _foundDeviceCount = 0;
 };
 
 extern AtaDriver driver;
