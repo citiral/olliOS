@@ -16,8 +16,8 @@ void test() {
 }
 
 void ShellThread(FileHandle* keyboard) {
-    //shell->runCommand("cat dev/ata0");
-	//shell->runCommand("run hello_world");
+    shell->runCommand("cd root/usr/bin");
+	shell->runCommand("run shell");
 
     while (1) {
         VirtualKeyEvent key;

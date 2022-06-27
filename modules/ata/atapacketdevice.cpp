@@ -28,7 +28,6 @@ size_t AtaPacketDevice::read(void* data, size_t amount, size_t offset) {
     if (actual_amount % 2048 != 0)
         actual_amount += 2048 - (actual_amount % 2048);
 
-
     // we are not going to use DMA (set dma bit to zero)
     channel->write_u8(drive, AtaRegister::Features, 0);
     //outb(_port+PORT_FEATURE, 0);
@@ -81,7 +80,7 @@ size_t AtaPacketDevice::read(void* data, size_t amount, size_t offset) {
     outsw(channel->base + AtaRegister::Data, commands, 6);
     // wait until the device is ready
     waitForBusy();
-    waitForInterrupt();
+    //waitForInterrupt();
     if (!waitForDataOrError())
         return 0;
 
@@ -102,7 +101,7 @@ size_t AtaPacketDevice::read(void* data, size_t amount, size_t offset) {
         }
     }
     // the device is going to send us one last interrupt
-    waitForInterrupt();
+    //waitForInterrupt();
 
     return (wordcount < amount ? wordcount : amount);
 }

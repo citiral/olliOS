@@ -25,12 +25,12 @@ int main(int argc, char **argv)
     int read = 1;
     int written = 0;
 
-    printf("openened.\n");
+    if (test == NULL) {
+        return -1;
+    }
 
     do {
-        printf("readning test: %X\n", *test);
         read = fread(buffer, 1, sizeof(buffer), test);
-        printf("DOEN\n");
         written = 0;
         if (read > 0) {
             while (written + 1 < read) {

@@ -58,13 +58,13 @@ token get_next_token(void)
             return SEMICOLON;
         } else if (c == ' ' || c == '\t') {
             continue;
-        } else if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '\\') {
+        } else if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '\\' || c == '/') {
             while (1) {
                 if (c == '\\') {
                     c = next_char();
                     token_buffer[i] = c;
                     i++;
-                } else if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')) {
+                } else if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '/') {
                     token_buffer[i] = c;
                     i++;
                 } else {
@@ -72,7 +72,7 @@ token get_next_token(void)
                 }
 
                 c = look_ahead();
-                if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '\\')) {
+                if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '\\' || c == '/')) {
                     return STRING;
                 } else {
                     c = next_char();
