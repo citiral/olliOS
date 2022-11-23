@@ -13,7 +13,9 @@ T readType(u8* descriptor, size_t offset) {
     return *(T*)(descriptor + offset);
 }
 
-Iso9660FileSystem::Iso9660FileSystem(fs::File* dev) {
+Iso9660FileSystem::Iso9660FileSystem(fs::File* dev, size_t offset, size_t length):
+    _offset(offset),
+    _length(length) {
     _dev = dev->open();
     loadVolumeDescriptors();
 }
@@ -27,7 +29,7 @@ Iso9660FileSystem::~Iso9660FileSystem() {
 
 void Iso9660FileSystem::loadVolumeDescriptors() {
     // keep reading new descriptors
-    size_t offset = 0x10 * SIZEOF_KB * 2;
+    size_t offset = 0x10 * SIZEOF_KB * 2 - _offset;
 
     while (true) {
         u8* descriptor = new u8[2048];
@@ -69,16 +71,16 @@ Iso9660File* Iso9660FileSystem::createRoot() {
 
 u8* Iso9660FileSystem::readExtend(u32 lba, u32 length) {
     u8* extend = new u8[length];
-    _dev->read(extend, length, lba * SIZEOF_KB  * 2);
+    _dev->read(extend, length, lba * SIZEOF_KB  * 2 - _offset);
     return extend;
 }
 
 void Iso9660FileSystem::readExtend(u8* buffer, u32 lba, u32 length) {
-    _dev->read(buffer, length, lba * SIZEOF_KB  * 2);
+    _dev->read(buffer, length, lba * SIZEOF_KB  * 2 - _offset);
 }
 
 size_t Iso9660FileSystem::readRaw(u8* buffer, u32 offset, u32 length) {
-    return _dev->read(buffer, length, offset);
+    return _dev->read(buffer, length, offset - _offset);
 }
 
 

@@ -1,14 +1,35 @@
-#include "bindings.h"
+#include "file.h"
+#include "virtualfile.h"
+#include "filesystem.h"
+#include "types.h"
 #include <stdio.h>
 
-using namespace bindings;
+struct ChsAddress {
+    u8 head;
+    u8 sector;
+    u8 cylinder;
+} __attribute__((packed));
 
-void check_mbr(Binding* bind)
+struct PartitionTableEntry {
+    u8 attributes;
+    ChsAddress start;
+    u8 type;
+    ChsAddress end;
+    u32 startLba;
+    u32 sectorCount;
+} __attribute__((packed));
+
+void process_partition_table_entry(fs::File* file, PartitionTableEntry* entry) {
+}
+
+void check_mbr(fs::File* file)
 {
     u8 header[512];
 
     // Read the mbr header
-    bind->read(header, 512, 0);
+    fs::FileHandle* h = file->open();
+    h->read(header, 512, 0);
+    h->close();
 
     if (header[0x1BC] != 0 || header[0x1BD] != 0) {
         printf("Reserved not zero!\n");
@@ -20,14 +41,35 @@ void check_mbr(Binding* bind)
         return;
     }
 
-    printf("found mbr\n");
+    PartitionTableEntry* partitions = (PartitionTableEntry*)(header+0x1BE);
+    for (int i = 0 ; i < 4 ; i++) {
+        PartitionTableEntry* entry = &partitions[i];
+        
+        int active = (entry->attributes & 0x80) > 0;
+
+        if (active) {
+
+            if (entry->type == 0xCD) {
+                printf("Found iso\n");
+                char partname[64];
+                sprintf(partname, "%s_%d", file->get_name(), i+1);
+                auto partition = new fs::FileView(partname, file, entry->startLba*512, entry->sectorCount*512);
+                fs::root->get("dev")->bind(partition);
+                fs::registry->create_filesystem("ISO9660", partition, entry->startLba*512, entry->sectorCount*512);
+            }
+        }
+    }
 }
 
-extern "C" void module_load(Binding* root, const char* argv)
+extern "C" void module_load(fs::File* root, const char* argv)
 {
-    root->get("dev")->enumerate([](Binding* parent, Binding* child) {
-        printf("Device %s found\n", child->name.c_str());
+    fs::File* dev = root->get("dev");
+	fs::FileHandle* desc = dev->open();
+	
+	fs::File* child = nullptr;
+
+	while ((child = desc->next_child()) != nullptr) {
+		printf("Device %s found\n", child->get_name());
         check_mbr(child);
-        return true;
-    }, true);
+	}
 }

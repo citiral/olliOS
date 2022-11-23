@@ -9,7 +9,7 @@ class Iso9660File;
 
 class Iso9660FileSystem {
 public:
-    Iso9660FileSystem(fs::File* dev);
+    Iso9660FileSystem(fs::File* dev, size_t offset, size_t length);
     ~Iso9660FileSystem();
     Iso9660File* createRoot();
 
@@ -19,6 +19,8 @@ public:
 private:
     void loadVolumeDescriptors();
 
+    size_t _offset;
+    size_t _length;
     fs::FileHandle* _dev;
     std::vector<u8*> _descriptors;
     u8* _primarydescriptor;

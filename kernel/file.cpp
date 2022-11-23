@@ -1,4 +1,5 @@
 #include "file.h"
+#include "filesystem.h"
 #include "virtualfile.h"
 
 using namespace fs;
@@ -11,6 +12,7 @@ void FileHandle::close() {
 
 void fs::init() {
     root = new VirtualFolder("");
+    registry = new Registry();
 }
 
 File* _get(File* f, const char* name)

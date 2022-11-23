@@ -43,7 +43,8 @@
         "condition_variable": "cpp",
         "memory": "cpp",
         "mutex": "cpp",
-        "sstream": "cpp"
+        "sstream": "cpp",
+        "*.inc": "cpp"
     },
     "C_Cpp.default.systemIncludePath": ["kernel/", "apps/*", "libs/*", "newlib/newlib/libc/include/"]
 }

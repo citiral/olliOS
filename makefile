@@ -14,8 +14,8 @@ INCLUDE = -I $(ROOT)usr/include -I $(ROOT)usr/include/libk -I $(ROOT)include
 CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -nostdlib -fno-threadsafe-statics -Werror=return-type -mgeneral-regs-only  -m32 -MD
 LDFLAGS = -ffreestanding -O2 -nostdlib -lgcc
 
-MODULES = keyboard kernelshell pci ata iso9660 sysint init #mbr ramfs
-APPS = hello_world echo cat shell tee ls count
+MODULES = keyboard kernelshell pci ata iso9660 sysint init mbr #ramfs
+APPS = hello_world echo cat shell tee ls count intro
 
 KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/*/*.cpp)
 KERNEL_C = $(wildcard kernel/libk/*/*.c)
