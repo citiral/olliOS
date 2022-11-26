@@ -2,6 +2,9 @@
 #include "cpu/io.h"
 #include "stdio.h"
 #include "cdefs.h"
+#include "interfacefile.h"
+#include "memory/physical.h"
+#include "memory/virtual.h"
 
 static i16* VGA_POINTER = (i16*)0x000B8000;
 
@@ -34,7 +37,7 @@ void VgaHandle::reset_child_iterator()
 {
 }
 
-VgaDriver::VgaDriver():
+VgaDriver::VgaDriver(multiboot_info_t* info):
 	_column(0),
 	_row(0),
 	_foregroundColor(VgaColor::LightGrey),
@@ -42,6 +45,17 @@ VgaDriver::VgaDriver():
 	_blinking(false),
 	_vgapointer(VGA_POINTER)
 {
+	/*memory::physicalMemoryManager.reservePhysicalMemory((void*)info->framebuffer_addr, info->framebuffer_pitch * info->framebuffer_width);
+	
+	size_t fbSize = info->framebuffer_pitch * info->framebuffer_height;
+
+	for (int x = 0 ; x < fbSize ; x += 4096) {
+		char* virt = (char*)memory::kernelPageDirectory.bindPhysicalPage(((char*)info->framebuffer_addr) + x, memory::UserMode::Supervisor);
+		for (unsigned int i = 0 ; i < 4096 ; i++) {
+			virt[i] = i;
+		}
+	}*/
+
 	//to please the user, the driver is started with a clear screen
 	for (int i = 0 ; i < 500 ; i++)
 		write("    ");
@@ -53,6 +67,43 @@ VgaDriver::VgaDriver():
  
 	outb(0x3D4, 0x0B);
 	outb(0x3D5, (inb(0x3D5) & 0xE0) | 15);
+
+    auto vga = fs::root->get("sys")->create("vga", FILE_CREATE_DIR);
+
+	vga->bind(fs::InterfaceFile::read_only_data<u32>("width", VGA_WIDTH));
+	vga->bind(fs::InterfaceFile::read_only_data<u32>("height", VGA_HEIGHT));
+
+	
+	vga->bind(fs::InterfaceFile::read_write_data<i8, VgaDriver>("foreground", this, [](VgaDriver* driver) ->  i8 {
+		return (i8) driver->_foregroundColor;
+	}, [](VgaDriver* driver, i8 color) {
+		printf("setting foreground\n");
+		driver->_foregroundColor = (VgaColor)color;
+	}));
+	
+	vga->bind(fs::InterfaceFile::read_write_data<i8, VgaDriver>("background", this, [](VgaDriver* driver) ->  i8 {
+		return (i8) driver->_backgroundColor;
+	}, [](VgaDriver* driver, i8 color) {
+		driver->_backgroundColor = (VgaColor)color;
+	}));
+	
+	vga->bind(fs::InterfaceFile::read_write_data<i8, VgaDriver>("blinking", this, [](VgaDriver* driver) ->  i8 {
+		return (i8) driver->_blinking;
+	}, [](VgaDriver* driver, i8 color) {
+		driver->_blinking = (bool)color;
+	}));
+	
+	vga->bind(fs::InterfaceFile::read_write_data<u16, VgaDriver>("column", this, [](VgaDriver* driver) ->  u16 {
+		return (u16) driver->_column;
+	}, [](VgaDriver* driver, u16 column) {
+		driver->_column = column;
+	}));
+	
+	vga->bind(fs::InterfaceFile::read_write_data<u16, VgaDriver>("row", this, [](VgaDriver* driver) ->  u16 {
+		return (u16) driver->_row;
+	}, [](VgaDriver* driver, u16 row) {
+		driver->_row = row;
+	}));
 }
 
 VgaDriver::~VgaDriver()

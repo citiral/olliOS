@@ -1,6 +1,5 @@
 #include "inputformatter.h"
 #include "keyboard/keyboard.h"
-#include "bindings.h"
 #include "stdio.h"
 #include "string.h"
 

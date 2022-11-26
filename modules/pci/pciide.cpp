@@ -1,5 +1,4 @@
 #include "pciide.h"
-#include "bindings.h"
 
 PCIIDE::PCIIDE(fs::File* root, u8 bus, u8 dev, u8 func) : PCIDevice(root, bus, dev, func) {
 }

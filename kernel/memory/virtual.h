@@ -84,6 +84,9 @@ namespace memory {
 		// releases the given virtual 4kb space, deallocating the physical memory if it was allocated by bindVirtualPage or bindFirstFreeVirtualPage
 		void unbindVirtualPage(void* page);
 
+		// releases the given memory, rounded up to 4kb, deallocating the physical memory if it was allocated by bindVirtualPage or bindFirstFreeVirtualPage
+		void unbindVirtualPage(void* page, size_t length);
+
 		// maps the given 4kb space to the given physical address
 		void mapMemory(void* page, void* physical, UserMode userMode);
 		

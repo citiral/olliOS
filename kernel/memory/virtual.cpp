@@ -311,6 +311,12 @@ namespace memory {
 		invalidatePage(page);
 	}
 
+	void PageDirectory::unbindVirtualPage(void* page, size_t length) {
+		for (size_t i = 0 ; i < (length + 4095) ; i += 4096) {
+			unbindVirtualPage(((u8*)page) + i);
+		}
+	}
+
 	void PageDirectory::mapMemory(void* page, void* physical, UserMode userMode) {
 		// we get the indexes related to that page
 		int dirindex = (u32)page / 0x400000;

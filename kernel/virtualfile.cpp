@@ -47,8 +47,6 @@ i32 VirtualFileHandle::read(void* buffer, size_t size, size_t pos)
         size = _file->size - pos;
     }
 
-    return size;
-
     i32 read = 0;
 
     size_t chunk = pos / VIRTUAL_FILE_CHUNK_SIZE;
@@ -354,7 +352,6 @@ File* Stream::bind(File* child)
 
 ChunkedStreamHandle::ChunkedStreamHandle(ChunkedStream* stream): StreamHandle(stream)
 {
-    
 }
 
 i32 ChunkedStreamHandle::write(const void* buffer, size_t size, size_t pos)

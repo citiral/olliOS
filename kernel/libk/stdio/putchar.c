@@ -5,7 +5,7 @@ int putchar(int character)
 {
     if (stdout == NULL) {
         if (fs::root != NULL ) {
-            fs::File* vga = fs::root->get("sys/vga");
+            fs::File* vga = fs::root->get("dev/vga");
             if (vga) {
                 stdout = vga->open();
             }

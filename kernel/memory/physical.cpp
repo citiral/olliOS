@@ -60,6 +60,12 @@ namespace memory {
         _bitmap[index/8] &= ~(0b10000000 >> (index % 8));
     }
 
+    void PhysicalMemoryManager::freePhysicalMemory(void* memory, size_t length) {
+        for (size_t i = 0 ; i < (length + 0xFFF) ; i += 0x1000) {
+            freePhysicalMemory(((u8*)memory) + i);
+        }
+    }
+
     size_t PhysicalMemoryManager::countFreePhysicalMemory() {
         size_t count = 0;
         for (size_t index = 0; index < DEVICE_MAX_MEMORY / 0x1000; index++) {

@@ -8,7 +8,7 @@
 #include "threading/waiting_list.h"
 
 //#define VIRTUAL_FILE_SMALL_DATA_SIZE 8
-#define VIRTUAL_FILE_CHUNK_SIZE 128
+#define VIRTUAL_FILE_CHUNK_SIZE 512
 
 namespace fs {
 

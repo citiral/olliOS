@@ -207,7 +207,7 @@ void run(KernelShell* shell, std::vector<std::string>* args)
 		return;
 	}
 
-	fs::File* file = shell->working_directory->get(args->at(1).c_str());
+	fs::File* file = shell->working_directory->get(args->at(2).c_str());
 
 	if (file == NULL) {
 		printf("Invalid path: %s\n", args->at(1).c_str());
@@ -216,14 +216,16 @@ void run(KernelShell* shell, std::vector<std::string>* args)
 
 	shell->runningProcessStdin = new fs::Stream("stdin", 64);
 
+	fs::root->get("dev")->bind(shell->runningProcessStdin);
+
 	Process* p = new Process();
-	std::string wd = "/root/usr/bin";
+	std::string wd = args->at(1).c_str();
 	p->set_arguments(*args);
 	p->init(file, wd);
 
     p->open(shell->runningProcessStdin, 0, 0);
-    p->open("/sys/vga", 0, 0);
-    p->open("/sys/vga", 0, 0);
+    p->open("/dev/vga", 0, 0);
+    p->open("/dev/vga", 0, 0);
 
 	p->start();
 

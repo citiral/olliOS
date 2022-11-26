@@ -7,6 +7,7 @@
 #include "process.h"
 #include "cpu/util.h"
 
+//#define LOG
 
 extern "C" void sysint_handler(void);
 
@@ -23,11 +24,13 @@ extern "C" i32 sysint_handler_c(u32 eax, u32 ebx, u32 ecx, u32 edx, u32 esi)
 	u16 SS = 0;
 	u32 ESP = 0;
 
-    /*if (eax < sysint_count) {
+#ifdef LOG
+    if (eax < sysint_count) {
         printf("SYS: [%s]: %x %x %x %x -> ", sysint_names[eax], ebx, ecx, edx, esi);
     } else {
         printf("SYS: [%d]: %x %x %x %x -> ", eax, ebx, ecx, edx, esi);
-    }*/
+    }
+#endif
 
     if (eax == SYSINT_OPEN) {
         result = threading::currentThread()->process->open(reinterpret_cast<const char*>(ebx), reinterpret_cast<i32&>(ecx), reinterpret_cast<i32&>(edx));
@@ -72,7 +75,9 @@ extern "C" i32 sysint_handler_c(u32 eax, u32 ebx, u32 ecx, u32 edx, u32 esi)
         result = -1;
     }
 
-    //printf("%X\n", result);
+#ifdef LOG
+    printf("%X\n", result);
+#endif
 
     return result;
 }

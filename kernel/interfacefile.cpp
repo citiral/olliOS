@@ -32,7 +32,7 @@ size_t InterfaceFileHandle::get_size() {
     return 0;
 }
 
-fs::InterfaceFile::InterfaceFile(const std::string& name, SetValue setter, GetValue getter, void* context): name(name), setter(setter), getter(getter), context(context) {
+fs::InterfaceFile::InterfaceFile(const std::string& name, SetValue setter, GetValue getter, void* context, void* context2): name(name), setter(setter), getter(getter), context(context), context2(context2) {
 }
 
 InterfaceFile::~InterfaceFile() {

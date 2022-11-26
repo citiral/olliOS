@@ -1,6 +1,5 @@
 #include "types.h"
 #include "keyboard.h"
-#include "bindings.h"
 #include "file.h"
 #include "virtualfile.h"
 #include "threading/scheduler.h"
@@ -22,7 +21,7 @@ void KeyboardDriverThread(KeyboardDriver* driver, Stream* keyboard) {
 			if (read == 0) {
 				break;
 			}
-
+			
 			handle->write(&event, sizeof(event), 0);
 		}
 	}
@@ -35,7 +34,7 @@ extern "C" void module_load(File* root, const char* argv)
 
 	driver = new KeyboardDriver();
 	driver->init();
-	//driver->setScanCodeSet(SCANSET_2);
+	driver->setScanCodeSet(SCANSET_2);
 	//driver->setScanCodeTranslation(false);
 
 	threading::scheduler->schedule(new threading::Thread(nullptr, nullptr, KeyboardDriverThread, driver, keyboardStream));

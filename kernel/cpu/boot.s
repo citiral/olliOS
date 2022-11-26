@@ -23,7 +23,7 @@ header:
 .long 0
 .long 640
 .long 480
-.long 16
+.long 0
 
 # Declare constants used for creating a multiboot header.
 .set ALIGN,    1<<0             # align loaded modules on page boundaries

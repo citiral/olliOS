@@ -9,13 +9,14 @@ BUILD = build/
 ROOT = root/
 OUTPUT=ollios.bin
 ISO=ollios.iso
+INITFS=initfs.tar
 
 INCLUDE = -I $(ROOT)usr/include -I $(ROOT)usr/include/libk -I $(ROOT)include
 CCFLAGS = -D__is_kernel -std=gnu++11 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -nostdlib -fno-threadsafe-statics -Werror=return-type -mgeneral-regs-only  -m32 -MD
 LDFLAGS = -ffreestanding -O2 -nostdlib -lgcc
 
-MODULES = keyboard kernelshell pci ata iso9660 sysint init mbr #ramfs
-APPS = hello_world echo cat shell tee ls count intro
+MODULES = keyboard kernelshell pci ata iso9660 sysint init initfs mbr #ramfs
+APPS = hello_world echo cat shell tee ls count intro false true less clear init
 
 KERNEL_CPP = $(wildcard kernel/*.cpp) $(wildcard kernel/*/*.cpp)
 KERNEL_C = $(wildcard kernel/libk/*/*.c)
@@ -32,9 +33,9 @@ CRTEND_OBJ:=$(shell $(CC) $(CCFLAGS) -print-file-name=crtend.o)
 OBJECTS = $(addprefix $(BUILD), $(filter-out crti.o crtn.o, $(notdir $(KERNEL_CPP:.cpp=.o)) $(notdir $(KERNEL_C:.c=.o)) $(notdir $(KERNEL_ASM:.s=.o))  $(notdir $(KERNEL_NASM:.asm=.o))))
 DEPS = $(OBJECTS:.o=.d)
 
-.PHONY: all newlib compile-kernel clean dir install install-headers $(MODULES) $(LIBS) $(APPS)
+.PHONY: all newlib compile-kernel clean dir install install-headers $(addprefix mod_, $(MODULES)) $(addprefix app_, $(APPS))
 
-all: dir install-headers $(BUILD)$(OUTPUT) $(MODULES) $(LIBS) $(APPS) $(ISO)
+all: dir install-headers $(BUILD)$(OUTPUT) $(addprefix mod_, $(MODULES)) $(addprefix app_, $(APPS)) $(ISO)
 
 -include $(DEPS)
 
@@ -100,9 +101,11 @@ $(BUILD)%.o: kernel/**/**/%.asm
 	nasm -felf32 $< -o $@
 
 #$(ISO): install
+$(ROOT)boot/$(INITFS): $(addprefix $(ROOT)usr/include/, $(HEADERS:kernel/%=%)) $(ROOT)boot/$(OUTPUT) $(ROOT)boot/ollios.sym $(ROOT)boot/$(OUPUT) $(ROOT)boot/grub/grub.cfg $(MODULES:%=$(ROOT)boot/%.so) $(LIBS:%=$(ROOT)usr/lib/%.a) $(APPS:%=$(ROOT)usr/bin/%)
+	tar -C $(ROOT) -cf $(ROOT)boot/$(INITFS) usr include
 
 install-headers: $(addprefix $(ROOT)usr/include/, $(HEADERS:kernel/%=%))
-$(ISO): $(addprefix $(ROOT)usr/include/, $(HEADERS:kernel/%=%)) $(ROOT)boot/$(OUTPUT) $(ROOT)boot/ollios.sym $(ROOT)boot/$(OUPUT) $(ROOT)boot/grub/grub.cfg $(MODULES:%=$(ROOT)boot/%.so) $(LIBS:%=$(ROOT)usr/lib/%.a) $(APPS:%=$(ROOT)usr/bin/%)
+$(ISO): $(ROOT)boot/$(INITFS) $(addprefix $(ROOT)usr/include/, $(HEADERS:kernel/%=%)) $(ROOT)boot/$(OUTPUT) $(ROOT)boot/ollios.sym $(ROOT)boot/$(OUPUT) $(ROOT)boot/grub/grub.cfg $(MODULES:%=$(ROOT)boot/%.so) $(LIBS:%=$(ROOT)usr/lib/%.a) $(APPS:%=$(ROOT)usr/bin/%)
 	grub-mkrescue root -o ollios.iso
 
 
@@ -122,16 +125,13 @@ $(ROOT)boot/grub/%: grub/%
 
 
 #compile modules
-$(MODULES):
-	make -C modules MODULE=$@ all
+$(addprefix mod_, $(MODULES)):
+	make -C modules MODULE=$(subst mod_,,$@) all
 
 #compile apps
-$(APPS):
-	make -C apps APP=$@ all
+$(addprefix app_, $(APPS)):
+	make -C apps APP=$(subst app_,,$@) all
 
-#compile libs
-$(LIBS):
-	make -C libs LIB=$@ all
 
 $(ROOT)boot/%.so: $(BUILD)%.so
 	cp $^ $@

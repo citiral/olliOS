@@ -277,7 +277,7 @@ u8 KeyboardDriver::getScanCodeSet(){
 }
 
 void KeyboardDriver::setScanCodeSet(u8 scanset) {
-	u8 current = getScanCodeSet();
+	u8 current = getScanCodeSet();	
 	printf("current scancodeset: %d\n", current);
 	
 	_ignoreInterrupts = true;

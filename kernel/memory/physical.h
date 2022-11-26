@@ -16,6 +16,7 @@ namespace memory {
         // This can be used to allocate something on a specific boundary
         void* allocatePhysicalMemory(size_t reverseMask);
         void freePhysicalMemory(void* memory);
+        void freePhysicalMemory(void* memory, size_t length);
         size_t countFreePhysicalMemory();
 
 

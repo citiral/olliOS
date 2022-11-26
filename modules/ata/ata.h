@@ -9,7 +9,6 @@
 #include "atachannel.h"
 #include "threading/mutex.h"
 #include "types.h"
-#include "bindings.h"
 #include "file.h"
 
 #define PORT_DEFAULT_PRIMARY	0x1F0

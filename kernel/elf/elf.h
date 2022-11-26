@@ -1,7 +1,6 @@
 #ifndef __ELF_H
 #define __ELF_H
 
-#include "bindings.h"
 #include "types.h"
 #include "symbolmap.h"
 #include "kstd/unordered_map.h"

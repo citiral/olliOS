@@ -13,6 +13,9 @@ typedef enum token_t {
     PIPE,
     SEMICOLON,
     EOL,
+    SUBPROCESS,
+    AND,
+    OR,
 } token;
 
 char token_buffer[CMD_BUF_LENGTH];
@@ -51,7 +54,9 @@ token get_next_token(void)
         char c = next_char();
 
         if (c == '|') {
-            return PIPE;
+            return look_ahead() == '|' ? OR : PIPE;
+        } else if (c == '&') {
+            return look_ahead() == '&' ? AND : SUBPROCESS;
         } else if (c == '\n') {
             return EOL;
         } else if (c == ';') {
@@ -118,6 +123,10 @@ void free_argument_buffer(void)
 
 int run_command(int pipein)
 {
+    if (strcmp(argument_buffer[0], "exit") == 0) {
+        exit(0);
+    }
+
     int pid = fork();
     if (pid == 0) {
         // if there is a pipe supplied, use that as stdin
@@ -131,7 +140,27 @@ int run_command(int pipein)
         }
         int status;
         while (wait(&status) != pid);
-        return 0;
+        return status;
+    }
+}
+
+void run_command_no_wait(int pipein)
+{
+    if (strcmp(argument_buffer[0], "exit") == 0) {
+        exit(0);
+    }
+
+    int pid = fork();
+    if (pid == 0) {
+        // if there is a pipe supplied, use that as stdin
+        if (pipein > 0) {
+            dup2(pipein, 0);
+        }
+        execve(argument_buffer[0], argument_buffer + 1, NULL);
+    } else {
+        if (pipein > 0) {
+            close(pipein);
+        }
     }
 }
 
@@ -196,6 +225,24 @@ int do_next_command(void)
             status = run_command(pipe);
             pipe = 0;
             free_argument_buffer();
+        } else if (next_token == SUBPROCESS) {
+            run_command_no_wait(pipe);
+            pipe = 0;
+            free_argument_buffer();
+        } else if (next_token == AND) {
+            if (status == 0) {
+                status = run_command(pipe);
+                pipe = 0;
+            }
+            free_argument_buffer();
+        } else if (next_token == OR) {
+            int status2 = run_command(pipe);
+            pipe = 0;
+            free_argument_buffer();
+
+            if (status == 0) {
+                status = status2;
+            }
         }
     }
 
@@ -225,6 +272,7 @@ int main(int argc, char** argv)
     while (1) {
         print_prompt();
         int status = do_next_command();
-        printf("%d\n", status);
+        if (status != 0)
+            printf("%d\n", status);
     }
 }

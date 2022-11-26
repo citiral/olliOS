@@ -28,7 +28,6 @@
 
 #include "file.h"
 #include "virtualfile.h"
-#include "bindings.h"
 #include "threading/semaphore.h"
 
 VgaDriver* vgaDriver = nullptr;
@@ -50,10 +49,6 @@ void initCpu() {
 	IdtFlush();
 	IdtRegisterInterrupts();
     LOG_STARTUP("IDT initialized.");
-
-    // Initialize the TSS (needed for system calls)
-	//initialize_tss(0x10, 0x28);
-    //LOG_STARTUP("TSS initialized.");
 
     // Program the PIC so interrupts make sense (0-32 is reserved for intel, ...)
 	PicInit();
@@ -110,12 +105,15 @@ void initMemory(multiboot_info* multiboot) {
     // make sure the memory of the other modules isn't overwritten
     multiboot_module_t *mod = (multiboot_module_t*) multiboot->mods_addr;
     for (multiboot_uint32_t i = 0 ; i < multiboot->mods_count ; i++) {
-        memory::physicalMemoryManager.reservePhysicalMemory((void*) mod->mod_start, mod->mod_end - mod->mod_start);
-        mod++;
+        memory::physicalMemoryManager.reservePhysicalMemory((void*) mod[i].mod_start, mod[i].mod_end - mod[i].mod_start);
     }
 
     // Now that we can allocate physical memory, initialize the paging. This should set up a valid not 4MB pagetable, with only the KERNEL_BEGIN_PHYSICAL to KERNEL_END_PHYSICAL mapped to the higher half, and nothing more.
     memory::initializePaging();
+    for (multiboot_uint32_t i = 0 ; i < multiboot->mods_count ; i++) {
+        memory::kernelPageDirectory.mapMemory((void*) mod[i].mod_start, (void*) mod[i].mod_start, mod[i].mod_end - mod[i].mod_start, memory::UserMode::Supervisor);
+    }
+
     LOG_STARTUP("Paging initialized.");
 }
 
@@ -143,37 +141,10 @@ void cpu_main() {
     }
 }
 
-void print_tree(fs::File* f, int depth)
-{
-    fs::File* child;
-    for (int i = 0 ; i < depth ; i++) {
-        printf(" ");
-    }
-
-    printf("%s", f->get_name());
-    fs::FileHandle* handle = f->open();
-
-    if (handle->get_size() == 0) {
-        printf("\n");
-    } else {
-        char data;
-        size_t offset = 0;
-        printf(": ");
-        while (handle->read(&data, 1, offset) > 0) {
-            printf("%c", data);
-            offset++;
-        }
-        printf("\n");
-    }
-
-    while ((child = handle->next_child()) != NULL) {
-        print_tree(child, depth + 1);
-    }
-
-    handle->close();
-}
-
 extern "C" void main(multiboot_info* multiboot) {
+    // Store the multiboot header so it's accessible globally
+    multiboot::instance = multiboot;
+
     // init lowlevel CPU related stuff
     // None of these should be allowed to touch the memory allocator, etc
 	initCpu();
@@ -200,8 +171,8 @@ extern "C" void main(multiboot_info* multiboot) {
     idt.getEntry(INT_PREEMPT).setOffset((u32)thread_interrupt);
     threading::scheduler = new threading::Scheduler();
 
-    vgaDriver = new VgaDriver();
-    fs::root->get("sys")->bind(vgaDriver);
+    vgaDriver = new VgaDriver(multiboot);
+    fs::root->get("dev")->bind(vgaDriver);
 
     printf("Flags: %X\n", multiboot->flags);
     printf("mods count: %d\n", multiboot->mods_count);
@@ -209,26 +180,25 @@ extern "C" void main(multiboot_info* multiboot) {
     multiboot_module_t *mod = (multiboot_module_t*) multiboot->mods_addr;
     
     printf("elf: %d\n", multiboot->u.elf_sec.size);
-    symbolMap = new SymbolMap((const char*) mod->mod_start);
+    symbolMap = new SymbolMap((const char*) mod[0].mod_start);
     printf("symbol map build.\n");
 
     // if APIC is supported, switch to it and enable multicore
     cpuid_field features = cpuid(1);
     if ((features.edx & (int)cpuid_feature::EDX_APIC) != 0) {
         LOG_STARTUP("Initializing APIC.");
-        apic::Init();
+        apic::Init();   
         //apic::StartAllCpus(&cpu_main);
     } else {
         LOG_STARTUP("APIC not supported, skipping. (Threading will not be supported)");
     }
-    mod++;
 
     printf("Found %d modules\n", multiboot->mods_count);
-    for (multiboot_uint32_t i = 1 ; i < multiboot->mods_count ; i++) {
-        printf("loading module %d at 0x%X\n", i, mod->mod_start);
-        u8* c = (u8*) mod->mod_start;
-        u8* data = new u8[mod->mod_end - mod->mod_start];
-        memcpy(data, c, mod->mod_end - mod->mod_start);
+    for (multiboot_uint32_t i = 2 ; i < multiboot->mods_count ; i++) {
+        printf("loading module %d at 0x%X\n", i, mod[i].mod_start);
+        u8* c = (u8*) (mod[i].mod_start);
+        u8* data = new u8[mod[i].mod_end - mod[i].mod_start];
+        memcpy(data, c, mod[i].mod_end - mod[i].mod_start);
 
         elf::elf* e = new elf::elf(data, true);
         if (e == nullptr) {
@@ -241,23 +211,12 @@ extern "C" void main(multiboot_info* multiboot) {
         } else {
             void (*module_load)(fs::File*, const char*);
             e->get_symbol_value("module_load", (u32*) &module_load);
-            module_load(fs::root, (const char*) mod->cmdline);
+            module_load(fs::root, (const char*) mod[i].cmdline);
         }
 
-        mod++;
+        //memory::kernelPageDirectory.unbindVirtualPage((void*) mod[i].mod_start, mod[i].mod_end - mod[i].mod_start);
+        //memory::physicalMemoryManager.freePhysicalMemory((void*) mod[i].mod_start, mod[i].mod_end - mod[i].mod_start);
     }
-
-    //printf("grub Video info:\ncontrol: %x\nmode_info: %x\nmode: %x\ninterface_seg: %x\ninterface_off: %x\ninterface_len: %x\n", multiboot->vbe_control_info, multiboot->vbe_mode_info, multiboot->vbe_mode, multiboot->vbe_interface_seg, multiboot->vbe_interface_off, multiboot->vbe_interface_len);
-    //printf("flags: %x\n", multiboot->flags);
-
-    /*fs::File* one = fs::root->create("1", FILE_CREATE_DIR);
-    fs::File* test = one->create("test", 0);
-    fs::FileHandle* testhandle = test->open();
-    testhandle->close();
-    fs::root->create("2", FILE_CREATE_DIR);
-    fs::root->create("3", FILE_CREATE_DIR);
-
-    printf("f: %s\n", fs::root->get("1/test/.")->get_name());*/
 
     cpu_main();
 }

@@ -7,6 +7,7 @@
 #include "cpu/io.h"
 #include "ata.h"
 #include "atapacketdevice.h"
+#include "threading/thread.h"
 
 namespace ata {
 
@@ -117,7 +118,11 @@ size_t AtaPacketDevice::write(const void* data, size_t amount, size_t offset)
 void AtaPacketDevice::waitForBusy()
 {
     while (channel->read_u8(drive, AtaRegister::Status) & BIT_STATUS_BSY) {
-	    asm volatile ("pause");
+        if (!threading::is_current_core_in_thread()) {
+            threading::exit();
+        } else {
+	        asm volatile ("pause");
+        }
     }
 }
 
@@ -125,7 +130,11 @@ bool AtaPacketDevice::waitForDataOrError()
 {
     u8 status;
     while ((status = (channel->read_u8(drive, AtaRegister::Status)) & (BIT_STATUS_ERR | BIT_STATUS_DRQ)) == 0) {
-	    asm volatile ("pause");
+        if (!threading::is_current_core_in_thread()) {
+            threading::exit();
+        } else {
+	        asm volatile ("pause");
+        }
     }
 
     return (status & BIT_STATUS_DRQ) && !(status & BIT_STATUS_ERR);
@@ -134,7 +143,11 @@ bool AtaPacketDevice::waitForDataOrError()
 void AtaPacketDevice::waitForInterrupt()
 {
     while (!channel->interrupted) {
-	    asm volatile ("pause");
+        if (!threading::is_current_core_in_thread()) {
+            threading::exit();
+        } else {
+	        asm volatile ("pause");
+        }
     }
     channel->interrupted = false;
 }

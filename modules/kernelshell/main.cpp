@@ -16,9 +16,6 @@ void test() {
 }
 
 void ShellThread(FileHandle* keyboard) {
-    shell->runCommand("cd root/usr/bin");
-	shell->runCommand("run shell");
-
     while (1) {
         VirtualKeyEvent key;
         i32 ret;

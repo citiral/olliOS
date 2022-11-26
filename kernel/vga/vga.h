@@ -3,6 +3,7 @@
 
 #include "types.h"
 #include "file.h"
+#include "multiboot.h"
 
 #define VGA_WIDTH 80
 #define VGA_HEIGHT 25
@@ -29,7 +30,7 @@ enum class VgaColor: i8 {
 class VgaDriver : public fs::File {
 public:
 
-	VgaDriver();
+	VgaDriver(multiboot_info_t* info);
 	virtual ~VgaDriver();
 
     fs::FileHandle* open();

@@ -9,9 +9,9 @@ ROOT = ../root/
 BUILD = ../build/
 OUTDIR = $(BUILD)program/$(APP)/
 
-INCLUDE = -I $(ROOT)include -I $(ROOT)usr/include/libk
-CCFLAGS = -D__is_kernel -O0 -Wall -Wextra -fno-exceptions $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -Werror=return-type -m32 -mgeneral-regs-only -MD --sysroot=$(ROOT)
-LDFLAGS =  -std=gnu++11 -Wall -Wextra -m32 -L$(ROOT)lib --sysroot=$(ROOT)
+INCLUDE = -I $(ROOT)include -I $(ROOT)usr/include/
+CCFLAGS = -D__is_kernel -O2 -Wall -Wextra -fno-exceptions $(INCLUDE) -Wno-write-strings --sysroot=$(ROOT) -Werror=return-type -m32 -mgeneral-regs-only -MD --sysroot=$(ROOT)
+LDFLAGS =  -std=gnu++11 -Wall -Wextra -O2 -m32 -L$(ROOT)lib --sysroot=$(ROOT)
 
 
 APP_CPP = $(wildcard $(APP)/*.cpp)

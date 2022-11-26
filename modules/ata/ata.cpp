@@ -13,8 +13,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-using namespace bindings;
-
 extern "C" void intHandlerAta1_asm();
 extern "C" void intHandlerAta2_asm();
 
