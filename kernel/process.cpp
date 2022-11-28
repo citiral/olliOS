@@ -218,6 +218,8 @@ i32 Process::open(const char* name, i32 flags, i32 mode)
 
 i32 Process::open(fs::File* f, i32 flags, i32 mode)
 {
+    UNUSED(flags);
+    UNUSED(mode);
     if (f == 0) {
         return -1;
     }
@@ -402,6 +404,7 @@ i32 Process::wait(i32* status)
 
 i32 Process::isatty(i32 file)
 {
+    UNUSED(file);
     return 1;
 }
 
@@ -425,6 +428,8 @@ i32 Process::lseek(i32 file, i32 ptr, i32 dir)
 
 i32 Process::fstat(i32 file, struct stat* st)
 {
+    UNUSED(file);
+    UNUSED(st);
     return 1;
 }
 
@@ -540,7 +545,7 @@ i32 Process::readdir(i32 filedes, struct dirent* dirent)
 
 char* Process::getwd(char* buf, size_t size)
 {
-    int length = _workingDirectory.length();
+    size_t length = _workingDirectory.length();
 
     if (length >= size) {
         return NULL;   

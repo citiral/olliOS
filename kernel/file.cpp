@@ -68,7 +68,8 @@ File* _get(File* f, const char* name)
                         break;
                     }
                 }
-            } while (subname[i] == child_name[i++]);
+                i++;
+            } while (subname[i-1] == child_name[i-1]);
         }
 
         handle->close();

@@ -9,7 +9,6 @@ using namespace fs;
 using namespace keyboard;
 
 void KeyboardDriverThread(KeyboardDriver* driver, Stream* keyboard) {
-	static bool first = true;
 	FileHandle* handle = keyboard->open();
 	while (1) {
 		driver->dataMutex.lock();
@@ -29,8 +28,10 @@ void KeyboardDriverThread(KeyboardDriver* driver, Stream* keyboard) {
 
 extern "C" void module_load(File* root, const char* argv)
 {
+	UNUSED(argv);
+
 	Stream* keyboardStream = new ChunkedStream("keyboard", sizeof(VirtualKeyEvent) * 128, sizeof(VirtualKeyEvent));
-    File* keyboard = root->get("sys")->bind(keyboardStream);
+    root->get("sys")->bind(keyboardStream);
 
 	driver = new KeyboardDriver();
 	driver->init();

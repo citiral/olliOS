@@ -309,7 +309,7 @@ size_t StreamHandle::get_size()
 }
 
 
-Stream::Stream(std::string name, size_t size): name(name), size(size), waitingRead(), waitingWrite(), closed(0), m()
+Stream::Stream(std::string name, size_t size): name(name), size(size), closed(0), waitingRead(), waitingWrite(), m()
 {
     if (size <= 1) {
         size = 2;
