@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdint.h>
 #include <stdarg.h>
 
 typedef enum printf_mode {
@@ -11,6 +12,7 @@ typedef struct {
     int width;
     int precision;
     int has_precision;
+    int is_long;
     int parsing_cmd;
     char* target;
     int written;
@@ -53,6 +55,29 @@ static void printUnsigned(printf_config* p, unsigned int num)
     }
 }
 
+static void printUnsignedLong(printf_config* p, uint64_t num)
+{
+    char c[20];
+    size_t i = 0;
+
+    //get the characters
+    do {
+        c[i] = '0' + (num % 10);
+        i++;
+        num /= 10;
+    } while(num > 0);
+
+    //print em out.
+    for (int k = i ; k < p->precision ; k++) {
+        write(p, '0');
+    }
+
+    while (i > 0) {
+        i--;
+        write(p, c[i]);
+    }
+}
+
 static void printSigned(printf_config* p, int num)
 {
     //print the sign, if needed
@@ -64,9 +89,45 @@ static void printSigned(printf_config* p, int num)
     }
 }
 
+static void printSignedLong(printf_config* p, int64_t num)
+{
+    //print the sign, if needed
+    if (num < 0) {
+        write(p, '-');
+        printUnsignedLong(p, -num);
+    } else {
+        printUnsignedLong(p, num);
+    }
+}
+
 static void printHexLower(printf_config* p, unsigned int num)
 {
     char c[8];
+    size_t i = 0;
+
+    //get the characters
+    do {
+        if ((num % 0x10) <= 0x9)
+            c[i] = '0' + (num % 0x10);
+        else
+            c[i] = 'a' + (num % 0x10) - 0xA;
+        i++;
+        num /= 0x10;
+    } while(num > 0);
+
+    //print em out.
+    for (int k = i ; k < p->precision ; k++) {
+        write(p, '0');
+    }
+    while (i > 0) {
+        i--;
+        write(p, c[i]);
+    }
+}
+
+static void printHexLowerLong(printf_config* p, uint64_t num)
+{
+    char c[16];
     size_t i = 0;
 
     //get the characters
@@ -114,6 +175,31 @@ static void printHexUpper(printf_config* p, unsigned int num)
     }
 }
 
+static void printHexUpperLong(printf_config* p, uint64_t num)
+{
+    char c[16];
+    size_t i = 0;
+
+    //get the characters
+    do {
+        if ((num % 0x10) <= 0x9)
+            c[i] = '0' + (num % 0x10);
+        else
+            c[i] = 'A' + (num % 0x10) - 0xA;
+        i++;
+		num /= 0x10;
+    } while(num > 0);
+
+    //print em out.
+    for (int k = i ; k < p->precision ; k++) {
+        write(p, '0');
+    }
+    while (i > 0) {
+        i--;
+        write(p, c[i]);
+    }
+}
+
 int _printf(printf_config* p, const char* format, va_list argp)
 {
     //initialisation
@@ -134,22 +220,26 @@ int _printf(printf_config* p, const char* format, va_list argp)
                     p->precision = -1;
                     p->has_precision = 0;
                     p->parsing_cmd = 1;
+                    p->is_long = 0;
+                    break;
+                case 'l':
+                    p->is_long = 1;
                     break;
                 case 'd':
                 case 'i':
-                    printSigned(p, va_arg(argp, int));
+                    p->is_long ? printSignedLong(p, va_arg(argp, int64_t)) : printSigned(p, va_arg(argp, int));
                     p->parsing_cmd = 0;
                     break;
                 case 'u':
-                    printUnsigned(p, va_arg(argp, unsigned int));
+                    p->is_long ? printUnsignedLong(p, va_arg(argp, uint64_t)) : printUnsigned(p, va_arg(argp, unsigned int));
                     p->parsing_cmd = 0;
                     break;
                 case 'x':
-                    printHexLower(p, va_arg(argp, unsigned int));
+                    p->is_long ? printHexLowerLong(p, va_arg(argp, uint64_t)) : printHexLower(p, va_arg(argp, unsigned int));
                     p->parsing_cmd = 0;
                     break;
                 case 'X':
-                    printHexUpper(p, va_arg(argp, unsigned int));
+                    p->is_long ? printHexUpperLong(p, va_arg(argp, uint64_t)) : printHexUpper(p, va_arg(argp, unsigned int));
                     p->parsing_cmd = 0;
                     break;
                 case 'c':

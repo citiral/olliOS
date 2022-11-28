@@ -14,6 +14,7 @@
 #include "cpu/io.h"
 #include "cpu/cpuid.h"
 #include "cpu/pit.h"
+#include "cpu/hpet.h"
 
 #include "memory/alloc.h"
 #include "memory/virtual.h"
@@ -176,9 +177,13 @@ extern "C" void main(multiboot_info* multiboot) {
 
     printf("Flags: %X\n", multiboot->flags);
     printf("mods count: %d\n", multiboot->mods_count);
-    vgaDriver->write("f");
     multiboot_module_t *mod = (multiboot_module_t*) multiboot->mods_addr;
     
+
+    if (!hpet::init()) {
+        printf("Failed initializing HPET.\n");
+    }
+
     printf("elf: %d\n", multiboot->u.elf_sec.size);
     symbolMap = new SymbolMap((const char*) mod[0].mod_start);
     printf("symbol map build.\n");
