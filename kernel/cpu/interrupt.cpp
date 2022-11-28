@@ -87,7 +87,7 @@ u16 IdtLimit()
 }
 
 extern "C" void c_interrupt_wrapper() {
-	CPU::panic("unknown interrupt!\n");
+	//CPU::panic("unknown interrupt!\n");
 	end_interrupt(0x20);
 }
 

@@ -143,7 +143,7 @@ namespace apic {
         for (int i = 0 ; i < 2 ; i++) {
             registers[APIC_TIMER_DIVIDE_REGISTER] = 0b1011;
             registers[APIC_TIMER_INITIAL_COUNT_REGISTER] = 0xFFFFFFFFu;
-            registers[APIC_LAPIC_TIMER_REGISTER] = (1 << 16) | INT_PREEMPT;
+            registers[APIC_LAPIC_TIMER_REGISTER] = (1 << 16) | INT_SPURIOUS;
 
             // Then we wait until the next second begins
             outb(0x70, 0x00);

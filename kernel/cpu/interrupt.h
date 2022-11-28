@@ -15,6 +15,8 @@
 #define INT_TIMER 32
 #define INT_KEYBOARD 33
 #define INT_PREEMPT 34
+#define INT_COM2	35
+#define INT_COM1	36
 #define INT_SPURIOUS 0xFF
 
 

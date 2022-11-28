@@ -56,3 +56,14 @@ popad
 iret
 
 
+extern intHandlerHpet
+global intHandlerHpet_asm
+align 4
+intHandlerHpet_asm:
+pushad
+pushfd
+cld
+call intHandlerHpet
+popfd
+popad
+iret

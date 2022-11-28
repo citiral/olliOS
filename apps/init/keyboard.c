@@ -27,7 +27,7 @@ bool keyevent_to_char(VirtualKeyEvent event, char* result) {
             *result = 'a' + key;
         }
     } else if (event.vkey == TAB) {
-        *result = '\t;';
+        *result = '\t';
     } else if (event.vkey == OPEN_SQUARE) {
         *result = event.status & 0b00000010 ? '{' : '[';
     } else if (event.vkey == CLOSE_SQUARE) {

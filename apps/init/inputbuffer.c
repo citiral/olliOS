@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #define LOG_CHUNK_SIZE 32
 
@@ -42,14 +43,14 @@ void add_char_to_log(InputBuffer* buffer, char c) {
         buffer->editBuffer[line_length + 1] = '\0';
         putchar(c);
     } else {
-        for (int i = line_length ; i > buffer->cursorPos ; i--) {
+        for (size_t i = line_length ; i > buffer->cursorPos ; i--) {
             buffer->editBuffer[i+1] = buffer->editBuffer[i];
         }
         buffer->editBuffer[buffer->cursorPos] = c;
-        for (int i = buffer->cursorPos ; i < line_length + 1 ; i++) {
+        for (size_t i = buffer->cursorPos ; i < line_length + 1 ; i++) {
             putchar(buffer->editBuffer[i]);
         }
-        for (int i = buffer->cursorPos ; i < line_length ; i++) {
+        for (size_t i = buffer->cursorPos ; i < line_length ; i++) {
             putchar('\b');
         }
     }
@@ -61,12 +62,12 @@ void handle_backspace(InputBuffer* buffer) {
     size_t line_length = strlen(buffer->editBuffer);
     if (buffer->cursorPos > 0) {
         putchar('\b');
-        for (int i = buffer->cursorPos ; i <= line_length ; i++) {
+        for (size_t i = buffer->cursorPos ; i <= line_length ; i++) {
             buffer->editBuffer[i-1] = buffer->editBuffer[i];
             putchar(buffer->editBuffer[i-1]);
         }
         
-        for (int i = buffer->cursorPos ; i <= line_length ; i++) {
+        for (size_t i = buffer->cursorPos ; i <= line_length ; i++) {
             putchar('\b');
         }
 
@@ -78,13 +79,13 @@ void handle_backspace(InputBuffer* buffer) {
 void handle_delete(InputBuffer* buffer) {
     size_t line_length = strlen(buffer->editBuffer);
     if (buffer->cursorPos < line_length) {
-        for (int i = buffer->cursorPos ; i < line_length ; i++) {
+        for (size_t i = buffer->cursorPos ; i < line_length ; i++) {
             buffer->editBuffer[i] = buffer->editBuffer[i+1];
             putchar(buffer->editBuffer[i]);
         }
         putchar(' ');
         
-        for (int i = buffer->cursorPos ; i <= line_length ; i++) {
+        for (size_t i = buffer->cursorPos ; i <= line_length ; i++) {
             putchar('\b');
         }
     }
@@ -131,11 +132,11 @@ void switch_to_entry(InputBuffer* buffer, InputLogEntry* entry) {
     buffer->selected = entry;
 
     size_t length = strlen(buffer->editBuffer);
-    for (int i = buffer->cursorPos ; i < length ; i++) {
+    for (size_t i = buffer->cursorPos ; i < length ; i++) {
         putchar(buffer->editBuffer[i]);
     }
 
-    for (int i = 0 ; i < length ; i++) {
+    for (size_t i = 0 ; i < length ; i++) {
         printf("\b \b");
     }
 

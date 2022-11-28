@@ -130,7 +130,7 @@ void cpu_main() {
     tss::use_tss_at_index(index);
     threading::set_tss_pointer(tss);
 
-    apic::setSleep(INT_PREEMPT, 1024*1024*64, false);
+    apic::setSleep(INT_SPURIOUS, 1024*1024*64, false);
     
     while (true) {
         vgaDriver->setChar('!', VGA_WIDTH - 1, 0);
@@ -169,7 +169,7 @@ extern "C" void main(multiboot_info* multiboot) {
     acpi::init();
 
     //set up pre-emptive multithreading
-    idt.getEntry(INT_PREEMPT).setOffset((u32)thread_interrupt);
+    idt.getEntry(INT_SPURIOUS).setOffset((u32)thread_interrupt);
     threading::scheduler = new threading::Scheduler();
 
     vgaDriver = new VgaDriver(multiboot);
@@ -179,11 +179,6 @@ extern "C" void main(multiboot_info* multiboot) {
     printf("mods count: %d\n", multiboot->mods_count);
     multiboot_module_t *mod = (multiboot_module_t*) multiboot->mods_addr;
     
-
-    if (!hpet::init()) {
-        printf("Failed initializing HPET.\n");
-    }
-
     printf("elf: %d\n", multiboot->u.elf_sec.size);
     symbolMap = new SymbolMap((const char*) mod[0].mod_start);
     printf("symbol map build.\n");
@@ -197,6 +192,26 @@ extern "C" void main(multiboot_info* multiboot) {
     } else {
         LOG_STARTUP("APIC not supported, skipping. (Threading will not be supported)");
     }
+
+    if (!hpet::hpet.init()) {
+        printf("Failed initializing HPET.\n");
+    }
+
+    hpet::hpet.wait(4000000, [](void* ctx) {
+        printf("INT1!!\n");
+    }, nullptr);
+
+    hpet::hpet.wait(4500000, [](void* ctx) {
+        printf("INT2!!\n");
+    }, nullptr);
+
+    hpet::hpet.wait(3000000, [](void* ctx) {
+        printf("INT3!!\n");
+    }, nullptr);
+
+    hpet::hpet.wait(3000000, [](void* ctx) {
+        printf("INT4!!\n");
+    }, nullptr);
 
     printf("Found %d modules\n", multiboot->mods_count);
     for (multiboot_uint32_t i = 2 ; i < multiboot->mods_count ; i++) {
