@@ -58,7 +58,7 @@ bool Hpet::init()
 
     // Enable the first timer
     auto timer1 = readTimerConfiguration(0);
-    if (timer1.interruptRoutingCapability & 0x4 == 0) {
+    if ((timer1.interruptRoutingCapability & 0x4) == 0) {
         printf("Error, hpet timer does not support IRQ2");
         return false;
     }
@@ -81,9 +81,6 @@ bool Hpet::init()
     genConf.enabled = 1;
     genConf.legacyReplacementEnabled = 0;
     writeGeneralConfiguration(genConf);
-
-    uint64_t counter = readMainCounter();
-    //printf("tim: %lx, elapsed: %lx\n", counter, counter/frequency / 1000000000);
 
     return true;
 }
@@ -164,6 +161,8 @@ void Hpet::wait(uint64_t us, HpetCallback cb, void* ctx)
     }
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
 Hpet::GeneralCapabilities Hpet::readGeneralCapabilities()
 {
     uint64_t val = hpetRegisters[(size_t)HPETRegisterIndex::GeneralCapabilities];
@@ -246,6 +245,8 @@ void Hpet::writeTimerComparator(uint32_t timer, uint64_t val)
 {
     hpetRegisters[(size_t)HPETRegisterIndex::TimerComparator + 0x20/8*timer] = val;
 }
+#pragma GCC diagnostic pop
+
 
 void Hpet::printInfo()
 {
