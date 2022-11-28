@@ -1,11 +1,12 @@
 #include <stdio.h>
+#include <unistd.h>
 
 void count(unsigned int limit)
 {
     unsigned int i = 0;
     while (1) {
-        for (volatile int k = 0 ; k < 100000000 ; k++);
-        printf("%d\n", i);
+        sleep(1);
+        printf("%d\n", i+1);
         i++;
         if (i == limit) {
             break;

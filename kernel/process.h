@@ -77,6 +77,7 @@ public:
     i32 dup2(int filedes, int filedes2);
     i32 readdir(i32 filedes, struct dirent* dirent);
     char* getwd(char* buf, size_t size);
+    i32 usleep(u32 microseconds);
 
     i32 status_code;
     volatile ProcessState state;

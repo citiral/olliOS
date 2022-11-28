@@ -6,6 +6,7 @@
 #include "kstd/shared_ptr.h"
 #include "threading/thread.h"
 #include "virtualfile.h"
+#include "cpu/hpet.h"
 #include <string.h>
 
 extern "C" {
@@ -553,4 +554,19 @@ char* Process::getwd(char* buf, size_t size)
         strcpy(buf, _workingDirectory.c_str());
         return buf;
     }
+}
+
+
+i32 Process::usleep(u32 microseconds)
+{
+    thread->setBlocking(true);
+
+    hpet::hpet.wait<Process>(microseconds, [](Process* p) {
+        p->thread->setBlocking(false);
+        threading::scheduler->schedule(p->thread);
+    }, this);
+
+    threading::exit();
+
+    return 0;
 }

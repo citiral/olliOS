@@ -197,22 +197,6 @@ extern "C" void main(multiboot_info* multiboot) {
         printf("Failed initializing HPET.\n");
     }
 
-    hpet::hpet.wait(4000000, [](void* ctx) {
-        printf("INT1!!\n");
-    }, nullptr);
-
-    hpet::hpet.wait(4500000, [](void* ctx) {
-        printf("INT2!!\n");
-    }, nullptr);
-
-    hpet::hpet.wait(3000000, [](void* ctx) {
-        printf("INT3!!\n");
-    }, nullptr);
-
-    hpet::hpet.wait(3000000, [](void* ctx) {
-        printf("INT4!!\n");
-    }, nullptr);
-
     printf("Found %d modules\n", multiboot->mods_count);
     for (multiboot_uint32_t i = 2 ; i < multiboot->mods_count ; i++) {
         printf("loading module %d at 0x%X\n", i, mod[i].mod_start);

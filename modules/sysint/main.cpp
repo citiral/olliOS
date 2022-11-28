@@ -12,7 +12,7 @@
 extern "C" void sysint_handler(void);
 
 const char* sysint_names[] = {
-    "", "open", "close", "write", "read", "exit", "fork", "getpid", "execve", "wait", "isatty", "lseek", "fstat", "kill", "link", "sbrk", "times", "unlink", "pipe", "dup", "dup2", "readdir", "getwd"
+    "", "open", "close", "write", "read", "exit", "fork", "getpid", "execve", "wait", "isatty", "lseek", "fstat", "kill", "link", "sbrk", "times", "unlink", "pipe", "dup", "dup2", "readdir", "getwd", "usleep"
 };
 const int sysint_count = sizeof(sysint_names) / sizeof(sysint_names[0]);
 
@@ -70,6 +70,8 @@ extern "C" i32 sysint_handler_c(u32 eax, u32 ebx, u32 ecx, u32 edx, u32 esi)
     } else if (eax == SYSINT_GETWD) {
         char* val = threading::currentThread()->process->getwd(reinterpret_cast<char*>(ebx), reinterpret_cast<size_t&>(ecx));
         result = reinterpret_cast<i32>(val);
+    } else if (eax == SYSINT_USLEEP) {
+        result = threading::currentThread()->process->usleep(ebx);
     } else {
         printf("INVALID SYSCALL!\n");
         result = -1;

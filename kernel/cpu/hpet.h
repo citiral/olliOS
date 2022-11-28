@@ -24,6 +24,11 @@ namespace hpet {
         uint64_t get_elapsed_us();
         void wait(uint64_t us, HpetCallback cb, void* ctx);
 
+        template<class T>
+        void wait(uint64_t us, void (*cb)(T*), T* ctx){
+            wait(us, (HpetCallback)cb, (void*)ctx);
+        }
+
     private:
         struct GeneralCapabilities {
             uint64_t revision:8;
