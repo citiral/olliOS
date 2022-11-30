@@ -8,7 +8,7 @@
 #include "interfacefile.h"
 
 template<size_t BAR>
-int read_pci_bar(char* buffer, size_t length, void* context) {
+int read_pci_bar(char* buffer, size_t length, size_t pos, void* context) {
 	PCIDevice* device = (PCIDevice*) context;
 	u32 result;
 
@@ -63,7 +63,7 @@ PCIDevice::PCIDevice(fs::File* root, u8 bus, u8 dev, u8 func)
 	_file->bind(fs::InterfaceFile::read_only<sizeof(_programmingInterface)>("interface", &_programmingInterface));
 	_file->bind(fs::InterfaceFile::read_only<sizeof(_programmingInterface)>("pin", &_interruptPin));
 
-	_file->bind(new fs::InterfaceFile("name", nullptr, [](char* buffer, size_t length, void* context) {
+	_file->bind(new fs::InterfaceFile("name", nullptr, [](char* buffer, size_t length, size_t pos, void* context) {
 		const char* name = (const char*) context;
 
 		if (length == 0) {

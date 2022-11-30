@@ -43,8 +43,8 @@ void add_char_to_log(InputBuffer* buffer, char c) {
         buffer->editBuffer[line_length + 1] = '\0';
         putchar(c);
     } else {
-        for (size_t i = line_length ; i > buffer->cursorPos ; i--) {
-            buffer->editBuffer[i+1] = buffer->editBuffer[i];
+        for (size_t i = line_length + 1 ; i > buffer->cursorPos ; i--) {
+            buffer->editBuffer[i] = buffer->editBuffer[i-1];
         }
         buffer->editBuffer[buffer->cursorPos] = c;
         for (size_t i = buffer->cursorPos ; i < line_length + 1 ; i++) {
@@ -158,6 +158,20 @@ void process_event(InputBuffer* buffer, VirtualKeyEvent event) {
         {
             commit_input(buffer);
         }
+        else if (event.vkey == HOME)
+        {
+            while (buffer->cursorPos > 0) {
+                buffer->cursorPos--;
+                printf("\b");
+            }
+        }
+        else if (event.vkey == END)
+        {
+            while (buffer->cursorPos < strlen(buffer->editBuffer)) {
+                putchar(buffer->editBuffer[buffer->cursorPos]);
+                buffer->cursorPos++;
+            }
+        }
         else if (event.vkey == L_ARROW)
         {
             if (buffer->cursorPos > 0) {
@@ -193,7 +207,7 @@ void process_event(InputBuffer* buffer, VirtualKeyEvent event) {
             if (buffer->selected == NULL) {
                 switch_to_entry(buffer, buffer->log);
             } else {
-                switch_to_entry(buffer, buffer->selected->next);
+                switch_to_entry(buffer, buffer->selected->prev);
             }
         }
         else if (keyevent_to_char(event, &parsed))

@@ -8,14 +8,14 @@ InterfaceFileHandle::InterfaceFileHandle(InterfaceFile* file): _file(file), offs
 
 i32 InterfaceFileHandle::write(const void* buffer, size_t size, size_t pos) {
     if (pos == 0)
-        return _file->setter((const char*) buffer, size, _file->context);
+        return _file->setter((const char*) buffer, size, pos, _file->context);
     else
         return 0;
 }
 
 i32 InterfaceFileHandle::read(void* buffer, size_t size, size_t pos) {
     if (pos == 0)
-        return _file->getter((char*) buffer, size, _file->context);
+        return _file->getter((char*) buffer, size, pos, _file->context);
     else
         return 0;
 }

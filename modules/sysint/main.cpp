@@ -1,11 +1,15 @@
 
 #include "file.h"
+#include "process.h"
+#include "cpu/cmos.h"
+#include "cpu/util.h"
 #include "cpu/interrupt.h"
 #include "threading/thread.h"
-#include <sys/syscalls.h>
-#include <sys/dirent.h>
-#include "process.h"
-#include "cpu/util.h"
+extern "C" {
+    #include <time.h>
+    #include <sys/syscalls.h>
+    #include <sys/dirent.h>
+}
 
 //#define LOG
 
@@ -72,8 +76,18 @@ extern "C" i32 sysint_handler_c(u32 eax, u32 ebx, u32 ecx, u32 edx, u32 esi)
         result = reinterpret_cast<i32>(val);
     } else if (eax == SYSINT_USLEEP) {
         result = threading::currentThread()->process->usleep(ebx);
+    } else if (eax == SYSINT_GET_CMOS_UTC) {
+        cmos_time_t* ct = reinterpret_cast<cmos_time_t*>(ebx);
+        auto time = cmos::getCurrentTime();
+        ct->seconds = time.seconds;
+        ct->minutes = time.minutes;
+        ct->hours = time.hours;
+        ct->day = time.day;
+        ct->month = time.month;
+        ct->year = time.year;
+        result = 0;
     } else {
-        printf("INVALID SYSCALL!\n");
+        printf("INVALID SYSCALL: %d\n", eax);
         result = -1;
     }
 

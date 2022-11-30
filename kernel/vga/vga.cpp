@@ -77,7 +77,6 @@ VgaDriver::VgaDriver(multiboot_info_t* info):
 	vga->bind(fs::InterfaceFile::read_write_data<i8, VgaDriver>("foreground", this, [](VgaDriver* driver) ->  i8 {
 		return (i8) driver->_foregroundColor;
 	}, [](VgaDriver* driver, i8 color) {
-		printf("setting foreground\n");
 		driver->_foregroundColor = (VgaColor)color;
 	}));
 	
@@ -104,6 +103,30 @@ VgaDriver::VgaDriver(multiboot_info_t* info):
 	}, [](VgaDriver* driver, u16 row) {
 		driver->_row = row;
 	}));
+
+	auto rawAccess = new fs::InterfaceFile("framebuffer", [](const char* value, size_t length, size_t pos, void* context) {
+		VgaDriver* vga = (VgaDriver*) context;
+		if (pos + length > VGA_WIDTH * VGA_HEIGHT) {
+			length = (VGA_WIDTH * VGA_HEIGHT) - pos;
+		}
+		for (size_t i = 0 ; i < length ; i++) {
+			size_t x = (pos + i) % VGA_WIDTH;
+			size_t y = (pos + i) / VGA_WIDTH;
+			vga->setChar(value[i], x, y);
+		}
+		return (i32)length;
+	}, [](char* buffer, size_t length, size_t pos, void* context) {
+		VgaDriver* vga = (VgaDriver*) context;
+		if (pos + length > VGA_WIDTH * VGA_HEIGHT) {
+			length = (VGA_WIDTH * VGA_HEIGHT) - pos;
+		}
+		for (size_t i = 0 ; i < length ; i++) {
+			buffer[i] = vga->_vgapointer[pos + i] & 0xFF;
+		}
+		return (i32)length;
+	}, this, nullptr);
+
+	vga->bind(rawAccess);
 }
 
 VgaDriver::~VgaDriver()

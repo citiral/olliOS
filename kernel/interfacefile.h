@@ -39,8 +39,8 @@ namespace fs {
 
     class InterfaceFile : public File {
     public:
-        typedef i32 (*SetValue)(const char* value, size_t length, void* context);
-        typedef i32 (*GetValue)(char* buffer, size_t length, void* context);
+        typedef i32 (*SetValue)(const char* value, size_t length,  size_t pos, void* context);
+        typedef i32 (*GetValue)(char* buffer, size_t length, size_t pos, void* context);
 
         InterfaceFile(const std::string& name, SetValue setter, GetValue getter, void* context, void* context2 = nullptr);
         ~InterfaceFile();
@@ -60,13 +60,13 @@ namespace fs {
 
         template<size_t LENGTH>
         static InterfaceFile* read_only(const std::string& name, const void* data) {
-            return new InterfaceFile(name, [](const char* value, size_t length, void* context)->i32 {
+            return new InterfaceFile(name, [](const char* value, size_t length, size_t pos, void* context)->i32 {
                 (void) value;
                 (void) length;
                 (void) context;
 
                 return 0;
-            }, [](char* buffer, size_t length, void* context)->i32 {
+            }, [](char* buffer, size_t length, size_t pos, void* context)->i32 {
                 if (length < LENGTH) {
                     return 0;
                 } else {
@@ -77,13 +77,13 @@ namespace fs {
         }
 
         static InterfaceFile* read_only_string(const std::string& name, const char* data) {
-            return new InterfaceFile(name, [](const char* value, size_t length, void* context)->i32 {
+            return new InterfaceFile(name, [](const char* value, size_t length, size_t pos, void* context)->i32 {
                 (void) value;
                 (void) length;
                 (void) context;
 
                 return 0;
-            }, [](char* buffer, size_t length, void* context)->i32 {
+            }, [](char* buffer, size_t length, size_t pos, void* context)->i32 {
                 const char* str = (const char*) context;
                 size_t source_length = strlen(str);
                 if (length <= source_length) {
@@ -101,13 +101,13 @@ namespace fs {
             struct ReadOnlyDataContext<T>* context = new struct ReadOnlyDataContext<T>;
             context->data = data;
 
-            return new InterfaceFile(name, [](const char* value, size_t length, void* context)->i32 {
+            return new InterfaceFile(name, [](const char* value, size_t length, size_t pos, void* context)->i32 {
                 (void) value;
                 (void) length;
                 (void) context;
 
                 return 0;
-            }, [](char* buffer, size_t length, void* contextRaw)->i32 {
+            }, [](char* buffer, size_t length, size_t pos, void* contextRaw)->i32 {
                 struct ReadOnlyDataContext<T>* context = (ReadOnlyDataContext<T>*) contextRaw;
                 char data[12];
 
@@ -130,7 +130,7 @@ namespace fs {
             fileContext->setter = setter;
             fileContext->getter = getter;
 
-            return new InterfaceFile(name, [](const char* value, size_t length, void* rawContext)->i32 {
+            return new InterfaceFile(name, [](const char* value, size_t length, size_t pos, void* rawContext)->i32 {
                 struct ReadWriteDataContext<T, C>* context = (struct ReadWriteDataContext<T, C>*) rawContext;
                 T parsed = T();
 
@@ -170,7 +170,7 @@ namespace fs {
                 context->setter(context->context, parsed);
 
                 return length;
-            }, [](char* buffer, size_t length, void* rawContext)->i32 {
+            }, [](char* buffer, size_t length, size_t pos, void* rawContext)->i32 {
                 struct ReadWriteDataContext<T, C>* context = (struct ReadWriteDataContext<T, C>*) rawContext;
 
                 char data[12];

@@ -44,7 +44,10 @@
         "memory": "cpp",
         "mutex": "cpp",
         "sstream": "cpp",
-        "*.inc": "cpp"
+        "*.inc": "cpp",
+        "syscall.h": "c",
+        "time.h": "c",
+        "syscalls.h": "c"
     },
     "C_Cpp.default.systemIncludePath": ["kernel/", "apps/*", "libs/*", "newlib/newlib/libc/include/"]
 }

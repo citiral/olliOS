@@ -15,6 +15,7 @@
 #include "cpu/cpuid.h"
 #include "cpu/pit.h"
 #include "cpu/hpet.h"
+#include "cpu/cmos.h"
 
 #include "memory/alloc.h"
 #include "memory/virtual.h"
@@ -217,7 +218,6 @@ extern "C" void main(multiboot_info* multiboot) {
             e->get_symbol_value("module_load", (u32*) &module_load);
             module_load(fs::root, (const char*) mod[i].cmdline);
         }
-
         //memory::kernelPageDirectory.unbindVirtualPage((void*) mod[i].mod_start, mod[i].mod_end - mod[i].mod_start);
         //memory::physicalMemoryManager.freePhysicalMemory((void*) mod[i].mod_start, mod[i].mod_end - mod[i].mod_start);
     }
