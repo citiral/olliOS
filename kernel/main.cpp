@@ -26,13 +26,9 @@
 #include "elf/symbolmap.h"
 #include "elf/elf.h"
 
-#include "vga/vga.h"
-
 #include "file.h"
 #include "virtualfile.h"
 #include "threading/semaphore.h"
-
-VgaDriver* vgaDriver = nullptr;
 
 extern void *__realmode_lma_start;
 extern void *__realmode_lma_end;
@@ -133,12 +129,14 @@ void cpu_main() {
 
     apic::setSleep(INT_SPURIOUS, 1024*1024*64, false);
     
+    auto fb = fs::root->get("/sys/vga/framebuffer")->open();
+
     while (true) {
-        vgaDriver->setChar('!', VGA_WIDTH - 1, 0);
+        fb->write("!", 1, 79);
         if (!threading::scheduler->enter()) {
-            vgaDriver->setChar('.', VGA_WIDTH - 1, 0);
+            fb->write(".", 1, 79);
             __asm__ ("hlt");
-            vgaDriver->setChar('#', VGA_WIDTH - 1, 0);
+            fb->write("#", 1, 79);
         }
     }
 }
@@ -173,8 +171,8 @@ extern "C" void main(multiboot_info* multiboot) {
     idt.getEntry(INT_SPURIOUS).setOffset((u32)thread_interrupt);
     threading::scheduler = new threading::Scheduler();
 
-    vgaDriver = new VgaDriver(multiboot);
-    fs::root->get("dev")->bind(vgaDriver);
+    //vgaDriver = new vga::TxtModeDriver(multiboot);
+    //fs::root->get("dev")->bind(vgaDriver);
 
     printf("Flags: %X\n", multiboot->flags);
     printf("mods count: %d\n", multiboot->mods_count);
