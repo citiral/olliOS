@@ -7,11 +7,17 @@ InterfaceFileHandle::InterfaceFileHandle(InterfaceFile* file): _file(file), offs
 }
 
 i32 InterfaceFileHandle::write(const void* buffer, size_t size, size_t pos) {
-    return _file->setter((const char*) buffer, size, pos, _file->context);
+    if (pos == 0 || !_file->positionIndependant)
+        return _file->setter((const char*) buffer, size, pos, _file->context);
+    else
+        return 0;
 }
 
 i32 InterfaceFileHandle::read(void* buffer, size_t size, size_t pos) {
-    return _file->getter((char*) buffer, size, pos, _file->context);
+    if (pos == 0 || !_file->positionIndependant)
+        return _file->getter((char*) buffer, size, pos, _file->context);
+    else
+        return 0;
 }
 
 File* InterfaceFileHandle::next_child() {
@@ -26,7 +32,7 @@ size_t InterfaceFileHandle::get_size() {
     return 0;
 }
 
-fs::InterfaceFile::InterfaceFile(const std::string& name, SetValue setter, GetValue getter, void* context, void* context2): name(name), setter(setter), getter(getter), context(context), context2(context2) {
+fs::InterfaceFile::InterfaceFile(const std::string& name, SetValue setter, GetValue getter, void* context, void* context2, bool positionIndependant): name(name), setter(setter), getter(getter), context(context), context2(context2), positionIndependant(positionIndependant) {
 }
 
 InterfaceFile::~InterfaceFile() {

@@ -1,15 +1,15 @@
 #include "types.h"
 #include "keyboard.h"
-#include "file.h"
-#include "virtualfile.h"
+#include "filesystem/file.h"
+#include "filesystem/stream.h"
+#include "filesystem/chunkedstream.h"
 #include "threading/scheduler.h"
 #include <stdio.h>
 
-using namespace fs;
 using namespace keyboard;
 
-void KeyboardDriverThread(KeyboardDriver* driver, Stream* keyboard) {
-	FileHandle* handle = keyboard->open();
+void KeyboardDriverThread(KeyboardDriver* driver, fs::Stream* keyboard) {
+	fs::FileHandle* handle = keyboard->open();
 	while (1) {
 		driver->dataMutex.lock();
 
@@ -26,11 +26,11 @@ void KeyboardDriverThread(KeyboardDriver* driver, Stream* keyboard) {
 	}
 }
 
-extern "C" void module_load(File* root, const char* argv)
+extern "C" void module_load(fs::File* root, const char* argv)
 {
 	UNUSED(argv);
 
-	Stream* keyboardStream = new ChunkedStream("keyboard", sizeof(VirtualKeyEvent) * 128, sizeof(VirtualKeyEvent));
+	fs::Stream* keyboardStream = new fs::ChunkedStream("keyboard", sizeof(VirtualKeyEvent) * 128, sizeof(VirtualKeyEvent));
     root->get("sys")->bind(keyboardStream);
 
 	driver = new KeyboardDriver();

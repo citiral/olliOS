@@ -2,9 +2,9 @@
 #define __VGA_TEXT_MODE_H
 
 #include "vga.h"
-#include "file.h"
 #include "types.h"
 #include "multiboot.h"
+#include "filesystem/file.h"
 
 #define VGA_WIDTH 80
 #define VGA_HEIGHT 25

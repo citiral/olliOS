@@ -1,11 +1,11 @@
-#include "file.h"
 #include "multiboot.h"
 #include "types.h"
 #include "tar.h"
 #include "string.h"
 #include "stdlib.h"
-#include "file.h"
-#include "virtualfile.h"
+#include "filesystem/file.h"
+#include "filesystem/virtualfile.h"
+#include "filesystem/virtualfolder.h"
 
 star_header* get_initfs_tar_file()
 {

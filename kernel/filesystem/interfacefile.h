@@ -42,7 +42,7 @@ namespace fs {
         typedef i32 (*SetValue)(const char* value, size_t length,  size_t pos, void* context);
         typedef i32 (*GetValue)(char* buffer, size_t length, size_t pos, void* context);
 
-        InterfaceFile(const std::string& name, SetValue setter, GetValue getter, void* context, void* context2 = nullptr);
+        InterfaceFile(const std::string& name, SetValue setter, GetValue getter, void* context, void* context2 = nullptr, bool positionIndependant = true);
         ~InterfaceFile();
 
         const char* get_name();
@@ -57,6 +57,7 @@ namespace fs {
         GetValue getter;
         void* context;
         void* context2;
+        bool positionIndependant;
 
         template<size_t LENGTH>
         static InterfaceFile* read_only(const std::string& name, const void* data) {
@@ -64,9 +65,12 @@ namespace fs {
                 (void) value;
                 (void) length;
                 (void) context;
+                (void) pos;
 
                 return 0;
             }, [](char* buffer, size_t length, size_t pos, void* context)->i32 {
+                (void) pos;
+
                 if (length < LENGTH) {
                     return 0;
                 } else {
@@ -81,9 +85,12 @@ namespace fs {
                 (void) value;
                 (void) length;
                 (void) context;
+                (void) pos;
 
                 return 0;
             }, [](char* buffer, size_t length, size_t pos, void* context)->i32 {
+                (void) pos;
+
                 const char* str = (const char*) context;
                 size_t source_length = strlen(str);
                 if (length <= source_length) {
@@ -105,9 +112,12 @@ namespace fs {
                 (void) value;
                 (void) length;
                 (void) context;
+                (void) pos;
 
                 return 0;
             }, [](char* buffer, size_t length, size_t pos, void* contextRaw)->i32 {
+                (void) pos;
+
                 struct ReadOnlyDataContext<T>* context = (ReadOnlyDataContext<T>*) contextRaw;
                 char data[12];
 

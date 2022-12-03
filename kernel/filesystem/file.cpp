@@ -1,6 +1,6 @@
 #include "file.h"
-#include "filesystem.h"
-#include "virtualfile.h"
+#include "filesystem/registry.h"
+#include "filesystem/virtualfolder.h"
 
 using namespace fs;
 

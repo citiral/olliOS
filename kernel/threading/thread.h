@@ -6,6 +6,7 @@
 #include "memory/virtual.h"
 #include "kstd/shared_ptr.h"
 #include "kstd/utility.h"
+#include "kstd/new.h"
 #include "util/unique.h"
 #include "cpu/tss.h"
 #include <string.h>

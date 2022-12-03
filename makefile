@@ -137,7 +137,7 @@ $(ROOT)boot/%.so: $(BUILD)%.so
 	cp $^ $@
 
 # newlib
-newlib: $(BUILD) $(BUILD)newlib $(BUILD)newlib/Makefile
+newlib: dir $(BUILD) $(BUILD)newlib $(BUILD)newlib/Makefile
 	make -C $(BUILD)newlib all install
 	cp $(BUILD)newlib/out/i686-ollios/* root/ -r
 

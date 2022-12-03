@@ -1,7 +1,7 @@
 #include "types.h"
 #include "iso9660.h"
-#include "file.h"
-#include "filesystem.h"
+#include "filesystem/file.h"
+#include "filesystem/registry.h"
 #include <stdio.h>
 
 extern "C" void module_load(fs::File* root, const char* argv)

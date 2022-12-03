@@ -7,9 +7,16 @@
 namespace std {
 
 template<class T>
+class weak_ptr;
+
+template<class T>
 class shared_ptr {
 public:
     using value_type = T;
+    using info_type = struct InfoBlock {
+        long weakCount = 1;
+        long strongCount = 1;
+    };    
 
     shared_ptr() {
         _data = NULL;
@@ -20,8 +27,7 @@ public:
         _data = data;
         _count = nullptr;
         if (data != nullptr) {
-            _count = new long;
-            *_count = 1;
+            _count = new InfoBlock;
         }
     }
 
@@ -29,7 +35,8 @@ public:
         _data = s._data;
         _count = s._count;
         if (_count != nullptr) {
-            __atomic_add_fetch(_count, 1, __ATOMIC_RELAXED);
+            __atomic_add_fetch(&_count->strongCount, 1, __ATOMIC_SEQ_CST);
+            __atomic_add_fetch(&_count->weakCount, 1, __ATOMIC_SEQ_CST);
         }
     }
 
@@ -41,13 +48,28 @@ public:
     }
 
     ~shared_ptr() {
+        reset();
+    }
+
+    void reset() {
         if (_data != nullptr) {
-            if (__atomic_sub_fetch(_count, 1, __ATOMIC_RELAXED) == 0) {
+            if (__atomic_sub_fetch(&_count->strongCount, 1, __ATOMIC_SEQ_CST) == 0) {
                 delete _data;
-                delete _count;
-                _data = nullptr;
-                _count = nullptr;
             }
+            _data = nullptr;
+            if (__atomic_sub_fetch(&_count->weakCount, 1, __ATOMIC_SEQ_CST) == 0) {
+                delete _count;
+            }
+            _count = nullptr;
+        }
+    }
+
+    void reset(T* data) {
+        reset();
+        _data = data;
+        _count = nullptr;
+        if (data != nullptr) {
+            _count = new InfoBlock;
         }
     }
 
@@ -56,19 +78,13 @@ public:
             return *this;
         }
 
-        if (_data != nullptr) {
-            if (__atomic_sub_fetch(_count, 1, __ATOMIC_ACQUIRE) == 0) {
-                delete _data;
-                delete _count;
-                _data = nullptr;
-                _count = nullptr;
-            }
-        }
+        reset();
 
         _data = s._data;
         _count = s._count;
         if (_data != nullptr) {
-            __atomic_add_fetch(_count, 1, __ATOMIC_ACQUIRE);
+            __atomic_add_fetch(&_count->strongCount, 1, __ATOMIC_SEQ_CST);
+            __atomic_add_fetch(&_count->weakCount, 1, __ATOMIC_SEQ_CST);
         }
 
         return *this;
@@ -80,15 +96,8 @@ public:
             s._count = NULL;
             return *this;
         }
-        
-        if (_data != nullptr) {
-            if (__atomic_sub_fetch(_count, 1, __ATOMIC_ACQUIRE) == 0) {
-                delete _data;
-                delete _count;
-                _data = nullptr;
-                _count = nullptr;
-            }
-        }
+
+        reset();
 
         _data = s._data;
         _count = s._count;
@@ -96,6 +105,10 @@ public:
         s._count = nullptr;
 
         return *this;
+    }
+
+    operator bool() const {
+        return _data != nullptr;
     }
 
     T& operator*() {
@@ -115,12 +128,18 @@ public:
     }
 
     long use_count() {
-        return _count ? *_count : 0;
+        long usecount = 0;
+        if (_count != nullptr) {
+            __atomic_load(_count->strongCount, &usecount, __ATOMIC_SEQ_CST);
+        }
+        return usecount;
     }
 
 private:
     T* _data;
-    long* _count;
+    info_type* _count;
+
+    friend weak_ptr<T>;
 };
 
 template < class T, class U >

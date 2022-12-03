@@ -9,7 +9,7 @@
 #include "kstd/vector.h"
 #include "kstd/utility.h"
 #include "kstd/string.h"
-#include "file.h"
+#include "filesystem/file.h"
 #include "process.h"
 
 class KernelShell {

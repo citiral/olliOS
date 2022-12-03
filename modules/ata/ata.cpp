@@ -2,13 +2,14 @@
 // Created by Olivier on 24/09/16.
 //
 
-#include "threading/thread.h"
 #include "ata.h"
 #include "atapacketdevice.h"
-#include "cpu/interrupt.h"
-#include "cpu/io.h"
 #include "cdefs.h"
-#include "virtualfile.h"
+#include "cpu/io.h"
+#include "cpu/interrupt.h"
+#include "threading/thread.h"
+#include "filesystem/virtualfile.h"
+#include "filesystem/virtualfolder.h"
 #include "pci/pcidefs.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -146,9 +147,7 @@ AtaDevice* AtaDriver::detect_device(AtaChannel* channel, AtaDrive drive)
     u8 lba1 = channel->read_u8(drive, AtaRegister::Lba1);
     u8 lba2 = channel->read_u8(drive, AtaRegister::Lba2);
 
-    if (seccount == 1 && lba0 == 1 && lba1 == 0x14 && lba2 == 0xEB) {
-        printf("Device is packet device\n");
-    
+    if (seccount == 1 && lba0 == 1 && lba1 == 0x14 && lba2 == 0xEB) {    
         // Packet devices require another Identifyt packet drive command
         channel->write_u8(drive, AtaRegister::Command, AtaCommand::IdentifyPacketDrive);
         for (volatile int i = 0 ; i < 10000000; i++);
@@ -163,22 +162,18 @@ AtaDevice* AtaDriver::detect_device(AtaChannel* channel, AtaDrive drive)
 
             // and convert it to little endian
             data[i] = ((val >> 8) & 0xFF) + ((val & 0xFF) << 8);
-
-            printf("%c%c", data[i], data[i] >> 8);
         }
 
         // set 47 to null, this means the device name will be null terminated, and the value at 47 is unimportant (reserved) anyway.
         data[47] = 0;
 
         // register it to the devicemanager
-        printf("Found device!\n");
         return new AtaPacketDevice(file, channel, drive, data, _foundDeviceCount++);
 
     } else if (seccount == 1 && lba0 == 1 && lba1 == 0 && lba2 == 0) {
         printf("Device is pio device.. however unimplemented for now.\n");
         return nullptr;
     } else {
-        printf("Unknown device signature: 0x%X 0x%X 0x%X 0x%X\n", seccount, lba0, lba1, lba2);
         return nullptr;
     }
 }

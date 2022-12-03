@@ -10,11 +10,11 @@
 #include "keyboard/keyboard.h"
 #include "threading/thread.h"
 #include "threading/scheduler.h"
+#include "filesystem/stream.h"
 #include "cpu/apic.h"
-#include <string.h>
 #include "stdio.h"
 #include "elf/elf.h"
-#include "virtualfile.h"
+#include <string.h>
 
 #if __KERNEL_ALLOCATOR == __KERNEL_ALLOCATOR_BUCKET
 void allocinfo(KernelShell* shell, std::vector<std::string>* args)

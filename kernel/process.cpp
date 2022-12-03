@@ -1,12 +1,13 @@
 #include "elf/elf.h"
 #include "process.h"
 #include "linker.h"
-#include "memory/physical.h"
-#include "threading/scheduler.h"
-#include "kstd/shared_ptr.h"
-#include "threading/thread.h"
-#include "virtualfile.h"
 #include "cpu/hpet.h"
+#include "kstd/shared_ptr.h"
+#include "memory/physical.h"
+#include "threading/thread.h"
+#include "threading/scheduler.h"
+#include "filesystem/stream.h"
+#include "filesystem/virtualfolder.h"
 #include <string.h>
 
 extern "C" {

@@ -26,9 +26,10 @@
 #include "elf/symbolmap.h"
 #include "elf/elf.h"
 
-#include "file.h"
-#include "virtualfile.h"
+#include "filesystem/file.h"
+#include "filesystem/virtualfile.h"
 #include "threading/semaphore.h"
+#include "kstd/weak_ptr.h"
 
 extern void *__realmode_lma_start;
 extern void *__realmode_lma_end;

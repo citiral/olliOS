@@ -4,11 +4,12 @@
 #include "cdefs.h"
 #include "string.h"
 #include "stdio.h"
-#include "virtualfile.h"
-#include "interfacefile.h"
+#include "filesystem/virtualfolder.h"
+#include "filesystem/interfacefile.h"
 
 template<size_t BAR>
 int read_pci_bar(char* buffer, size_t length, size_t pos, void* context) {
+	UNUSED(pos);
 	PCIDevice* device = (PCIDevice*) context;
 	u32 result;
 
@@ -64,18 +65,19 @@ PCIDevice::PCIDevice(fs::File* root, u8 bus, u8 dev, u8 func)
 	_file->bind(fs::InterfaceFile::read_only<sizeof(_programmingInterface)>("pin", &_interruptPin));
 
 	_file->bind(new fs::InterfaceFile("name", nullptr, [](char* buffer, size_t length, size_t pos, void* context) {
+		UNUSED(pos);
 		const char* name = (const char*) context;
 
 		if (length == 0) {
 			return 0;
 		}
 
-		int name_length = strlen(name);
-		int count = length > name_length ? name_length : length - 1;
+		size_t name_length = strlen(name);
+		size_t count = length > name_length ? name_length : length - 1;
 
 		memcpy(buffer, context, count);
 		buffer[count] = 0;
-		return count + 1;
+		return (int)count + 1;
 	}, (void*) _deviceName));
 
 	if (_headerType == 0) {

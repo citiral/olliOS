@@ -1,4 +1,5 @@
-#include "filesystem.h"
+#include "registry.h"
+#include "filesystem/file.h"
 
 using namespace fs;
 

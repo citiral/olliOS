@@ -2,7 +2,7 @@
 #include "cpu/io.h"
 #include "stdio.h"
 #include "cdefs.h"
-#include "interfacefile.h"
+#include "filesystem/interfacefile.h"
 #include "memory/physical.h"
 #include "memory/virtual.h"
 
@@ -96,7 +96,7 @@ TxtModeDriver::TxtModeDriver(fs::File* root, multiboot_info_t* info):
 			buffer[i] = vga->_vgapointer[pos + i] & 0xFF;
 		}
 		return (i32)length;
-	}, this, nullptr));
+	}, this, nullptr, false));
 
 	root->get("dev")->bind(new fs::InterfaceFile("vga", [](const char* value, size_t length, size_t pos, void* context) {
 		TxtModeDriver* vga = (TxtModeDriver*) context;
@@ -104,7 +104,7 @@ TxtModeDriver::TxtModeDriver(fs::File* root, multiboot_info_t* info):
 		return (i32)length;
 	}, [](char* buffer, size_t length, size_t pos, void* context) {
 		return 0;
-	}, this, nullptr));
+	}, this, nullptr, false));
 }
 
 TxtModeDriver::~TxtModeDriver()

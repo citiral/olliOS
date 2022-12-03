@@ -9,7 +9,7 @@
 #include "atachannel.h"
 #include "threading/mutex.h"
 #include "types.h"
-#include "file.h"
+#include "filesystem/file.h"
 
 #define PORT_DEFAULT_PRIMARY	0x1F0
 #define PORT_DEFAULT_SECONDARY	0x170
