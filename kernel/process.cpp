@@ -24,7 +24,7 @@ UniqueGenerator<u32> process_ids(1);
 
 extern "C" void jump_usermode(void* func, int argc, char** argv, char** env);
 
-void load_file_and_run(fs::File* file, std::vector<std::string>* args)
+void load_file_and_run(fs::File* file, std::vector<std::string>* args, std::vector<std::string>* environ)
 {
     // Get the filesize of the bind
     fs::FileHandle* handle = file->open();
@@ -76,11 +76,22 @@ void load_file_and_run(fs::File* file, std::vector<std::string>* args)
         strcpy(argd + argdc, args->at(i).c_str());
         argdc += args->at(i).length() + 1;
     }
-
     int argc = args->size();
+    
+    // Copy the environment on the stack
+    int envdc = 0;
+    char* envv[MAX_ARGS];
+    char envd[MAX_ARGS_LENGTH];
+    size_t i;
+    for (i = 0 ; i < environ->size() ; i++) {
+        envv[i] = envd + envdc;
+        strcpy(envd + envdc, environ->at(i).c_str());
+        envdc += environ->at(i).length() + 1;
+    }
+    envv[i] = NULL;
 
     // Run the entry point of the userspace application
-    jump_usermode((void*) *app_entry, argc, argv, nullptr);
+    jump_usermode((void*) *app_entry, argc, argv, envv);
 }
 
 Process::Process(): status_code(-1), state(ProcessState::Initing), thread(nullptr), childs(), pid(process_ids.next()), _pagetable(nullptr), _bindings(1024), _descriptor(nullptr), _waitingForStopped(), _waitingForChildStopped(), _stateLock(), _workingDirectory("")
@@ -149,7 +160,7 @@ void Process::init(fs::File* file, std::string& workingDirectory)
     }
 
     // And create a thread that will init the process
-    thread = new threading::Thread(this, stackStart, load_file_and_run, _file, &_args);
+    thread = new threading::Thread(this, stackStart, load_file_and_run, _file, &_args, &_environ);
     ((memory::PageDirectory*)(_pagetable->getPhysicalAddress(current)))->use();
     state = ProcessState::Running;
 
@@ -215,7 +226,6 @@ i32 Process::open(const char* name, i32 flags, i32 mode)
     }
 
     return open(wd->get(name), flags, mode);
-
 }
 
 i32 Process::open(fs::File* f, i32 flags, i32 mode)
@@ -338,26 +348,50 @@ i32 Process::fork()
 
 i32 Process::execve(const char* pathname, char *const *argv, char *const *envp)
 {
-    fs::File* wd = fs::root->get(_workingDirectory.c_str());
-    if (!wd) {
+    if (pathname == nullptr || argv == nullptr) {
         return -1;
     }
 
-    fs::File* child = wd->get(pathname);
-    if (!child) {
-        return -1;
+    fs::File* child;
+    if (pathname[0] == '/') {
+        child = fs::root->get(pathname);
+        if (!child) {
+            return -1;
+        }
+    } else {
+        fs::File* wd = fs::root->get(_workingDirectory.c_str());
+        if (!wd) {
+            return -1;
+        }
+
+        child = wd->get(pathname);
+        if (!child) {
+            return -1;
+        }
     }
 
     state = ProcessState::Execve;
 
     // Copy the new process arguments to this process
     _file = child;
+
     _args.clear();
     _args.push_back(pathname);
     size_t i = 0;
-    while (argv[i] != nullptr) {
-        _args.push_back(argv[i]);
-        i++;
+    if (argv != nullptr) {
+        while (argv[i] != nullptr) {
+            _args.push_back(argv[i]);
+            i++;
+        }
+    }
+    
+    _environ.clear();
+    if (envp != nullptr) {
+        size_t i = 0;
+        while (envp[i] != nullptr) {
+            _environ.push_back(envp[i]);
+            i++;
+        }
     }
     
     // TODO copy environment
@@ -545,7 +579,7 @@ i32 Process::readdir(i32 filedes, struct dirent* dirent)
     }
 }
 
-char* Process::getwd(char* buf, size_t size)
+const char* Process::getwd(char* buf, size_t size)
 {
     size_t length = _workingDirectory.length();
 
@@ -557,6 +591,33 @@ char* Process::getwd(char* buf, size_t size)
     }
 }
 
+int Process::setwd(const char* wd)
+{
+    if (wd == NULL) {
+        return -1;
+    }
+
+    std::string new_dir;
+
+    if (wd[0] == '/') {
+        new_dir = wd;
+    } else {
+        new_dir = _workingDirectory;
+        if (_workingDirectory[_workingDirectory.size()-1] != '/') {
+            new_dir += '/';
+        }
+        new_dir += wd;
+    }
+    
+    fs::File* folder = fs::root->get(new_dir.c_str());
+    if (!folder) {
+        return -1;
+    }
+    
+    _workingDirectory = new_dir;
+
+    return 0;
+}
 
 i32 Process::usleep(u32 microseconds)
 {
@@ -568,6 +629,26 @@ i32 Process::usleep(u32 microseconds)
     }, this);
 
     threading::exit();
+
+    return 0;
+}
+
+i32 Process::access(const char* pathname, i32 mode)
+{
+    if (pathname == nullptr)
+        return -1;
+
+    fs::File* f;
+
+    if (pathname[0] == '/') {
+        f = fs::root->get(pathname);
+        if (f == nullptr) return -1;
+    } else {
+        f = fs::root->get(_workingDirectory.c_str());
+        if (f == nullptr) return -1;
+        f = f->get(pathname);
+        if (f == nullptr) return -1;
+    }
 
     return 0;
 }

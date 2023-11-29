@@ -1,6 +1,7 @@
 #include "iso9660.h"
 #include "kstd/utility.h"
 #include "cdefs.h"
+#include "filesystem/filelink.h"
 
 #define DIRECTORY_RECORD_HIDDEN 0x1
 #define DIRECTORY_RECORD_IS_DIRECTORY 0x2
@@ -84,10 +85,10 @@ size_t Iso9660FileSystem::readRaw(u8* buffer, u32 offset, u32 length) {
 }
 
 
-Iso9660File::Iso9660File(Iso9660FileSystem* fs, u8* record): fs(fs), record(record) {
+Iso9660File::Iso9660File(Iso9660FileSystem* fs, u8* record, bool skipChildren): fs(fs), record(record) {
     name = read_name();
 
-    if (record[25] & DIRECTORY_RECORD_IS_DIRECTORY) {
+    if (record[25] & DIRECTORY_RECORD_IS_DIRECTORY && !skipChildren) {
         create_children();
     }
 }
@@ -158,11 +159,11 @@ void Iso9660File::create_children()
 
 
     while (offset < length) {
-
         // Skip directories . and ..
         if (extend[32] == 1 && extend[33] == 0) {
-            
+           children.push_back(new fs::FileLink(".", this));
         } else if (extend[32] == 1 && extend[33] == 1) {
+           children.push_back(new Iso9660File(fs, extend, true));
         } else {
            children.push_back(new Iso9660File(fs, extend));
         }

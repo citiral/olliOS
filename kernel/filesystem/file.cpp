@@ -1,6 +1,7 @@
 #include "file.h"
 #include "filesystem/registry.h"
 #include "filesystem/virtualfolder.h"
+#include "filesystem/filelink.h"
 
 using namespace fs;
 
@@ -12,6 +13,7 @@ void FileHandle::close() {
 
 void fs::init() {
     root = new VirtualFolder("");
+    root->bind(new FileLink("..", root));
     registry = new Registry();
 }
 
@@ -26,25 +28,6 @@ File* _get(File* f, const char* name)
         // True if the path ends with a '/', in which case we are the targetted file
         if (subname[0] == 0) {
             return f;
-        }
-    }
-
-    // Handle '.' and '..'
-    if (subname[0] == '.') {
-        if (subname[1] == '/') {
-            return f->get(subname+2);
-        } else if (subname[1] == 0) {
-            return f;
-        } else if (subname[1] == '.') {
-            if (subname[2] == '/') {
-                /*if (_parent) {
-                    return NULL;//_parent->get(subname+3);
-                } else {*/
-                    return NULL;
-                //}
-            } else if (subname[2] == 0) {
-                return NULL;//_parent;
-            }
         }
     }
 

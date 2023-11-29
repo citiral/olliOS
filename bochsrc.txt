@@ -15,3 +15,4 @@ ata0-master: type=cdrom, path="ollios.iso", status=inserted
 boot: cdrom
 
 magic_break: enabled=1
+config_interface: wx

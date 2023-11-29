@@ -67,7 +67,6 @@ extern "C" void module_load(fs::File* root, const char* argv)
 	fs::File* child = nullptr;
 
 	while ((child = desc->next_child()) != nullptr) {
-		printf("Device %s found\n", child->get_name());
         check_mbr(child);
 	}
 }

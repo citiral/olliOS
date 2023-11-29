@@ -76,8 +76,10 @@ public:
     i32 dup(int filedes);
     i32 dup2(int filedes, int filedes2);
     i32 readdir(i32 filedes, struct dirent* dirent);
-    char* getwd(char* buf, size_t size);
+    const char* getwd(char* buf, size_t size);
+    int setwd(const char* wd);
     i32 usleep(u32 microseconds);
+    i32 access(const char* pathname, i32 mode);
 
     i32 status_code;
     volatile ProcessState state;
@@ -92,6 +94,7 @@ private:
     memory::PageDirectory* _pagetable;
     ResourceMap<std::shared_ptr<FileDescriptor>> _bindings;
     std::vector<std::string> _args;
+    std::vector<std::string> _environ;
     fs::File* _file;
     char* _program_break;
     fs::File* _descriptor;

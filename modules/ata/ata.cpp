@@ -53,6 +53,9 @@ void AtaDriver::initialize(fs::File* pci)
     fs::FileHandle* handle = pci->open();
 	fs::File* device;
     while ((device = handle->next_child()) != NULL) {
+        if (strcmp(device->get_name(), ".") == 0 || strcmp(device->get_name(), "..") == 0)
+            continue;
+
         u32 dev_class = device->get("class")->read<u8>();
         u32 dev_subclass = device->get("subclass")->read<u8>();
         u32 interface = device->get("interface")->read<u8>();

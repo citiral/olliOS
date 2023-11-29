@@ -72,10 +72,14 @@ extern "C" i32 sysint_handler_c(u32 eax, u32 ebx, u32 ecx, u32 edx, u32 esi)
     } else if (eax == SYSINT_READDIR) {
         result = threading::currentThread()->process->readdir(reinterpret_cast<i32&>(ebx), reinterpret_cast<struct dirent*>(ecx));
     } else if (eax == SYSINT_GETWD) {
-        char* val = threading::currentThread()->process->getwd(reinterpret_cast<char*>(ebx), reinterpret_cast<size_t&>(ecx));
+        const char* val = threading::currentThread()->process->getwd(reinterpret_cast<char*>(ebx), reinterpret_cast<size_t&>(ecx));
         result = reinterpret_cast<i32>(val);
+    }  else if (eax == SYSINT_CHDIR) {
+        result = threading::currentThread()->process->setwd(reinterpret_cast<const char*>(ebx));  
     } else if (eax == SYSINT_USLEEP) {
         result = threading::currentThread()->process->usleep(ebx);
+    } else if (eax == SYSINT_ACCESS) {
+        result = threading::currentThread()->process->access(reinterpret_cast<const char*>(ebx), ecx);
     } else if (eax == SYSINT_GET_CMOS_UTC) {
         cmos_time_t* ct = reinterpret_cast<cmos_time_t*>(ebx);
         auto time = cmos::getCurrentTime();

@@ -1,5 +1,6 @@
 #include "virtualfolder.h"
 #include "virtualfile.h"
+#include "filelink.h"
 
 using namespace fs;
 
@@ -48,7 +49,7 @@ void VirtualFolderHandle::reset_child_iterator()
 
 VirtualFolder::VirtualFolder(std::string name): name(name), children()
 {
-
+    bind(new FileLink(".", this));
 }
 
 const char* VirtualFolder::get_name()
@@ -64,7 +65,9 @@ FileHandle* VirtualFolder::open()
 File* VirtualFolder::create(const char* name, u32 flags)
 {
     if (flags & FILE_CREATE_DIR) {
-        return bind(new VirtualFolder(name));
+        auto folder = new VirtualFolder(name);
+        folder->bind(new FileLink("..", this));
+        return bind(folder);
     } else {
         return bind(new VirtualFile(name));
     }

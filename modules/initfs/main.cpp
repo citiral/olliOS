@@ -29,15 +29,13 @@ fs::File* make_tarfs_file(fs::File* base, int parts, char* path) {
     for (int i = 0 ; i < parts - 1 ; i++) {
         auto next = base->get(path);
         if (next == nullptr) {
-            next = new fs::VirtualFolder(path);
-            base->bind(next);
+            next = base->create(path, FILE_CREATE_DIR);
         }
         base = next;
         path += strlen(path) + 1;
     }
 
-    auto file = new fs::VirtualFile(path);
-    base->bind(file);
+    auto file = base->create(path, 0);
     return file;
 }
 
@@ -48,8 +46,7 @@ extern "C" void module_load(fs::File* root, const char* argv)
 
     star_header* tar_file = get_initfs_tar_file();
 
-    auto base = new fs::VirtualFolder("initfs");
-    root->bind(base);
+    auto base = root->create("initfs", FILE_CREATE_DIR);
 
     while (strcmp(tar_file->magic, OLDGNU_MAGIC) == 0) {
         int size = strtol(tar_file->size, nullptr, 8);

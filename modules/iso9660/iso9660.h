@@ -28,7 +28,7 @@ private:
 
 class Iso9660File : public fs::File {
 public:
-    Iso9660File(Iso9660FileSystem* fs, u8* record);
+    Iso9660File(Iso9660FileSystem* fs, u8* record, bool skipChildren = false);
     ~Iso9660File();
     fs::FileHandle* open();
 
@@ -37,7 +37,7 @@ public:
     virtual fs::File* create(const char* name, u32 flags);
     virtual fs::File* bind(File* child);
 
-    std::vector<Iso9660File*> children;
+    std::vector<File*> children;
     Iso9660FileSystem* fs;
     u8* record;
     std::string name;

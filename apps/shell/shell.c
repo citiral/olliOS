@@ -4,254 +4,131 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include "tokenizer.h"
+#include "parser.h"
+#include "builtins.h"
 
-#define CMD_BUF_LENGTH 512
-#define CMD_BUF_PARTS 64
 
-typedef enum token_t {
-    STRING,
-    PIPE,
-    SEMICOLON,
-    EOL,
-    SUBPROCESS,
-    AND,
-    OR,
-} token;
-
-char token_buffer[CMD_BUF_LENGTH];
-char* argument_buffer[CMD_BUF_PARTS];
-int argument_buffer_index = 0;
-
-char lookAhead = 0;
-bool hasLookedAhead = false;
-
-char look_ahead(void)
+const char* find_in_path(const char* target)
 {
-    if (!hasLookedAhead) {
-        lookAhead = getchar();
-        hasLookedAhead = true;
-    }
-
-    return lookAhead;
-}
-
-char next_char(void)
-{
-    if (hasLookedAhead) {
-        hasLookedAhead = false;
-        return lookAhead;
+    if (target[0] == '.' || target[0] == '/') {
+        if (access(target, X_OK) == 0) {
+            return target;
+        } else {
+            return NULL;
+        }
     } else {
-        return getchar();
-    }
-}
+        const char* path = getenv("PATH");
+        if (path == NULL) {
+            return NULL;
+        }
+        int pathlength = strlen(path);
+        int fulllength = pathlength + strlen(target);
 
-token get_next_token(void)
-{
-    memset(token_buffer, 0, sizeof(token_buffer));
-    int i = 0;
+        if (path[pathlength - 1] != '/') {
+            fulllength += 1;
+        }
 
-    while (1) {
-        char c = next_char();
+        char* full = malloc(sizeof(char) * (fulllength + 1));
+        
+        strcpy(full, path);
+        if (path[pathlength - 1] != '/') {
+            full[pathlength] = '/';
+            strcpy(full + pathlength + 1, target);
+        } else {
+            strcpy(full + pathlength, target);
+        }
 
-        if (c == '|') {
-            return look_ahead() == '|' ? OR : PIPE;
-        } else if (c == '&') {
-            return look_ahead() == '&' ? AND : SUBPROCESS;
-        } else if (c == '\n') {
-            return EOL;
-        } else if (c == ';') {
-            return SEMICOLON;
-        } else if (c == ' ' || c == '\t') {
-            continue;
-        } else if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '\\' || c == '/') {
-            while (1) {
-                if (c == '\\') {
-                    c = next_char();
-                    token_buffer[i] = c;
-                    i++;
-                } else if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '/') {
-                    token_buffer[i] = c;
-                    i++;
-                } else {
-                    return STRING;
-                }
+        full[fulllength] = '\0';
 
-                c = look_ahead();
-                if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '\\' || c == '/')) {
-                    return STRING;
-                } else {
-                    c = next_char();
-                }
-            }
-        } else if (c == '"' || c == '\'') {
-            char literal = c;
-            while (1) {
-                c = next_char();
-                if (c == '\\') {
-                    token_buffer[i] = next_char();
-                    i++;
-                } else if (c == literal) {
-                    return STRING;
-                } else {
-                    token_buffer[i] = c;
-                    i++;
-                }
-            }
+        if (access(full, X_OK) == 0) {
+            return full;
+        } else {
+            free(full);
+            return NULL;
         }
     }
 }
 
-void add_token_to_argument_buffer(void)
-{
-    int length = strlen(token_buffer);
-    char* cpy = malloc(sizeof(char) * length + 1);
 
-    strcpy(cpy, token_buffer);
-
-    argument_buffer[argument_buffer_index] = cpy;
-    argument_buffer_index++;
-}
-
-void free_argument_buffer(void)
-{
-    for (int i = 0 ; i < argument_buffer_index ; i++) {
-        free(argument_buffer[i]);
-    }
-    memset(argument_buffer, 0, sizeof(argument_buffer));
-    argument_buffer_index = 0;
-}
-
-int run_command(int pipein)
-{
-    if (strcmp(argument_buffer[0], "exit") == 0) {
-        exit(0);
-    }
-
-    int pid = fork();
-    if (pid == 0) {
-        // if there is a pipe supplied, use that as stdin
-        if (pipein > 0) {
-            dup2(pipein, 0);
-        }
-        return execve(argument_buffer[0], argument_buffer + 1, NULL);
-    } else {
-        if (pipein > 0) {
-            close(pipein);
-        }
-        int status;
-        while (wait(&status) != pid);
-        return status;
-    }
-}
-
-void run_command_no_wait(int pipein)
-{
-    if (strcmp(argument_buffer[0], "exit") == 0) {
-        exit(0);
-    }
-
-    int pid = fork();
-    if (pid == 0) {
-        // if there is a pipe supplied, use that as stdin
-        if (pipein > 0) {
-            dup2(pipein, 0);
-        }
-        execve(argument_buffer[0], argument_buffer + 1, NULL);
-    } else {
-        if (pipein > 0) {
-            close(pipein);
-        }
-    }
-}
-
-int run_command_with_pipe(int pipein)
+int run_command(int pipein, char** arguments, bool blocking, bool pipeOutput)
 {
     int fd[2];
-    pipe(fd);
+    
+    if (pipeOutput) {
+        pipe(fd);
+    }
+
+    builtin_t* builtin = find_builtin(arguments[0]);
+    if (builtin != NULL) {
+        int result;
+        if (pipeOutput) {
+            builtin->cb(pipein, fd[1], get_argument_count(), arguments);
+            result = fd[0];
+            close(fd[1]);
+        } else {
+            result = builtin->cb(pipein, 1, get_argument_count(), arguments);
+        }
+
+        if (pipein > 0) {
+            close(pipein);
+        }
+
+        return result;
+    }
 
     int pid = fork();
     if (pid == 0) {
-        // make stdout = write end of pipe
-        dup2(fd[1], 1);
-        // close read end of pipe
-        close(fd[0]);
+        if (pipeOutput) {
+            // make stdout = write end of pipe
+            dup2(fd[1], 1);
+            // close read end of pipe
+            close(fd[0]);
+        }
 
         // if there is a pipe supplied, use that as stdin
         if (pipein > 0) {
             dup2(pipein, 0);
         }
 
-        // and start process like this
-        return execve(argument_buffer[0], argument_buffer + 1, NULL);
+        const char* dest = find_in_path(arguments[0]);
+        if (dest == NULL) {
+            fprintf(stderr, "%s: command not found\n", arguments[0]);
+            exit(-1);
+        }
+        int status = execve(dest, arguments + 1, environ);
+        if (status < 0) {
+            fprintf(stderr, "%s: executing failed\n", arguments[0]);
+            exit(status);
+        }
     } else {
         if (pipein > 0) {
             close(pipein);
         }
 
-        // close write end of pipe
-        close(fd[1]);
+        if (pipeOutput) {
+            // close write end of pipe
+            close(fd[1]);
 
-        // return read end of pipe
-        return fd[0];
-    }
-}
-
-int do_next_command(void)
-{
-    token next_token;
-    int status = 0;
-    int pipe = 0;
-
-    while (1) {
-        next_token = get_next_token();
-
-        if (next_token == STRING) {
-            add_token_to_argument_buffer();
-        } else if (next_token == EOL) {
-            if (argument_buffer_index > 0) {
-                status = run_command(pipe);
-                pipe = 0;
-                free_argument_buffer();
-                break;
-            } else if (pipe > 0) {
-                continue;
-            } else {
-                break;
+            if (blocking) {
+                int status;
+                while (wait(&status) != pid);
             }
-        } else if (next_token == PIPE) {
-            pipe = run_command_with_pipe(pipe);
-            free_argument_buffer();
-        } else if (next_token == SEMICOLON) {
-            status = run_command(pipe);
-            pipe = 0;
-            free_argument_buffer();
-        } else if (next_token == SUBPROCESS) {
-            run_command_no_wait(pipe);
-            pipe = 0;
-            free_argument_buffer();
-        } else if (next_token == AND) {
-            if (status == 0) {
-                status = run_command(pipe);
-                pipe = 0;
-            }
-            free_argument_buffer();
-        } else if (next_token == OR) {
-            int status2 = run_command(pipe);
-            pipe = 0;
-            free_argument_buffer();
 
-            if (status == 0) {
-                status = status2;
-            }
+            // return read end of pipe
+            return fd[0];
+        } else if (blocking) {
+            int status;
+            while (wait(&status) != pid);
+            return status;
+        } else {
+            return 0;
         }
     }
 
-    if (pipe != 0) {
-        close(pipe);
-    }
-
-    return status;
+    return -1;
 }
+
 
 void print_prompt(void)
 {
@@ -262,12 +139,20 @@ void print_prompt(void)
     fflush(stdout);
 }
 
+
+void prepare_env(void)
+{
+    char cwd[1024];
+    getcwd(cwd, sizeof(cwd));
+    setenv("PATH", cwd, 1);
+}
+
+
 int main(int argc, char** argv)
 {
     printf("Welcome to the Ollios Shell!\n");
 
-    memset(token_buffer, 0, sizeof(token_buffer));
-    memset(argument_buffer, 0, sizeof(argument_buffer));
+    prepare_env();
 
     while (1) {
         print_prompt();
