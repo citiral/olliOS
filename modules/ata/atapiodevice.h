@@ -12,17 +12,14 @@ namespace ata {
 
 class AtaPioDevice: public AtaDevice {
 public:
-    AtaPioDevice(fs::File* ata, u16 port, unsigned short* data, int device);
+    AtaPioDevice(fs::File* ata, AtaChannel* channel, AtaDrive drive, unsigned short* identify_data, u32 deviceId);
     ~AtaPioDevice();
 
-    size_t write(const void* data, size_t amount);
-    size_t write(const void* data);
-    size_t write(char data);
-    size_t read(void* data, size_t amount);
-    size_t seek(i32 offset, int position);
+    virtual size_t write(const void* data, size_t amount, size_t offset);
+    virtual size_t read(void* data, size_t amount, size_t offset);
 
 private:
-	u8 getStatus();
+	/*u8 getStatus();
 	void flush();
 	void prepareRW(size_t lba, size_t sectors);
 	void waitBSYUnsetPoll();
@@ -40,7 +37,7 @@ private:
 	// Turn a byte address to a LBA address
 	size_t toLBA(size_t address);
 
-	size_t _pointer = 0;
+	size_t _pointer = 0;*/
 };
 
 }

@@ -19,11 +19,6 @@ public:
 
     virtual size_t write(const void* data, size_t amount, size_t offset);
     virtual size_t read(void* data, size_t amount, size_t offset);
-
-private:
-    void waitForBusy();
-    void waitForInterrupt();
-    bool waitForDataOrError();
 };
 
 }

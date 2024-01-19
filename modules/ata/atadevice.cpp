@@ -93,7 +93,7 @@ ATADeviceFileHandle::ATADeviceFileHandle(ata::AtaDevice* ata): _ata(ata)
 
 i32 ATADeviceFileHandle::write(const void* buffer, size_t size, size_t pos)
 {
-	return -1;
+	return _ata->write(buffer, size, pos);
 }
 
 i32 ATADeviceFileHandle::read(void* buffer, size_t size, size_t pos)
@@ -137,6 +137,63 @@ fs::File* ATADeviceFile::create(const char* name, u32 flags)
 fs::File* ATADeviceFile::bind(fs::File* child)
 {
 	return nullptr;
+}
+
+void AtaDevice::waitForBusy()
+{
+    while (channel->read_u8(drive, AtaRegister::Status) & BIT_STATUS_BSY) {
+        if (!threading::is_current_core_in_thread()) {
+            threading::exit();
+        } else {
+	        asm volatile ("pause");
+        }
+    }
+}
+
+bool AtaDevice::waitForDataOrError()
+{
+    u8 status;
+    while ((status = (channel->read_u8(drive, AtaRegister::Status)) & (BIT_STATUS_ERR | BIT_STATUS_DRQ)) == 0) {
+        if (!threading::is_current_core_in_thread()) {
+            threading::exit();
+        } else {
+	        asm volatile ("pause");
+        }
+    }
+
+    return (status & BIT_STATUS_DRQ) && !(status & BIT_STATUS_ERR);
+}
+
+bool AtaDevice::waitForNoDataOrError()
+{
+    u8 status;
+    while (true)
+    {
+        status = channel->read_u8(drive, AtaRegister::Status);
+        if ((status & BIT_STATUS_DRQ) == 0 || (status & BIT_STATUS_ERR) != 0) {
+            break;
+        }
+
+        if (!threading::is_current_core_in_thread()) {
+            threading::exit();
+        } else {
+	        asm volatile ("pause");
+        }
+    }
+
+    return (status & BIT_STATUS_DRQ) && !(status & BIT_STATUS_ERR);
+}
+
+void AtaDevice::waitForInterrupt()
+{
+    while (!channel->interrupted) {
+        if (!threading::is_current_core_in_thread()) {
+            threading::exit();
+        } else {
+	        asm volatile ("pause");
+        }
+    }
+    channel->interrupted = false;
 }
 
 }

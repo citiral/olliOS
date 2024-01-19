@@ -4,6 +4,7 @@
 
 #include "ata.h"
 #include "atapacketdevice.h"
+#include "atapiodevice.h"
 #include "cdefs.h"
 #include "cpu/io.h"
 #include "cpu/interrupt.h"
@@ -136,7 +137,6 @@ AtaDevice* AtaDriver::detect_device(AtaChannel* channel, AtaDrive drive)
 	// If it is 0 there is no drive here.
 	// BIT_STATUS_DF will be high if there is a fault with the drive (if I read the specs correctly)
 	if (status == 0 || (status & BIT_STATUS_DF)) {
-        //printf("Drive returned error.\n");
 		return nullptr;
     }
 
@@ -150,7 +150,9 @@ AtaDevice* AtaDriver::detect_device(AtaChannel* channel, AtaDrive drive)
     u8 lba1 = channel->read_u8(drive, AtaRegister::Lba1);
     u8 lba2 = channel->read_u8(drive, AtaRegister::Lba2);
 
-    if (seccount == 1 && lba0 == 1 && lba1 == 0x14 && lba2 == 0xEB) {    
+    printf("Device signature channel [%X] drive [%d]: %X %X\n", channel->base, drive, lba1, lba2);
+
+    if ((seccount == 1 && lba0 == 1 && lba1 == 0x14 && lba2 == 0xEB) || (lba1 == 0 && lba2 == 0)) {
         // Packet devices require another Identifyt packet drive command
         channel->write_u8(drive, AtaRegister::Command, AtaCommand::IdentifyPacketDrive);
         for (volatile int i = 0 ; i < 10000000; i++);
@@ -171,11 +173,11 @@ AtaDevice* AtaDriver::detect_device(AtaChannel* channel, AtaDrive drive)
         data[47] = 0;
 
         // register it to the devicemanager
-        return new AtaPacketDevice(file, channel, drive, data, _foundDeviceCount++);
-
-    } else if (seccount == 1 && lba0 == 1 && lba1 == 0 && lba2 == 0) {
-        printf("Device is pio device.. however unimplemented for now.\n");
-        return nullptr;
+        if (seccount == 1 && lba0 == 1 && lba1 == 0x14 && lba2 == 0xEB) {
+            return new AtaPacketDevice(file, channel, drive, data, _foundDeviceCount++);
+        } else {
+            return new AtaPioDevice(file, channel, drive, data, _foundDeviceCount++);
+        }
     } else {
         return nullptr;
     }

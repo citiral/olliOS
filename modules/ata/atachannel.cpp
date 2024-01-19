@@ -68,9 +68,9 @@ void AtaChannel::select_drive(AtaDrive drive)
         _selected_drive = drive;
         
         if (drive == AtaDrive::Master) {
-            outb(base + AtaRegister::Hddevsel, 0b10100000);
+            outb(base + AtaRegister::Hddevsel, 0b11100000);
         } else {
-            outb(base + AtaRegister::Hddevsel, 0b10110000);
+            outb(base + AtaRegister::Hddevsel, 0b11110000);
         }
 
 		// waste a bit of time to make sure the drive select has gone through

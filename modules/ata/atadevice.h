@@ -30,6 +30,11 @@ protected:
 	unsigned short* _identify_data;
 	size_t _bytesPerSector = 512;
 	fs::File* file;
+	
+    void waitForBusy();
+    void waitForInterrupt();
+    bool waitForDataOrError();
+    bool waitForNoDataOrError();
 
 private:
 	void readName();
